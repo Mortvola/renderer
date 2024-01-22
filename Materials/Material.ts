@@ -28,6 +28,7 @@ class Material implements MaterialInterface {
     bitmaps: ImageBitmap[],
     uniforms: StructuredView | null,
     uniformValues: Record<string, unknown> | null,
+    fromGraph: boolean,
   ) {
     this.pipeline = pipeline;
 
@@ -44,7 +45,7 @@ class Material implements MaterialInterface {
       this.color[3] = 1.0;  
     }
 
-    if (bitmaps.length > 0) {
+    if (fromGraph) {
       const textures: GPUTexture[] = [];
 
       for (const bitmap of bitmaps) {
@@ -71,12 +72,16 @@ class Material implements MaterialInterface {
         usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
       });
 
-      let entries: GPUBindGroupEntry[] = [
-        { binding: 0, resource: gpu.device.createSampler() },
-        ...textures.map((texture, index) => ({
-          binding: 1 + index, resource: texture.createView(),
-        })),
-      ]
+      let entries: GPUBindGroupEntry[] = [];
+
+      if (textures.length > 0) {
+        entries = [
+          { binding: 0, resource: gpu.device.createSampler() },
+          ...textures.map((texture, index) => ({
+            binding: 1 + index, resource: texture.createView(),
+          })),
+        ]
+      }
 
       if (uniforms && uniformValues) {
         this.uniformsBuffer = gpu.device.createBuffer({
@@ -118,7 +123,7 @@ class Material implements MaterialInterface {
   }
 
   static async create(materialDescriptor: MaterialDescriptor): Promise<Material> {
-    const [pipeline, bindGroupLayout, properties, uniforms, uniformValues] = pipelineManager.getPipelineByArgs(materialDescriptor)
+    const [pipeline, bindGroupLayout, properties, uniforms, uniformValues, fromGraph] = pipelineManager.getPipelineByArgs(materialDescriptor)
 
     let bitmap: ImageBitmap[] = [];
 
@@ -151,7 +156,7 @@ class Material implements MaterialInterface {
       }
     }
 
-    return new Material(materialDescriptor, pipeline, bindGroupLayout, bitmap, uniforms, uniformValues);
+    return new Material(materialDescriptor, pipeline, bindGroupLayout, bitmap, uniforms, uniformValues, fromGraph);
   }
 
   addDrawable(drawableNode: DrawableNodeInterface): void {
