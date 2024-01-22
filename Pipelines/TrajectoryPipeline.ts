@@ -42,7 +42,6 @@ class TrajectoryPipeline extends Pipeline {
         bindGroupLayouts: [
           bindGroups.getBindGroupLayout0(),
           bindGroups.getBindGroupLayout1(),
-          bindGroups.getBindGroupLayout2(),
           bindGroups.getBindGroupLayout3(),
         ],
       }),

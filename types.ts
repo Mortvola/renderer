@@ -18,8 +18,6 @@ export interface RenderPassInterface {
 export interface WorldInterface {
   scene: ContainerNodeInterface;
 
-  animate: boolean;
-
   mainRenderPass: RenderPassInterface;
 }
 

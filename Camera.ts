@@ -34,6 +34,16 @@ class Camera {
 
   moveCameraStartTime: number | null = null;
 
+  constructor(offset?: number, position?: Vec4) {
+    if (offset) {
+      this.offset = offset;
+    }
+
+    if (position) {
+      this.position = position;
+    }
+  }
+
   updatePosition(elapsedTime: number, timestamp: number) {
     if (this.moveCameraTo !== null && this.moveCameraStartTime === null) {
       this.moveCameraStartTime = timestamp;
