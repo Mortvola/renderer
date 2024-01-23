@@ -3,7 +3,8 @@ export type DataType = 'float' | 'vec2f' | 'vec3f' | 'vec4f' | 'texture2D' | 'sa
 export type NodeType =
   'property' | 'value'
   | 'uv' | 'time'  | 'time'
-  | 'Add' | 'display' | 'Fraction' | 'Multiply' | 'SampleTexture' | 'TileAndScroll';
+  | 'Add' | 'display' | 'Fraction' | 'Multiply' | 'SampleTexture' | 'TileAndScroll'
+  | 'PhongShading';
 
 export type SamplerDescriptor = {};
 

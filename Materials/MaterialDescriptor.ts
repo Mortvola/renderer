@@ -20,6 +20,8 @@ export type MaterialDescriptor = {
 
   depthWriteEnabled?: boolean,
 
+  lit?: boolean,
+
   properties?: { name: string, dataType: DataType, value: ValueType }[],
 
   graph?: GraphDescriptor,

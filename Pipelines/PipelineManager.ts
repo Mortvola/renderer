@@ -30,6 +30,7 @@ type PipelineMapEntry = {
   properties: Property[],
   uniforms: StructuredView | null,
   uniformValues: Record<string, unknown> | null,
+  fromGraph: boolean,
 }
 
 class PipelineManager implements PipelineManagerInterface {
@@ -101,7 +102,7 @@ class PipelineManager implements PipelineManagerInterface {
         pipelineEntry.properties,
         pipelineEntry.uniforms,
         pipelineEntry.uniformValues,
-        fromGraph,
+        pipelineEntry.fromGraph,
       ];
     }
 
@@ -110,7 +111,7 @@ class PipelineManager implements PipelineManagerInterface {
     if (!materialDescriptor.graph) {
       pipeline = this.getPipeline(materialDescriptor.type)!
 
-      this.pipelineMap.set(key, { pipeline, bindgroupLayout: null, properties: [], uniforms: null, uniformValues: null });
+      this.pipelineMap.set(key, { pipeline, bindgroupLayout: null, properties: [], uniforms: null, uniformValues: null, fromGraph: false });
     }
     else {
       fromGraph = true;
@@ -249,7 +250,7 @@ class PipelineManager implements PipelineManagerInterface {
       pipeline = new Pipeline();
       pipeline.pipeline = gpuPipeline;
 
-      this.pipelineMap.set(key, { pipeline, bindgroupLayout, properties, uniforms, uniformValues });
+      this.pipelineMap.set(key, { pipeline, bindgroupLayout, properties, uniforms, uniformValues, fromGraph });
     }
 
     console.log(`pipelines created: ${this.pipelineMap.size}`)

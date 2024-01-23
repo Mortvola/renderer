@@ -1,9 +1,7 @@
 import { gpu } from "../Gpu";
 import { MaterialDescriptor } from "../Materials/MaterialDescriptor";
 import { common } from "../shaders/common";
-import { textureAttributes } from "../shaders/textureAttributes";
-import { texturedCommon } from "../shaders/texturedCommon";
-import { texturedVertex } from "../shaders/texturedVertex";
+import { phongFunction } from "../shaders/phongFunction";
 import { GraphDescriptor, GraphStageDescriptor, PropertyDescriptor, ValueDescriptor } from "./GraphDescriptor";
 import GraphEdge from "./GraphEdge";
 import { setNextVarid } from "./GraphNode";
@@ -11,6 +9,7 @@ import Add from "./Nodes/Add";
 import Output from "./Nodes/Display";
 import Fraction from "./Nodes/Fraction";
 import Multiply from "./Nodes/Multiply";
+import PhongShading from "./Nodes/PhongShading";
 import SampleTexture from "./Nodes/SampleTexture";
 import TileAndScroll from "./Nodes/TileAndScroll";
 import Time from "./Nodes/Time";
@@ -88,6 +87,10 @@ export const buildStageGraph = (graphDescr: GraphStageDescriptor, properties: Pr
       case 'Add':
         node = new Add(nodeDescr.id);
         break;
+
+      case 'PhongShading':
+        node = new PhongShading(nodeDescr.id);
+        break;
   
       case 'value': {
         const vnode = nodeDescr as ValueDescriptor;
@@ -97,23 +100,6 @@ export const buildStageGraph = (graphDescr: GraphStageDescriptor, properties: Pr
         }
         else {
           node = new ValueNode(new Value(vnode.dataType, vnode.value), nodeDescr.id);
-
-        //   if (vnode.dataType === 'vec2f') {
-        //     const getLabel = (i: number) => (
-        //       i === 3 ? 'W' : String.fromCharCode('X'.charCodeAt(0) + i)
-        //     )
-          
-        //     for (let i = 0; i < 2; i += 1) {
-        //       node.inputPorts.push(
-        //         new InputPort(node, 'float', getLabel(i)),
-        //       )
-        //     }
-      
-        //     // for (let i = 0; i < node.inputPorts.length; i += 1) {
-        //     //   const f = new Float();
-        //     //   new GraphEdge(f.outputPort[0], node.inputPorts[i]);
-        //     // }  
-        // }
         }
     
         break;
@@ -298,7 +284,7 @@ const space = (dataType: DataType) => {
   return '';
 }
 
-export const generateShaderCode = (graph: ShaderGraph): [string, Property[], Record<string, unknown>] => {
+export const generateShaderCode = (graph: ShaderGraph, lit: boolean): [string, Property[], Record<string, unknown>] => {
   let body = '';
 
   let bindings = '';
@@ -346,16 +332,48 @@ export const generateShaderCode = (graph: ShaderGraph): [string, Property[], Rec
 
   return [
     `
-    ${texturedCommon}
+    struct Vertex {
+      @location(0) position: vec4f,
+      @location(1) normal: vec4f,
+      @location(2) texcoord: vec2f,
+    }
     
+    struct VertexOut {
+      @builtin(position) position : vec4f,
+      @location(0) texcoord: vec2f,
+      ${lit ? '@location(1) fragPos: vec4f,\n@location(2) normal: vec4f,' : ''}    
+    }
+        
     ${common}
   
-    ${texturedVertex}
+    @vertex
+    fn vs(
+      @builtin(instance_index) instanceIndex: u32,
+      vert: Vertex,
+    ) -> VertexOut
+    {
+      var output: VertexOut;
     
+      output.position = projectionMatrix * viewMatrix * modelMatrix[instanceIndex] * vert.position;
+      output.texcoord = vert.texcoord;
+    
+      ${lit
+        ? `
+        output.fragPos = viewMatrix * modelMatrix[0] * vert.position;
+        output.normal = viewMatrix * modelMatrix[0] * vert.normal;          
+        `
+        : ''
+      }
+    
+      return output;
+    }
+
     ${uniforms}
 
     ${bindings}
     
+    ${lit ? phongFunction : ''}
+
     @fragment
     fn fs(vertexOut: VertexOut) -> @location(0) vec4f
     {
@@ -378,7 +396,7 @@ export const generateMaterial = (materialDescriptor: MaterialDescriptor) => {
 
   const graph = buildGraph(materialDescriptor.graph!, props);
 
-  return generateShaderCode(graph);
+  return generateShaderCode(graph, materialDescriptor.lit ?? false);
 }
 
 export const generateShaderModule = (materialDescriptor: MaterialDescriptor): [GPUShaderModule, Property[], string, Record<string, unknown>] => {

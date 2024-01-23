@@ -1,5 +1,4 @@
 import { common } from './common';
-import { lights } from './lights';
 import { phongFragment } from './phongFragment';
 
 export const litShader = /*wgsl*/`

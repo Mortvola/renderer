@@ -74,6 +74,8 @@ class Material implements MaterialInterface {
 
       let entries: GPUBindGroupEntry[] = [];
 
+      let numBindings = 0;
+
       if (textures.length > 0) {
         entries = [
           { binding: 0, resource: gpu.device.createSampler() },
@@ -81,6 +83,8 @@ class Material implements MaterialInterface {
             binding: 1 + index, resource: texture.createView(),
           })),
         ]
+
+        numBindings += 1 + textures.length;
       }
 
       if (uniforms && uniformValues) {
@@ -91,7 +95,7 @@ class Material implements MaterialInterface {
         });  
 
         entries = entries.concat(
-          { binding: 1 + textures.length, resource: { buffer: this.uniformsBuffer }},
+          { binding: numBindings, resource: { buffer: this.uniformsBuffer }},
         )
 
         uniforms.set(uniformValues);
