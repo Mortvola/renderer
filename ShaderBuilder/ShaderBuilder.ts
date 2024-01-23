@@ -1,3 +1,4 @@
+import { StructuredView, makeShaderDataDefinitions, makeStructuredView } from "webgpu-utils";
 import { gpu } from "../Gpu";
 import { MaterialDescriptor } from "../Materials/MaterialDescriptor";
 import { common } from "../shaders/common";
@@ -385,7 +386,7 @@ export const generateShaderCode = (graph: ShaderGraph, lit: boolean): [string, P
   ]
 }
 
-export const generateMaterial = (materialDescriptor: MaterialDescriptor) => {
+export const generateShader = (materialDescriptor: MaterialDescriptor): [string, Property[], StructuredView, Record<string, unknown>] => {
   let props: Property[] = [];
 
   if (materialDescriptor.properties) {
@@ -396,18 +397,12 @@ export const generateMaterial = (materialDescriptor: MaterialDescriptor) => {
 
   const graph = buildGraph(materialDescriptor.graph!, props);
 
-  return generateShaderCode(graph, materialDescriptor.lit ?? false);
-}
+  const [code, properties, uniformValues] = generateShaderCode(graph, materialDescriptor.lit ?? false);
 
-export const generateShaderModule = (materialDescriptor: MaterialDescriptor): [GPUShaderModule, Property[], string, Record<string, unknown>] => {
-  const [code, properties, values] = generateMaterial(materialDescriptor);
-  
-  const shaderModule = gpu.device.createShaderModule({
-    label: 'custom shader',
-    code: code,
-  })
+  const defs = makeShaderDataDefinitions(code);
+  const uniforms = makeStructuredView(defs.structs.Properties);
 
-  return [shaderModule, properties, code, values];
+  return [code, properties, uniforms, uniformValues];
 }
 
 export const createDescriptor = (nodes: GraphNodeInterface[], edges: GraphEdgeInterface[]): GraphDescriptor => {

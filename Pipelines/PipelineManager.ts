@@ -3,7 +3,7 @@ import { bindGroups } from "../BindGroups";
 import { gpu } from "../Gpu";
 import { MaterialDescriptor } from "../Materials/MaterialDescriptor";
 import Property from "../ShaderBuilder/Property";
-import { generateShaderModule } from "../ShaderBuilder/ShaderBuilder";
+import { generateShader } from "../ShaderBuilder/ShaderBuilder";
 import { PropertyInterface } from "../ShaderBuilder/Types";
 import { litShader } from "../shaders/lit";
 import { PipelineInterface, PipelineManagerInterface } from "../types";
@@ -117,17 +117,14 @@ class PipelineManager implements PipelineManagerInterface {
       fromGraph = true;
 
       let vertexBufferLayout: GPUVertexBufferLayout[] = [];
+      let code = '';
 
-      const [shaderModule, props, code, values] = generateShaderModule(materialDescriptor);  
+      [code, properties, uniforms, uniformValues] = generateShader(materialDescriptor);  
 
-      properties = props;
-      uniformValues = values;
-
-      const defs = makeShaderDataDefinitions(code);
-      
-      if (defs.structs.Properties) {
-        uniforms = makeStructuredView(defs.structs.Properties);
-      }
+      const shaderModule = gpu.device.createShaderModule({
+        label: 'custom shader',
+        code: code,
+      })
 
       vertexBufferLayout = [
         {
@@ -187,7 +184,7 @@ class PipelineManager implements PipelineManagerInterface {
         };  
       }
 
-      const bindGroupDescriptor: GPUBindGroupLayoutDescriptor = {
+      const bindGroupLayoutDescriptor: GPUBindGroupLayoutDescriptor = {
         label: 'group2',
         entries: [
           ...properties.map((property, index) => ({
@@ -200,8 +197,8 @@ class PipelineManager implements PipelineManagerInterface {
       };
 
       if (uniforms) {
-        bindGroupDescriptor.entries = [
-          ...bindGroupDescriptor.entries,
+        bindGroupLayoutDescriptor.entries = [
+          ...bindGroupLayoutDescriptor.entries,
           {
             binding: properties.length,
             visibility: GPUShaderStage.FRAGMENT,
@@ -210,7 +207,7 @@ class PipelineManager implements PipelineManagerInterface {
         ]
       }
 
-      bindgroupLayout = gpu.device.createBindGroupLayout(bindGroupDescriptor);
+      bindgroupLayout = gpu.device.createBindGroupLayout(bindGroupLayoutDescriptor);
 
       const pipelineLayout = gpu.device.createPipelineLayout({
         bindGroupLayouts: [
