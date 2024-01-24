@@ -17,6 +17,7 @@ import { lineMaterial } from './Materials/Line';
 import { lights } from "./shaders/lights";
 import { gpu } from './Gpu';
 import { bindGroups } from './BindGroups';
+import { pipelineManager } from './Pipelines/PipelineManager';
 
 const requestPostAnimationFrame = (task: (timestamp: number) => void) => {
   requestAnimationFrame((timestamp: number) => {
@@ -83,6 +84,9 @@ class Renderer implements WorldInterface {
   }
 
   static async create() {
+    await gpu.ready();
+    await pipelineManager.ready();
+
     const cartesianAxes = await DrawableNode.create(new CartesianAxes(), lineMaterial)
     
     return new Renderer(bindGroups.getBindGroupLayout0(), cartesianAxes);
