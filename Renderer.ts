@@ -183,6 +183,10 @@ class Renderer implements WorldInterface {
     this.scene.addNode(node);
   }
 
+  removeSceneNode(node: SceneNodeInterface) {
+    this.scene.removeNode(node);
+  }
+
   updateFrame = async (timestamp: number) => {
     if (this.render) {
       if (timestamp !== this.previousTimestamp) {
