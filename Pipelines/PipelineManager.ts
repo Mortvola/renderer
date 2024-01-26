@@ -3,7 +3,6 @@ import { bindGroups } from "../BindGroups";
 import { gpu } from "../Gpu";
 import { MaterialDescriptor } from "../Materials/MaterialDescriptor";
 import Property from "../ShaderBuilder/Property";
-import { generateShaderModule } from "../ShaderBuilder/ShaderBuilder";
 import { PropertyInterface } from "../ShaderBuilder/Types";
 import { litShader } from "../shaders/lit";
 import { PipelineInterface, PipelineManagerInterface } from "../types";
@@ -14,6 +13,7 @@ import OutlinePipeline from "./OutlinePipeline";
 import Pipeline from "./Pipeline";
 // import ReticlePipeline from "./ReticlePipeline";
 import TrajectoryPipeline from "./TrajectoryPipeline";
+import { generateShaderModule } from "../ShaderBuilder/ShaderBuilder";
 
 export type PipelineType =
   'Lit' | 'pipeline' | 'Line' | 'billboard' | 'drag-handles' | 'Circle' | 'outline' | 'reticle' |
