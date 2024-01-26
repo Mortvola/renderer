@@ -5,6 +5,7 @@ import { gpu } from "../Gpu";
 import { pipelineManager } from "../Pipelines/PipelineManager";
 import { DrawableNodeInterface, MaterialInterface, PipelineInterface, maxInstances } from "../types";
 import { MaterialDescriptor } from "./MaterialDescriptor";
+import { PropertyInterface } from "../ShaderBuilder/Types";
 
 class Material implements MaterialInterface {
   pipeline: PipelineInterface | null = null;
@@ -12,6 +13,8 @@ class Material implements MaterialInterface {
   color = new Float32Array(4);
 
   uniformsBuffer: GPUBuffer | null = null;
+
+  propertiesStructure: StructuredView | null = null;
 
   colorBuffer: GPUBuffer;
 
@@ -26,8 +29,8 @@ class Material implements MaterialInterface {
     pipeline: PipelineInterface,
     bindGroupLayout: GPUBindGroupLayout | null,
     bitmaps: ImageBitmap[],
-    uniforms: StructuredView | null,
-    uniformValues: Record<string, unknown> | null,
+    properties: PropertyInterface[],
+    propertiesStructure: StructuredView | null,
     fromGraph: boolean,
   ) {
     this.pipeline = pipeline;
@@ -87,21 +90,21 @@ class Material implements MaterialInterface {
         numBindings += 1 + textures.length;
       }
 
-      if (uniforms && uniformValues) {
+      this.propertiesStructure = propertiesStructure;
+
+      if (this.propertiesStructure) {
         this.uniformsBuffer = gpu.device.createBuffer({
           label: 'uniforms',
-          size: uniforms.arrayBuffer.byteLength,
+          size: this.propertiesStructure.arrayBuffer.byteLength,
           usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
         });  
 
         entries = entries.concat(
           { binding: numBindings, resource: { buffer: this.uniformsBuffer }},
         )
-
-        uniforms.set(uniformValues);
-    
-        gpu.device.queue.writeBuffer(this.uniformsBuffer, 0, uniforms.arrayBuffer);    
       }
+
+      this.setPropertyValues(properties);
 
       this.bindGroup = gpu.device.createBindGroup({
         label: 'material',
@@ -127,7 +130,7 @@ class Material implements MaterialInterface {
   }
 
   static async create(materialDescriptor: MaterialDescriptor): Promise<Material> {
-    const [pipeline, bindGroupLayout, properties, uniforms, uniformValues, fromGraph] = pipelineManager.getPipelineByArgs(materialDescriptor)
+    const [pipeline, bindGroupLayout, properties, propertiesStructure, fromGraph] = pipelineManager.getPipelineByArgs(materialDescriptor)
 
     let bitmap: ImageBitmap[] = [];
 
@@ -135,8 +138,12 @@ class Material implements MaterialInterface {
     for (const property of properties) {
       if (property.value.dataType === 'texture2D') {
         let url: string;
+
         if (typeof property.value.value === 'string') {
           url = property.value.value;
+        }
+        else if (typeof property.value.value === 'number') {
+          url = `/textures/${property.value.value}`
         }
         else {
           throw new Error('texture value is unknown type')
@@ -160,7 +167,25 @@ class Material implements MaterialInterface {
       }
     }
 
-    return new Material(materialDescriptor, pipeline, bindGroupLayout, bitmap, uniforms, uniformValues, fromGraph);
+    return new Material(materialDescriptor, pipeline, bindGroupLayout, bitmap, properties, propertiesStructure, fromGraph);
+  }
+
+  setPropertyValues(properties: PropertyInterface[]) {
+    if (this.uniformsBuffer && this.propertiesStructure) {
+      let values: Record<string, unknown> = {};
+
+      for (const property of properties) {
+        if (property.value.dataType !== 'sampler' && property.value.dataType !== 'texture2D') {
+          values = {
+            ...values,
+            [property.name]: property.value.value,
+          }
+        }
+      }
+  
+      this.propertiesStructure.set(values);
+      gpu.device.queue.writeBuffer(this.uniformsBuffer, 0, this.propertiesStructure.arrayBuffer);  
+    }
   }
 
   addDrawable(drawableNode: DrawableNodeInterface): void {

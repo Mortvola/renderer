@@ -1,4 +1,3 @@
-import { StructuredView, makeShaderDataDefinitions, makeStructuredView } from "webgpu-utils";
 import { gpu } from "../Gpu";
 import { MaterialDescriptor } from "../Materials/MaterialDescriptor";
 import { common } from "../shaders/common";
@@ -160,7 +159,7 @@ export const buildStageGraph = (graphDescr: GraphStageDescriptor, properties: Pr
   return { nodes, edges };
 }
 
-export const generateStageShaderCode = (graph: StageGraph): [string, Property[], Property[]] => {
+export const generateStageShaderCode = (graph: StageGraph): [string, Property[]] => {
   // Clear the node priorities
   for (const node of graph.nodes) {
     node.priority = null;
@@ -168,7 +167,6 @@ export const generateStageShaderCode = (graph: StageGraph): [string, Property[],
   }
 
   const properties: Property[] = [];
-  const uniformBindings: Property[] = [];
 
   // Find the output node
   const outputNode = graph.nodes.find((n) => n.type === 'display');
@@ -188,15 +186,8 @@ export const generateStageShaderCode = (graph: StageGraph): [string, Property[],
 
       if (node.type === 'property') {
         if (isPropertyNode(node)) {
-          if (node.property.value.dataType === 'texture2D' || node.property.value.dataType === 'sampler') {
-            if (!uniformBindings.some((p) => p === node.property)) {
-              uniformBindings.push(node.property);
-            }  
-          }
-          else {
-            if (!properties.some((p) => p === node.property)) {
-              properties.push(node.property);
-            }  
+          if (!properties.some((p) => p === node.property)) {
+            properties.push(node.property);
           }
         }
       }
@@ -206,7 +197,7 @@ export const generateStageShaderCode = (graph: StageGraph): [string, Property[],
         // create a property for that sampler descriptor.
         if (node.type === 'SampleTexture') {
           const sampleTexture = (node as SampleTexture);
-          const sampler = uniformBindings.find((p) => (
+          const sampler = properties.find((p) => (
             p.value.dataType === 'sampler'
             && JSON.stringify(p.value.value) === JSON.stringify(sampleTexture.sampler)
           ))
@@ -219,7 +210,7 @@ export const generateStageShaderCode = (graph: StageGraph): [string, Property[],
             // property binding list.
             const prop = new Property(`sampler${nextSamplerId}`, 'sampler', sampleTexture.sampler);
             nextSamplerId += 1;
-            uniformBindings.push(prop);
+            properties.push(prop);
             sampleTexture.samplerName = prop.name;
           }
         }
@@ -252,7 +243,7 @@ export const generateStageShaderCode = (graph: StageGraph): [string, Property[],
     body = text.concat(body);
   }
 
-  return [body, uniformBindings, properties];
+  return [body, properties];
 }
 
 export const buildGraph = (graphDescriptor: GraphDescriptor, properties: Property[]): ShaderGraph => {
@@ -285,40 +276,32 @@ const space = (dataType: DataType) => {
   return '';
 }
 
-export const generateShaderCode = (graph: ShaderGraph, lit: boolean): [string, Property[], Record<string, unknown>] => {
+export const generateShaderCode = (graph: ShaderGraph, lit: boolean): [string, Property[]] => {
   let body = '';
 
   let bindings = '';
   let uniforms = '';
-  let uniformValues: Record<string, unknown> = {};
   let numBindings = 0;
-  let uniformBindings: Property[] = [];
   let properties: Property[] = [];
 
   if (graph.fragment) {
-    [body, uniformBindings, properties] = generateStageShaderCode(graph.fragment);
+    [body, properties] = generateStageShaderCode(graph.fragment);
 
-    for (let i = 0; i < uniformBindings.length; i += 1) {
-      if (uniformBindings[i].value.dataType === 'texture2D' || uniformBindings[i].value.dataType === 'sampler') {
+    for (let i = 0; i < properties.length; i += 1) {
+      if (properties[i].value.dataType === 'texture2D' || properties[i].value.dataType === 'sampler') {
         bindings = bindings.concat(
-          `@group(2) @binding(${i}) var${space(uniformBindings[i].value.dataType)} ${uniformBindings[i].name}: ${bindingType(uniformBindings[i].value.dataType)};\n`
+          `@group(2) @binding(${numBindings}) var${space(properties[i].value.dataType)} ${properties[i].name}: ${bindingType(properties[i].value.dataType)};\n`
         )  
 
         numBindings += 1;
       }
-    }
-
-    for (let i = 0; i < properties.length; i += 1) {
-      uniforms = uniforms.concat(
-        `${properties[i].name}: ${bindingType(properties[i].value.dataType)},`
-      )
-
-      uniformValues = {
-        ...uniformValues,
-        [properties[i].name]: properties[i].value.value,
+      else {
+        uniforms = uniforms.concat(
+          `${properties[i].name}: ${bindingType(properties[i].value.dataType)},`
+        )  
       }
     }
-  
+
     console.log(body);
   }
 
@@ -381,12 +364,11 @@ export const generateShaderCode = (graph: ShaderGraph, lit: boolean): [string, P
       ${body}
     }
     `,
-    uniformBindings,
-    uniformValues,
+    properties,
   ]
 }
 
-export const generateShader = (materialDescriptor: MaterialDescriptor): [string, Property[], StructuredView, Record<string, unknown>] => {
+export const generateMaterial = (materialDescriptor: MaterialDescriptor): [string, Property[]] => {
   let props: Property[] = [];
 
   if (materialDescriptor.properties) {
@@ -397,12 +379,18 @@ export const generateShader = (materialDescriptor: MaterialDescriptor): [string,
 
   const graph = buildGraph(materialDescriptor.graph!, props);
 
-  const [code, properties, uniformValues] = generateShaderCode(graph, materialDescriptor.lit ?? false);
+  return  generateShaderCode(graph, materialDescriptor.lit ?? false);
+}
 
-  const defs = makeShaderDataDefinitions(code);
-  const uniforms = makeStructuredView(defs.structs.Properties);
+export const generateShaderModule = (materialDescriptor: MaterialDescriptor): [GPUShaderModule, Property[], string] => {
+  const [code, properties] = generateMaterial(materialDescriptor);
+  
+  const shaderModule = gpu.device.createShaderModule({
+    label: 'custom shader',
+    code: code,
+  })
 
-  return [code, properties, uniforms, uniformValues];
+  return [shaderModule, properties, code];
 }
 
 export const createDescriptor = (nodes: GraphNodeInterface[], edges: GraphEdgeInterface[]): GraphDescriptor => {

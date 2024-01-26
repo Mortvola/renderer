@@ -8,7 +8,7 @@ import Material from "../../Materials/Material";
 class DrawableNode extends SceneNode implements DrawableNodeInterface {
   drawable: DrawableInterface;
 
-  material: Material;
+  material: MaterialInterface;
 
   // pipelineArgs?: PipelineArgs;
 
