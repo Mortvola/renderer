@@ -1,7 +1,7 @@
 import { Vec4, mat4 } from 'wgpu-matrix';
 import DrawableInterface from "../DrawableInterface";
 import SceneNode from "./SceneNode";
-import { ContainerNodeInterface, SceneNodeInterface, WorldInterface } from '../../types';
+import { ContainerNodeInterface, SceneNodeInterface, RendererInterface } from '../../types';
 import { isDrawableNode } from './utils';
 
 export type HitTestResult = {
@@ -36,16 +36,16 @@ class ContainerNode extends SceneNode implements ContainerNodeInterface {
     }
   }
 
-  updateTransforms(mat = mat4.identity(), world: WorldInterface) {
+  updateTransforms(mat = mat4.identity(), renderer: RendererInterface) {
     const transform = this.computeTransform(mat);
     for (const drawable of this.nodes) {
       if (isDrawableNode(drawable)) {
         drawable.computeTransform(transform);
 
-        world.mainRenderPass.addDrawable(drawable);
+        renderer.mainRenderPass.addDrawable(drawable);
       }
       else if (isContainerNode(drawable)) {
-        drawable.updateTransforms(transform, world);
+        drawable.updateTransforms(transform, renderer);
       }
     }
   }

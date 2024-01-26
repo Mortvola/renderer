@@ -15,7 +15,7 @@ export interface RenderPassInterface {
   addDrawable(drawable: DrawableNodeInterface): void;
 }
 
-export interface WorldInterface {
+export interface RendererInterface {
   scene: ContainerNodeInterface;
 
   mainRenderPass: RenderPassInterface;

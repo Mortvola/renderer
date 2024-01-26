@@ -12,7 +12,7 @@ import Light, { isLight } from './Drawables/Light';
 import CartesianAxes from './Drawables/CartesianAxes';
 import DrawableNode from './Drawables/SceneNodes/DrawableNode';
 import SceneNode from './Drawables/SceneNodes/SceneNode';
-import { WorldInterface, SceneNodeInterface } from './types';
+import { SceneNodeInterface, RendererInterface } from './types';
 import { lineMaterial } from './Materials/Line';
 import { lights } from "./shaders/lights";
 import { gpu } from './Gpu';
@@ -35,7 +35,7 @@ type BindGroup = {
   buffer: GPUBuffer[],
 }
 
-class Renderer implements WorldInterface {
+class Renderer implements RendererInterface {
   initialized = false;
 
   frameBindGroup: BindGroup | null = null;
