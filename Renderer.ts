@@ -18,6 +18,7 @@ import { lights } from "./shaders/lights";
 import { gpu } from './Gpu';
 import { bindGroups } from './BindGroups';
 import { pipelineManager } from './Pipelines/PipelineManager';
+import TransparentRenderPass from './TransparentRenderPass';
 
 const requestPostAnimationFrame = (task: (timestamp: number) => void) => {
   requestAnimationFrame((timestamp: number) => {
@@ -63,6 +64,8 @@ class Renderer implements RendererInterface {
   scene = new ContainerNode();
 
   mainRenderPass = new RenderPass();
+
+  transparentPass = new TransparentRenderPass();
 
   lights: Light[] = [];
 
@@ -337,6 +340,8 @@ class Renderer implements RendererInterface {
 
     this.mainRenderPass.render(view, this.depthTextureView!, commandEncoder, this.frameBindGroup.bindGroup);
 
+    this.transparentPass.render(view, this.depthTextureView!, commandEncoder, this.frameBindGroup.bindGroup);
+    
     // if (this.selected.selection.length > 0) {
     //   // Transform camera position to world space.
     //   const origin = vec4.transformMat4(vec4.create(0, 0, 0, 1), this.camera.viewTransform);

@@ -19,6 +19,8 @@ export interface RendererInterface {
   scene: ContainerNodeInterface;
 
   mainRenderPass: RenderPassInterface;
+
+  transparentPass: RenderPassInterface;
 }
 
 export interface SceneNodeInterface {
@@ -55,6 +57,8 @@ export interface MaterialInterface {
   textureAttributesBuffer: GPUBuffer | null;
   
   bindGroup: GPUBindGroup;
+
+  transparent: boolean;
 
   addDrawable(drawableNode: DrawableNodeInterface): void;
 }

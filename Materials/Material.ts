@@ -24,6 +24,8 @@ class Material implements MaterialInterface {
 
   drawables: DrawableInterface[] = [];
 
+  transparent: boolean;
+
   private constructor(
     materialDescriptor: MaterialDescriptor,
     pipeline: PipelineInterface,
@@ -35,6 +37,8 @@ class Material implements MaterialInterface {
   ) {
     this.pipeline = pipeline;
 
+    this.transparent = materialDescriptor.transparent ?? false;
+    
     if (materialDescriptor.color) {
       this.color[0] = materialDescriptor.color[0];
       this.color[1] = materialDescriptor.color[1];
