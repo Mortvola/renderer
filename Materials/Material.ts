@@ -5,7 +5,7 @@ import { gpu } from "../Gpu";
 import { pipelineManager } from "../Pipelines/PipelineManager";
 import { DrawableNodeInterface, MaterialInterface, PipelineInterface, maxInstances } from "../types";
 import { MaterialDescriptor } from "./MaterialDescriptor";
-import { PropertyInterface } from "../ShaderBuilder/Types";
+import { PropertyInterface, ValueType } from "../ShaderBuilder/Types";
 
 class Material implements MaterialInterface {
   pipeline: PipelineInterface | null = null;
@@ -13,6 +13,8 @@ class Material implements MaterialInterface {
   color = new Float32Array(4);
 
   uniformsBuffer: GPUBuffer | null = null;
+
+  properties: PropertyInterface[] | null = null;
 
   propertiesStructure: StructuredView | null = null;
 
@@ -36,9 +38,9 @@ class Material implements MaterialInterface {
     fromGraph: boolean,
   ) {
     this.pipeline = pipeline;
-
-    this.transparent = materialDescriptor.transparent ?? false;
     
+    this.transparent = materialDescriptor.transparent ?? false;
+
     if (materialDescriptor.color) {
       this.color[0] = materialDescriptor.color[0];
       this.color[1] = materialDescriptor.color[1];
@@ -94,6 +96,7 @@ class Material implements MaterialInterface {
         numBindings += 1 + textures.length;
       }
 
+      this.properties = properties;
       this.propertiesStructure = propertiesStructure;
 
       if (this.propertiesStructure) {
@@ -178,6 +181,9 @@ class Material implements MaterialInterface {
     if (this.uniformsBuffer && this.propertiesStructure) {
       let values: Record<string, unknown> = {};
 
+      this.properties = properties;
+
+      // Extract the values from the properties and put them into an object
       for (const property of properties) {
         if (property.value.dataType !== 'sampler' && property.value.dataType !== 'texture2D') {
           values = {
@@ -186,7 +192,18 @@ class Material implements MaterialInterface {
           }
         }
       }
-  
+      
+      this.propertiesStructure.set(values);
+      gpu.device.queue.writeBuffer(this.uniformsBuffer, 0, this.propertiesStructure.arrayBuffer);  
+    }
+  }
+
+  updateProperty(name: string, value: ValueType): void {
+    if (this.uniformsBuffer && this.propertiesStructure) {
+      let values: Record<string, unknown> = {};
+
+      values[name] = value
+
       this.propertiesStructure.set(values);
       gpu.device.queue.writeBuffer(this.uniformsBuffer, 0, this.propertiesStructure.arrayBuffer);  
     }

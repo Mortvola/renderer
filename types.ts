@@ -1,7 +1,7 @@
 import { Vec3, Vec4, Mat4, Quat } from 'wgpu-matrix';
 import { StructuredView } from 'webgpu-utils';
 import DrawableInterface from './Drawables/DrawableInterface';
-import { PropertyInterface } from './ShaderBuilder/Types';
+import { PropertyInterface, ValueType } from './ShaderBuilder/Types';
 
 export const maxInstances = 16;
 
@@ -61,6 +61,8 @@ export interface MaterialInterface {
   transparent: boolean;
 
   addDrawable(drawableNode: DrawableNodeInterface): void;
+
+  updateProperty(name: string, value: ValueType): void;
 }
 
 export interface DrawableNodeInterface extends SceneNodeInterface {
