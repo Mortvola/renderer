@@ -19,6 +19,7 @@ import { gpu } from './Gpu';
 import { bindGroups } from './BindGroups';
 import { pipelineManager } from './Pipelines/PipelineManager';
 import TransparentRenderPass from './TransparentRenderPass';
+import { modelManager } from '../ModelManager';
 
 const requestPostAnimationFrame = (task: (timestamp: number) => void) => {
   requestAnimationFrame((timestamp: number) => {
@@ -71,7 +72,7 @@ class Renderer implements RendererInterface {
 
   reticlePosition = vec2.create(0, 0);
 
-  constructor(frameBindGroupLayout: GPUBindGroupLayout, cartesianAxes: DrawableNode, test?: SceneNode) {
+  constructor(frameBindGroupLayout: GPUBindGroupLayout, cartesianAxes: DrawableNode, test?: SceneNodeInterface) {
     this.createCameraBindGroups(frameBindGroupLayout);
 
     // this.reticle = reticle;

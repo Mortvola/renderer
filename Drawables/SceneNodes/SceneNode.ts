@@ -1,6 +1,5 @@
 import { mat4, vec3, Vec4, Mat4, quat, Quat } from 'wgpu-matrix';
 import { getEulerAngles } from '../../Math';
-import { isDrawableNode } from './utils';
 import { SceneNodeInterface } from '../../types';
 
 export const rotationOrder: quat.RotationOrder = 'xyz';
@@ -24,8 +23,6 @@ class SceneNode implements SceneNodeInterface {
 
   constructor() {
     this.angles = getEulerAngles(this.qRotate);
-  
-    this.computeTransform();
   }
 
   getTransform(): Mat4 {
@@ -54,7 +51,8 @@ class SceneNode implements SceneNodeInterface {
     this.angles = getEulerAngles(this.qRotate);
   }
 
-  computeTransform(transform = mat4.identity(), prepend = true): Mat4 {
+  computeTransform(transform = mat4.identity(), prepend = true) {
+    
     mat4.translate(transform, this.translate, this.transform);
     mat4.multiply(this.transform, this.getRotation(), this.transform);
     mat4.scale(this.transform, this.scale, this.transform);
@@ -62,12 +60,6 @@ class SceneNode implements SceneNodeInterface {
     for (const t of this.postTransforms) {
       mat4.multiply(this.transform, t, this.transform)
     }
-
-    if (isDrawableNode(this)) {
-      this.drawable.addInstanceTransform(this.transform);      
-    }
-
-    return this.transform;
   }
 
   computeCentroid(): Vec4 {

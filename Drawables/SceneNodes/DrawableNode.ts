@@ -1,4 +1,4 @@
-import { Vec4, mat4, vec4 } from "wgpu-matrix";
+import { Mat4, Vec4, mat4, vec4 } from "wgpu-matrix";
 import DrawableInterface from "../DrawableInterface";
 import SceneNode from "./SceneNode";
 import { DrawableNodeInterface, MaterialInterface } from "../../types";
@@ -10,13 +10,10 @@ class DrawableNode extends SceneNode implements DrawableNodeInterface {
 
   material: MaterialInterface;
 
-  // pipelineArgs?: PipelineArgs;
-
   private constructor(drawable: DrawableInterface, material: MaterialInterface) {
     super();
     this.drawable = drawable;
     this.material = material;
-    // this.pipelineArgs = pipelineArgs;
   }
 
   static async create(drawable: DrawableInterface, materialDescriptor: MaterialDescriptor): Promise<DrawableNode> {
@@ -42,6 +39,13 @@ class DrawableNode extends SceneNode implements DrawableNodeInterface {
 
     return null;
   }
+
+  computeTransform(transform = mat4.identity(), prepend = true): void {
+    super.computeTransform(transform, prepend);
+
+    this.drawable.addInstanceTransform(this.transform);
+  }
+
 }
 
 export default DrawableNode;
