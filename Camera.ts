@@ -102,6 +102,12 @@ class Camera {
     this.updateListener();
   }
 
+  changeOffset(delta: number) {
+    this.offset *= (1 + (delta / 16));
+
+    this.computeViewTransform();
+  }
+
   updateListener() {
     // const listener = audioContext.listener;
 

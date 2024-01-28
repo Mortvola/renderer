@@ -6,6 +6,12 @@ import { pipelineManager } from "../Pipelines/PipelineManager";
 import { DrawableNodeInterface, MaterialInterface, PipelineInterface, maxInstances } from "../types";
 import { MaterialDescriptor } from "./MaterialDescriptor";
 import { PropertyInterface, ValueType } from "../ShaderBuilder/Types";
+import Http from "../../Http/src";
+
+type Bitmap = {
+  image: ImageBitmap,
+  flipY: boolean,
+}
 
 class Material implements MaterialInterface {
   pipeline: PipelineInterface | null = null;
@@ -32,7 +38,7 @@ class Material implements MaterialInterface {
     materialDescriptor: MaterialDescriptor,
     pipeline: PipelineInterface,
     bindGroupLayout: GPUBindGroupLayout | null,
-    bitmaps: ImageBitmap[],
+    bitmaps: Bitmap[],
     properties: PropertyInterface[],
     propertiesStructure: StructuredView | null,
     fromGraph: boolean,
@@ -60,16 +66,16 @@ class Material implements MaterialInterface {
       for (const bitmap of bitmaps) {
         const texture = gpu.device.createTexture({
           format: 'rgba8unorm',
-          size: [bitmap.width, bitmap.height],
+          size: [bitmap.image.width, bitmap.image.height],
           usage: GPUTextureUsage.TEXTURE_BINDING |
                 GPUTextureUsage.COPY_DST |
                 GPUTextureUsage.RENDER_ATTACHMENT,
         });
     
         gpu.device.queue.copyExternalImageToTexture(
-          { source: bitmap },
+          { source: bitmap.image, flipY: bitmap.flipY },
           { texture },
-          { width: bitmap.width, height: bitmap.height },
+          { width: bitmap.image.width, height: bitmap.image.height },
         );
 
         textures.push(texture);
@@ -139,18 +145,25 @@ class Material implements MaterialInterface {
   static async create(materialDescriptor: MaterialDescriptor): Promise<Material> {
     const [pipeline, bindGroupLayout, properties, propertiesStructure, fromGraph] = pipelineManager.getPipelineByArgs(materialDescriptor)
 
-    let bitmap: ImageBitmap[] = [];
+    let bitmap: Bitmap[] = [];
 
     // Find textures in the properties
     for (const property of properties) {
       if (property.value.dataType === 'texture2D') {
         let url: string;
+        let flipY = false;
 
         if (typeof property.value.value === 'string') {
           url = property.value.value;
         }
         else if (typeof property.value.value === 'number') {
-          url = `/textures/${property.value.value}`
+          url = `/textures/${property.value.value}/file`
+
+          const response = await Http.get<{ flipY: boolean }>(`/textures/${property.value.value}`)
+
+          if (response.ok) {
+            flipY = (await response.body()).flipY;
+          }
         }
         else {
           throw new Error('texture value is unknown type')
@@ -161,7 +174,7 @@ class Material implements MaterialInterface {
         if (res.ok) {
           const blob = await res.blob();
           try {
-            bitmap.push(await createImageBitmap(blob, { colorSpaceConversion: 'none' }));  
+            bitmap.push({ image: await createImageBitmap(blob, { colorSpaceConversion: 'none' }), flipY, });  
           }
           catch (error) {
             console.log(error);
