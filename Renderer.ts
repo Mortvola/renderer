@@ -11,7 +11,6 @@ import RenderPass from './RenderPass';
 import Light, { isLight } from './Drawables/Light';
 import CartesianAxes from './Drawables/CartesianAxes';
 import DrawableNode from './Drawables/SceneNodes/DrawableNode';
-import SceneNode from './Drawables/SceneNodes/SceneNode';
 import { SceneNodeInterface, RendererInterface } from './types';
 import { lineMaterial } from './Materials/Line';
 import { lights } from "./shaders/lights";
@@ -19,7 +18,6 @@ import { gpu } from './Gpu';
 import { bindGroups } from './BindGroups';
 import { pipelineManager } from './Pipelines/PipelineManager';
 import TransparentRenderPass from './TransparentRenderPass';
-import { modelManager } from '../ModelManager';
 
 const requestPostAnimationFrame = (task: (timestamp: number) => void) => {
   requestAnimationFrame((timestamp: number) => {
