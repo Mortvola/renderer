@@ -1,3 +1,4 @@
+import { runInAction } from "mobx";
 import { GraphEdgeInterface, InputPortInterface, OutputPortInterface } from "./Types";
 
 class GraphEdge implements GraphEdgeInterface {
@@ -7,10 +8,13 @@ class GraphEdge implements GraphEdgeInterface {
 
   constructor(outputPort: OutputPortInterface, inputPort: InputPortInterface) {
     this.output = outputPort;
-    outputPort.edges.push(this);
 
     this.input = inputPort;
-    inputPort.edge = this;
+
+    runInAction(() => {
+      outputPort.edges.push(this);
+      inputPort.edge = this;
+    })
   }
 
   getVarName(): string {
