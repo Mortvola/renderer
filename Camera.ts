@@ -103,7 +103,7 @@ class Camera {
   }
 
   changeOffset(delta: number) {
-    this.offset += delta;
+    this.offset *= (1 + (delta / 16));
 
     this.computeViewTransform();
   }
