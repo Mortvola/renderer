@@ -6,11 +6,13 @@ import { GraphDescriptor, GraphStageDescriptor, PropertyDescriptor, ValueDescrip
 import GraphEdge from "./GraphEdge";
 import { setNextVarid } from "./GraphNode";
 import Add from "./Nodes/Add";
+import Combine from "./Nodes/Combine";
 import Output from "./Nodes/Display";
 import Fraction from "./Nodes/Fraction";
 import Multiply from "./Nodes/Multiply";
 import PhongShading from "./Nodes/PhongShading";
 import SampleTexture from "./Nodes/SampleTexture";
+import Split from "./Nodes/Split";
 import TileAndScroll from "./Nodes/TileAndScroll";
 import Time from "./Nodes/Time";
 import UV from "./Nodes/UV";
@@ -91,7 +93,15 @@ export const buildStageGraph = (graphDescr: GraphStageDescriptor, properties: Pr
       case 'PhongShading':
         node = new PhongShading(nodeDescr.id);
         break;
+
+      case 'Split':
+        node = new Split(nodeDescr.id);
+        break;
   
+      case 'Combine':
+        node = new Combine(nodeDescr.id);
+        break;
+      
       case 'value': {
         const vnode = nodeDescr as ValueDescriptor;
 
