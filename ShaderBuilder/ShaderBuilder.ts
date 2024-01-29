@@ -2,6 +2,7 @@ import { gpu } from "../Gpu";
 import { MaterialDescriptor } from "../Materials/MaterialDescriptor";
 import { common } from "../shaders/common";
 import { phongFunction } from "../shaders/phongFunction";
+import { twirlFunction } from '../shaders/twirlFunction';
 import { GraphDescriptor, GraphStageDescriptor, PropertyDescriptor, ValueDescriptor } from "./GraphDescriptor";
 import GraphEdge from "./GraphEdge";
 import { setNextVarid } from "./GraphNode";
@@ -15,6 +16,7 @@ import SampleTexture from "./Nodes/SampleTexture";
 import Split from "./Nodes/Split";
 import TileAndScroll from "./Nodes/TileAndScroll";
 import Time from "./Nodes/Time";
+import Twirl from "./Nodes/Twirl";
 import UV from "./Nodes/UV";
 import Vector from "./Nodes/Vector";
 import Property from "./Property";
@@ -102,6 +104,10 @@ export const buildStageGraph = (graphDescr: GraphStageDescriptor, properties: Pr
         node = new Combine(nodeDescr.id);
         break;
       
+      case 'Twirl':
+        node = new Twirl(nodeDescr.id);
+        break;
+        
       case 'value': {
         const vnode = nodeDescr as ValueDescriptor;
 
@@ -368,6 +374,8 @@ export const generateShaderCode = (graph: ShaderGraph, lit: boolean): [string, P
     
     ${lit ? phongFunction : ''}
 
+    ${twirlFunction}
+    
     @fragment
     fn fs(vertexOut: VertexOut) -> @location(0) vec4f
     {
