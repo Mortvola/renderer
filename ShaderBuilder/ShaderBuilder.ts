@@ -13,6 +13,7 @@ import Output from "./Nodes/Display";
 import Fraction from "./Nodes/Fraction";
 import Multiply from "./Nodes/Multiply";
 import PhongShading from "./Nodes/PhongShading";
+import Power from "./Nodes/Power";
 import SampleTexture from "./Nodes/SampleTexture";
 import Split from "./Nodes/Split";
 import TileAndScroll from "./Nodes/TileAndScroll";
@@ -105,7 +106,11 @@ export const buildStageGraph = (graphDescr: GraphStageDescriptor, properties: Pr
       case 'Combine':
         node = new Combine(nodeDescr.id);
         break;
-      
+
+      case 'Power':
+        node = new Power(nodeDescr.id);
+        break;
+  
       case 'Twirl':
         node = new Twirl(nodeDescr.id);
         break;

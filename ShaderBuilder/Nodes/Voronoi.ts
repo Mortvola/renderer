@@ -12,7 +12,7 @@ class Voronoi extends OperationNode {
     ];
 
     this.outputPort = [
-      new OutputPort(this, 'vec2f', 'uv'),
+      new OutputPort(this, 'float', 'result'),
     ]
   }
 
