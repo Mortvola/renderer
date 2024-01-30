@@ -3,6 +3,7 @@ import { MaterialDescriptor } from "../Materials/MaterialDescriptor";
 import { common } from "../shaders/common";
 import { phongFunction } from "../shaders/phongFunction";
 import { twirlFunction } from '../shaders/twirlFunction';
+import { voronoiFunction } from "../shaders/voronoiFunction";
 import { GraphDescriptor, GraphStageDescriptor, PropertyDescriptor, ValueDescriptor } from "./GraphDescriptor";
 import GraphEdge from "./GraphEdge";
 import { setNextVarid } from "./GraphNode";
@@ -19,6 +20,7 @@ import Time from "./Nodes/Time";
 import Twirl from "./Nodes/Twirl";
 import UV from "./Nodes/UV";
 import Vector from "./Nodes/Vector";
+import Voronoi from "./Nodes/Voronoi";
 import Property from "./Property";
 import PropertyNode from "./PropertyNode";
 import ShaderGraph from "./ShaderGraph";
@@ -107,7 +109,11 @@ export const buildStageGraph = (graphDescr: GraphStageDescriptor, properties: Pr
       case 'Twirl':
         node = new Twirl(nodeDescr.id);
         break;
-        
+
+      case 'Voronoi':
+        node = new Voronoi(nodeDescr.id);
+        break;
+  
       case 'value': {
         const vnode = nodeDescr as ValueDescriptor;
 
@@ -375,7 +381,9 @@ export const generateShaderCode = (graph: ShaderGraph, lit: boolean): [string, P
     ${lit ? phongFunction : ''}
 
     ${twirlFunction}
-    
+
+    ${voronoiFunction}
+
     @fragment
     fn fs(vertexOut: VertexOut) -> @location(0) vec4f
     {

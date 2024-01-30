@@ -4,7 +4,7 @@ export type NodeType =
   'property' | 'value'
   | 'uv' | 'time'  | 'time'
   | 'Add' | 'Combine' | 'display' | 'Fraction' | 'Multiply' | 'SampleTexture' | 'Split' | 'TileAndScroll'
-  | 'PhongShading' | 'Twirl';
+  | 'PhongShading' | 'Twirl' | 'Voronoi';
 
 export type SamplerDescriptor = {};
 

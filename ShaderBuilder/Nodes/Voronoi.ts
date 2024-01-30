@@ -2,14 +2,13 @@ import OperationNode from "../OperationNode";
 import InputPort from "../Ports/InputPort";
 import OutputPort from "../Ports/OutputPort";
 
-class Twirl extends OperationNode {
+class Voronoi extends OperationNode {
   constructor(id?: number) {
-    super('Twirl', 'Twirl', id)
+    super('Voronoi', 'Voronoi', id)
 
     this.inputPorts = [
       new InputPort(this, 'vec2f', 'uv'),
-      new InputPort(this, 'float', 'strength'),
-      new InputPort(this, 'vec2f', 'offset'),
+      new InputPort(this, 'float', 'density'),
     ];
 
     this.outputPort = [
@@ -19,11 +18,10 @@ class Twirl extends OperationNode {
 
   getExpression(): string {
     const uv = this.inputPorts[0].getValue();
-    const strength = this.inputPorts[1].getValue();
-    const offset = this.inputPorts[2].getValue();
+    const density = this.inputPorts[1].getValue();
 
-    return `twirl(${uv}, ${strength}, ${offset})`;
+    return `voronoi(${uv}, ${density})`;
   }
 }
 
-export default Twirl;
+export default Voronoi;
