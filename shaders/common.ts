@@ -10,5 +10,5 @@ ${lights}
 @group(0) @binding(4) var<storage> pointLights: Lights;
 @group(0) @binding(5) var<uniform> time: f32;
 
-@group(1) @binding(0) var<uniform> modelMatrix: array<mat4x4f, 16>;
+@group(1) @binding(0) var<uniform> modelMatrix: array<mat4x4f, 256>;
 `

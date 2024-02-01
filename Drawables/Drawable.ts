@@ -17,7 +17,7 @@ class Drawable implements DrawableInterface {
 
   // colorBuffer: GPUBuffer;
 
-  modelMatrices: Float32Array = new Float32Array(16 * maxInstances);
+  modelMatrices: Float32Array = new Float32Array(256 * maxInstances);
 
   numInstances = 0;
 
@@ -41,7 +41,7 @@ class Drawable implements DrawableInterface {
 
     this.modelMatrixBuffer = gpu.device.createBuffer({
       label: 'model Matrix',
-      size: 16 * Float32Array.BYTES_PER_ELEMENT * maxInstances,
+      size: 256 * Float32Array.BYTES_PER_ELEMENT * maxInstances,
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
     });
 

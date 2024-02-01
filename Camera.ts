@@ -80,8 +80,9 @@ class Camera {
     this.computeViewTransform();
   }
 
-  changeRotation(deltaX: number) {
+  changeRotation(deltaX: number, deltaY: number) {
     this.rotateY = normalizeDegrees(this.rotateY + deltaX);
+    this.rotateX = normalizeDegrees(this.rotateX + deltaY);
 
     this.computeViewTransform();
   }

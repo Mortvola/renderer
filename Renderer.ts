@@ -11,7 +11,7 @@ import RenderPass from './RenderPass';
 import Light, { isLight } from './Drawables/Light';
 import CartesianAxes from './Drawables/CartesianAxes';
 import DrawableNode from './Drawables/SceneNodes/DrawableNode';
-import { SceneNodeInterface, RendererInterface } from './types';
+import { SceneNodeInterface, RendererInterface, ParticleSystemInterface } from './types';
 import { lineMaterial } from './Materials/Line';
 import { lights } from "./shaders/lights";
 import { gpu } from './Gpu';
@@ -69,6 +69,8 @@ class Renderer implements RendererInterface {
   lights: Light[] = [];
 
   reticlePosition = vec2.create(0, 0);
+
+  particleSystems: ParticleSystemInterface[] = [];
 
   constructor(frameBindGroupLayout: GPUBindGroupLayout, cartesianAxes: DrawableNode, test?: SceneNodeInterface) {
     this.createCameraBindGroups(frameBindGroupLayout);
@@ -211,6 +213,10 @@ class Renderer implements RendererInterface {
         if (this.previousTimestamp !== null) {
           // Get elapsed time in seconds.
           const elapsedTime = (timestamp - this.previousTimestamp) * 0.001;
+
+          for (const particleSystem of this.particleSystems) {
+            particleSystem.update(timestamp, elapsedTime, this.scene)
+          }
 
           this.camera.updatePosition(elapsedTime, timestamp);
         }
@@ -381,6 +387,25 @@ class Renderer implements RendererInterface {
   zoomIn() {
     this.camera.offset -= 1;
     this.camera.rotateX += 1;
+  }
+
+  addParticleSystem(particleSystem: ParticleSystemInterface): void {
+    if (!this.particleSystems.some((p) => p === particleSystem)) {
+      this.particleSystems.push(particleSystem)
+    }
+  }
+
+  removeParticleSystem(particleSystem: ParticleSystemInterface): void {
+    const index = this.particleSystems.findIndex((p) => p === particleSystem)
+
+    if (index !== -1) {
+      this.particleSystems[index].removePoints(this.scene)
+
+      this.particleSystems = [
+        ...this.particleSystems.slice(0, index),
+        ...this.particleSystems.slice(index + 1),
+      ]
+    }
   }
 }
 

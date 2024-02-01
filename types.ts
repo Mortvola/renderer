@@ -21,6 +21,8 @@ export interface RendererInterface {
   mainRenderPass: RenderPassInterface;
 
   transparentPass: RenderPassInterface;
+
+  addParticleSystem(particleSystem: ParticleSystemInterface): void;
 }
 
 export interface SceneNodeInterface {
@@ -94,4 +96,12 @@ export interface PipelineManagerInterface {
   getPipelineByArgs(
     args: PipelineAttributes,
   ): [PipelineInterface, GPUBindGroupLayout | null, PropertyInterface[], StructuredView | null, boolean];
+}
+
+export interface ParticleSystemInterface {
+  angle: number
+
+  update(time: number, elapsedTime: number, scene: ContainerNodeInterface): Promise<void>
+
+  removePoints(scene: ContainerNodeInterface): void
 }
