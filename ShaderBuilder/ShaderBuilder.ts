@@ -11,11 +11,13 @@ import Add from "./Nodes/Add";
 import Combine from "./Nodes/Combine";
 import Output from "./Nodes/Display";
 import Fraction from "./Nodes/Fraction";
+import Lerp from "./Nodes/Lerp";
 import Multiply from "./Nodes/Multiply";
 import PhongShading from "./Nodes/PhongShading";
 import Power from "./Nodes/Power";
 import SampleTexture from "./Nodes/SampleTexture";
 import Split from "./Nodes/Split";
+import Subtract from "./Nodes/Subtract";
 import TileAndScroll from "./Nodes/TileAndScroll";
 import Time from "./Nodes/Time";
 import Twirl from "./Nodes/Twirl";
@@ -118,7 +120,15 @@ export const buildStageGraph = (graphDescr: GraphStageDescriptor, properties: Pr
       case 'Voronoi':
         node = new Voronoi(nodeDescr.id);
         break;
-  
+
+      case 'Lerp':
+        node = new Lerp(nodeDescr.id);
+        break;
+
+      case 'Subtract':
+        node = new Subtract(nodeDescr.id);
+        break;
+      
       case 'value': {
         const vnode = nodeDescr as ValueDescriptor;
 
@@ -147,7 +157,12 @@ export const buildStageGraph = (graphDescr: GraphStageDescriptor, properties: Pr
               case 'vec3f':
               case 'vec4f':
                 if (Array.isArray(portValue.value)) {
+                  const originalLength = portValue.value.length;
                   portValue.value.length = getLength(port.dataType)
+
+                  for (let i = originalLength; i < portValue.value.length; i += 1) {
+                    portValue.value[i] = 0;
+                  }
                 }
     
                 port.value = new Value(port.dataType, portValue.value)
