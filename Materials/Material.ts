@@ -65,18 +65,27 @@ class Material implements MaterialInterface {
       });
 
       let entries: GPUBindGroupEntry[] = [];
-
       let numBindings = 0;
+      let textureIndex = 0
 
-      if (textures.length > 0) {
-        entries = [
-          { binding: 0, resource: gpu.device.createSampler() },
-          ...textures.map((texture, index) => ({
-            binding: 1 + index, resource: texture.createView(),
-          })),
-        ]
+      // Set up the bind group entries for the samplers and textures.
+      for (const property of properties) {
+        if (property.value.dataType === 'sampler') {
+          entries.push({
+            binding: numBindings,
+            resource: gpu.device.createSampler(property.value.value as GPUSamplerDescriptor)
+          })
 
-        numBindings += 1 + textures.length;
+          numBindings += 1
+        }
+        else if (property.value.dataType === 'texture2D') {
+          entries.push({
+            binding: numBindings, resource: textures[textureIndex].createView(),
+          })
+
+          textureIndex += 1
+          numBindings += 1
+        }
       }
 
       this.properties = properties;

@@ -14,7 +14,8 @@ export type GraphNodeDescriptor = {
   y?: number,
   id: number,
   type: NodeType,
-  portValues?: PortValueDescriptor[], 
+  portValues?: PortValueDescriptor[],
+  settings?: Record<string, unknown>,
 }
 
 export type PropertyDescriptor = GraphNodeDescriptor & {

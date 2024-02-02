@@ -3,6 +3,7 @@ import GraphNode from "./GraphNode";
 import OutputPort from "./Ports/OutputPort";
 import { PropertyNodeInterface } from "./Types";
 import Property from "./Property";
+import { PropertyDescriptor } from "./GraphDescriptor";
 
 class PropertyNode extends GraphNode implements PropertyNodeInterface {
   property: Property;
@@ -18,6 +19,16 @@ class PropertyNode extends GraphNode implements PropertyNodeInterface {
 
     makeObservable(this, {
       property: observable,
+    })
+  }
+
+  createDescriptor(): PropertyDescriptor {
+    return ({
+      id: this.id,
+      name: this.property.name,
+      type: this.type,  
+      x: this.position?.x,
+      y: this.position?.y,
     })
   }
 

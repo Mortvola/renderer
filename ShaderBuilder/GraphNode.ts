@@ -2,6 +2,7 @@ import { makeObservable, observable, runInAction } from "mobx";
 import { GraphNodeInterface, NodeType } from "./Types";
 import InputPort from "./Ports/InputPort";
 import OutputPort from "./Ports/OutputPort";
+import { GraphNodeDescriptor } from "./GraphDescriptor";
 
 export let nextVarId = 0;
 
@@ -43,6 +44,18 @@ class GraphNode implements GraphNodeInterface {
     makeObservable(this, {
       position: observable,
     });
+  }
+
+  createDescriptor(): GraphNodeDescriptor {
+    return ({
+      id: this.id,
+      type: this.type,
+      x: this.position?.x,
+      y: this.position?.y,
+      portValues: this.inputPorts
+        .filter((p) => !p.edge && p.value)
+        .map((p) => ({ port: p.name, value: p.value!.value })),
+    })
   }
 
   getNumOutputEdges(): number {

@@ -55,7 +55,7 @@ export const buildStageGraph = (graphDescr: GraphStageDescriptor, properties: Pr
 
     switch (nodeDescr.type) {
       case 'SampleTexture':
-        node = new SampleTexture(nodeDescr.id)
+        node = new SampleTexture(nodeDescr)
         break;
 
       case 'property': 
@@ -241,7 +241,7 @@ export const generateStageShaderCode = (graph: StageGraph): [string, Property[]]
           const sampleTexture = (node as SampleTexture);
           const sampler = properties.find((p) => (
             p.value.dataType === 'sampler'
-            && JSON.stringify(p.value.value) === JSON.stringify(sampleTexture.sampler)
+            && JSON.stringify(p.value.value) === JSON.stringify(sampleTexture.settings)
           ))
 
           if (sampler) {
@@ -250,7 +250,7 @@ export const generateStageShaderCode = (graph: StageGraph): [string, Property[]]
           else {
             // Property was not found. Create a new property and add it to the
             // property binding list.
-            const prop = new Property(`sampler${nextSamplerId}`, 'sampler', sampleTexture.sampler);
+            const prop = new Property(`sampler${nextSamplerId}`, 'sampler', sampleTexture.settings);
             nextSamplerId += 1;
             properties.push(prop);
             sampleTexture.samplerName = prop.name;
@@ -447,38 +447,7 @@ export const createDescriptor = (nodes: GraphNodeInterface[], edges: GraphEdgeIn
     },
 
     fragment: {
-      nodes: nodes.map((n) => {
-        if (isPropertyNode(n)) {
-          return ({
-            id: n.id,
-            name: n.property.name,
-            type: n.type,  
-            x: n.position?.x,
-            y: n.position?.y,
-          })
-        }
-
-        if (isValueNode(n)) {
-          return ({
-            id: n.id,
-            type: n.type,
-            x: n.position?.x,
-            y: n.position?.y,
-            dataType: n.value.dataType,
-            value: n.value.value,
-          })
-        }
-
-        return ({
-          id: n.id,
-          type: n.type,
-          x: n.position?.x,
-          y: n.position?.y,
-          portValues: n.inputPorts
-            .filter((p) => !p.edge && p.value)
-            .map((p) => ({ port: p.name, value: p.value!.value })),
-        })
-      }),
+      nodes: nodes.map((n) => n.createDescriptor()),
 
       edges: edges.map((e) => (
         [{ id: e.output.node.id, port: e.output.name}, { id: e.input.node.id, port: e.input.name}]

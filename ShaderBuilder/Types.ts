@@ -1,3 +1,5 @@
+import { GraphNodeDescriptor } from "./GraphDescriptor";
+
 export type DataType = 'float' | 'vec2f' | 'vec3f' | 'vec4f' | 'texture2D' | 'sampler' | 'rgba' | 'string' | 'uv';
 
 export type NodeType =
@@ -58,6 +60,10 @@ export interface GraphNodeInterface {
   inputPorts: InputPortInterface[];
 
   outputPort: OutputPortInterface[];
+
+  settings?: unknown;
+
+  createDescriptor(): GraphNodeDescriptor
 
   getVarName(): string | null;
 
