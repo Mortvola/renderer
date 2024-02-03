@@ -3,7 +3,7 @@ import { StructuredView } from 'webgpu-utils';
 import DrawableInterface from './Drawables/DrawableInterface';
 import { PropertyInterface, ValueType } from './ShaderBuilder/Types';
 
-export const maxInstances = 16;
+export const maxInstances = 256;
 
 export interface ContainerNodeInterface {
   addNode(node: SceneNodeInterface): void;
@@ -72,6 +72,8 @@ export interface DrawableNodeInterface extends SceneNodeInterface {
 
   material: MaterialInterface;
   
+  color: Float32Array;
+
   hitTest(origin: Vec4, vector: Vec4): { point: Vec4, t: number, drawable: DrawableInterface} | null;
 }
 

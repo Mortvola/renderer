@@ -17,11 +17,15 @@ class Drawable implements DrawableInterface {
 
   // colorBuffer: GPUBuffer;
 
-  modelMatrices: Float32Array = new Float32Array(256 * maxInstances);
+  modelMatrices: Float32Array = new Float32Array(16 * 4 * maxInstances);
+
+  instanceColor: Float32Array = new Float32Array(4 * maxInstances);
 
   numInstances = 0;
 
   modelMatrixBuffer: GPUBuffer;
+
+  instanceColorBuffer: GPUBuffer;
 
   bindGroup: GPUBindGroup;
 
@@ -39,17 +43,28 @@ class Drawable implements DrawableInterface {
     //   usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
     // });
 
-    this.modelMatrixBuffer = gpu.device.createBuffer({
+    const descriptor1 = {
       label: 'model Matrix',
-      size: 256 * Float32Array.BYTES_PER_ELEMENT * maxInstances,
+      size: 16 * 4 * Float32Array.BYTES_PER_ELEMENT * maxInstances,
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-    });
+    }
+
+    this.modelMatrixBuffer = gpu.device.createBuffer(descriptor1);
+
+    const descriptor = {
+      label: 'instance color',
+      size: 4 * Float32Array.BYTES_PER_ELEMENT * maxInstances,
+      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+    };
+
+    this.instanceColorBuffer = gpu.device.createBuffer(descriptor);
 
     this.bindGroup = gpu.device.createBindGroup({
       label: 'bind group for model matrix',
       layout: bindGroups.getBindGroupLayout1(),
       entries: [
         { binding: 0, resource: { buffer: this.modelMatrixBuffer }},
+        { binding: 1, resource: { buffer: this.instanceColorBuffer }},
       ],
     });
 
@@ -82,12 +97,19 @@ class Drawable implements DrawableInterface {
     return vec4.create();
   }
 
-  addInstanceTransform(transform: Mat4) {
-    transform.forEach((float, index) => {
-      this.modelMatrices[this.numInstances * 16 + index] = float;
-    })
-
-    this.numInstances += 1;
+  addInstanceInfo(transform: Mat4, color: Vec4) {
+    if (this.numInstances < maxInstances) {
+      transform.forEach((float, index) => {
+        this.modelMatrices[this.numInstances * 16 + index] = float;
+      })
+  
+      this.instanceColor[this.numInstances * 4 + 0] = color[0]
+      this.instanceColor[this.numInstances * 4 + 1] = color[1]
+      this.instanceColor[this.numInstances * 4 + 2] = color[2]
+      this.instanceColor[this.numInstances * 4 + 3] = color[3]
+  
+      this.numInstances += 1;  
+    }
   }
 }
 

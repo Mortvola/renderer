@@ -31,6 +31,7 @@ class Pipeline implements PipelineInterface {
           passEncoder.setBindGroup(2, material.bindGroup);
 
           gpu.device.queue.writeBuffer(drawable.modelMatrixBuffer, 0, drawable.modelMatrices);  
+          gpu.device.queue.writeBuffer(drawable.instanceColorBuffer, 0, drawable.instanceColor);  
           passEncoder.setBindGroup(1, drawable.bindGroup);
 
           drawable.render(passEncoder, drawable.numInstances);

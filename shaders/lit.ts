@@ -28,7 +28,7 @@ fn vs(
 
   output.position = projectionMatrix * viewMatrix * modelMatrix[instanceIndex] * vert.position;
 
-  output.color = color[0];
+  output.color = instanceColor[instanceIndex];
   output.fragPos = viewMatrix * modelMatrix[0] * vert.position;
   output.normal = viewMatrix * modelMatrix[0] * vert.normal;
 

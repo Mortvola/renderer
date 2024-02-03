@@ -11,4 +11,5 @@ ${lights}
 @group(0) @binding(5) var<uniform> time: f32;
 
 @group(1) @binding(0) var<uniform> modelMatrix: array<mat4x4f, 256>;
+@group(1) @binding(1) var<uniform> instanceColor: array<vec4f, 256>;
 `

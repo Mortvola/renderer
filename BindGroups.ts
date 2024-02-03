@@ -70,6 +70,11 @@ class BindGroups {
           visibility: GPUShaderStage.VERTEX,
           buffer: {},
         },
+        { // Instance color
+          binding: 1,
+          visibility: GPUShaderStage.VERTEX,
+          buffer: {},
+        },
       ]
     });
 

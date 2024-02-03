@@ -14,6 +14,7 @@ type Point = {
   drawable: DrawableNode,
   size: number,
   sizeChangeRate: number,
+  color: Vec4,
 }
 
 class ParticleSystem implements ParticleSystemInterface {
@@ -40,6 +41,8 @@ class ParticleSystem implements ParticleSystemInterface {
 
   originRadius: number;
 
+  initialColor: number[][];
+
   mesh: Mesh | null = null;
 
   constructor(id: number, descriptor?: ParticleDescriptor) {
@@ -54,6 +57,7 @@ class ParticleSystem implements ParticleSystemInterface {
     this.originRadius = descriptor?.originRadius ?? 1
     this.initialeSize = descriptor?.initialSize ?? 1;
     this.finalSize = descriptor?.finalSize ?? this.initialeSize;
+    this.initialColor = descriptor?.initialColor ?? [[1, 1, 1, 1], [1, 1, 1, 1]]
   }
 
   async update(time: number, elapsedTime: number, scene: ContainerNodeInterface): Promise<void> {
@@ -83,6 +87,11 @@ class ParticleSystem implements ParticleSystemInterface {
       point.drawable.translate = vec3.addScaled(point.drawable.translate, point.direction, point.velocity * elapsedTime);
       point.size += point.sizeChangeRate * elapsedTime;
       point.drawable.scale = vec3.create(point.size, point.size, point.size)
+
+      point.drawable.color[0] = point.color[0];
+      point.drawable.color[1] = point.color[1];
+      point.drawable.color[2] = point.color[2];
+      point.drawable.color[3] = point.color[3];
     }
 
     if (!this.mesh) {
@@ -140,6 +149,15 @@ class ParticleSystem implements ParticleSystemInterface {
           const lifetime = (this.maxLifetime - this.minLifetime) * Math.random() + this.minLifetime;
           const sizeChangeRate = (this.finalSize - this.initialeSize) / lifetime;
 
+          const computeRandomColor = (color1: number[], color2: number[]) => {
+            return [
+              Math.random() * (color2[0] - color1[0]) + color1[0],
+              Math.random() * (color2[1] - color1[1]) + color1[1],
+              Math.random() * (color2[2] - color1[2]) + color1[2],
+              1,
+            ]
+          }
+
           const point = {
             velocity: this.initialVelocity,
             direction: vector,
@@ -147,6 +165,7 @@ class ParticleSystem implements ParticleSystemInterface {
             drawable,
             size: this.initialeSize,
             sizeChangeRate,
+            color: computeRandomColor(this.initialColor[0], this.initialColor[1]),
           }
     
           this.points.push(point)
@@ -169,6 +188,9 @@ class ParticleSystem implements ParticleSystemInterface {
       originRadius: this.originRadius,
       initialVelocity: this.initialVelocity,
       lifetime: [this.minLifetime, this.maxLifetime],
+      initialSize: this.initialeSize,
+      finalSize: this.finalSize,
+      initialColor: this.initialColor,
     })
   }
 }

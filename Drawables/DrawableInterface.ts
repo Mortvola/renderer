@@ -13,6 +13,10 @@ interface DrawableInterface {
   
   modelMatrixBuffer: GPUBuffer;
 
+  instanceColor: Float32Array;
+
+  instanceColorBuffer: GPUBuffer;
+
   // color: Float32Array;
 
   // colorBuffer: GPUBuffer;
@@ -31,7 +35,7 @@ interface DrawableInterface {
 
   computeCentroid(): Vec4;
 
-  addInstanceTransform(mat4: Mat4): void;
+  addInstanceInfo(mat4: Mat4, color: Vec4): void;
 }
 
 export const isDrawableInterface = (r: unknown): r is DrawableInterface => (
