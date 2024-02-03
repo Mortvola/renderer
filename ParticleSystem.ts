@@ -12,6 +12,8 @@ type Point = {
   direction: Vec4,
   lifetime: number,
   drawable: DrawableNode,
+  size: number,
+  sizeChangeRate: number,
 }
 
 class ParticleSystem implements ParticleSystemInterface {
@@ -32,6 +34,10 @@ class ParticleSystem implements ParticleSystemInterface {
 
   initialVelocity: number;
 
+  initialeSize: number;
+
+  finalSize: number;
+
   originRadius: number;
 
   mesh: Mesh | null = null;
@@ -46,6 +52,8 @@ class ParticleSystem implements ParticleSystemInterface {
     this.angle = descriptor?.angle ?? 25
     this.initialVelocity = descriptor?.initialVelocity ?? 5
     this.originRadius = descriptor?.originRadius ?? 1
+    this.initialeSize = descriptor?.initialSize ?? 1;
+    this.finalSize = descriptor?.finalSize ?? this.initialeSize;
   }
 
   async update(time: number, elapsedTime: number, scene: ContainerNodeInterface): Promise<void> {
@@ -73,10 +81,12 @@ class ParticleSystem implements ParticleSystemInterface {
       }
 
       point.drawable.translate = vec3.addScaled(point.drawable.translate, point.direction, point.velocity * elapsedTime);
+      point.size += point.sizeChangeRate * elapsedTime;
+      point.drawable.scale = vec3.create(point.size, point.size, point.size)
     }
 
     if (!this.mesh) {
-      this.mesh = await Mesh.create(plane(0.125, 0.125, vec4.create(1, 1, 1, 1)))
+      this.mesh = await Mesh.create(plane(1, 1, vec4.create(1, 1, 1, 1)))
     }
 
     // Add new particles
@@ -104,6 +114,7 @@ class ParticleSystem implements ParticleSystemInterface {
           vec4.transformMat4(origin, transform, origin)
 
           drawable.translate = origin
+          drawable.scale = vec3.create(this.initialeSize, this.initialeSize, this.initialeSize);
 
           scene.addNode(drawable)
     
@@ -126,11 +137,16 @@ class ParticleSystem implements ParticleSystemInterface {
 
           // console.log(`angle: ${vec3.angle(vec3.create(0, 1, 0), vector)}`)
 
+          const lifetime = (this.maxLifetime - this.minLifetime) * Math.random() + this.minLifetime;
+          const sizeChangeRate = (this.finalSize - this.initialeSize) / lifetime;
+
           const point = {
             velocity: this.initialVelocity,
             direction: vector,
-            lifetime: (this.maxLifetime - this.minLifetime) * Math.random() + this.minLifetime,
+            lifetime,
             drawable,
+            size: this.initialeSize,
+            sizeChangeRate,
           }
     
           this.points.push(point)
