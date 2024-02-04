@@ -3,7 +3,7 @@ import { StructuredView } from 'webgpu-utils';
 import DrawableInterface from './Drawables/DrawableInterface';
 import { PropertyInterface, ValueType } from './ShaderBuilder/Types';
 
-export const maxInstances = 256;
+export const maxInstances = 1000;
 
 export interface ContainerNodeInterface {
   addNode(node: SceneNodeInterface): void;
