@@ -52,13 +52,9 @@ export interface MaterialInterface {
 
   drawables: DrawableInterface[];
 
-  colorBuffer: GPUBuffer;
-
   uniformsBuffer: GPUBuffer | null;
 
-  textureAttributesBuffer: GPUBuffer | null;
-  
-  bindGroup: GPUBindGroup;
+  bindGroup: GPUBindGroup | null;
 
   transparent: boolean;
 

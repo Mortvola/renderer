@@ -3,7 +3,7 @@ import { bindGroups } from "../BindGroups";
 import DrawableInterface from "../Drawables/DrawableInterface";
 import { gpu } from "../Gpu";
 import { pipelineManager } from "../Pipelines/PipelineManager";
-import { DrawableNodeInterface, MaterialInterface, PipelineInterface, maxInstances } from "../types";
+import { DrawableNodeInterface, MaterialInterface, PipelineInterface } from "../types";
 import { MaterialDescriptor } from "./MaterialDescriptor";
 import { PropertyInterface, ValueType } from "../ShaderBuilder/Types";
 import Http from "../../Http/src";
@@ -21,11 +21,7 @@ class Material implements MaterialInterface {
 
   propertiesStructure: StructuredView | null = null;
 
-  colorBuffer: GPUBuffer;
-
-  textureAttributesBuffer: GPUBuffer | null = null;
-
-  bindGroup: GPUBindGroup;
+  bindGroup: GPUBindGroup | null = null;
 
   drawables: DrawableInterface[] = [];
 
@@ -63,12 +59,6 @@ class Material implements MaterialInterface {
     }
 
     if (fromGraph) {  
-      this.colorBuffer = gpu.device.createBuffer({
-        label: 'color',
-        size: 4 * Float32Array.BYTES_PER_ELEMENT * maxInstances,
-        usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-      });
-
       let entries: GPUBindGroupEntry[] = [];
       let numBindings = 0;
       let textureIndex = 0
@@ -116,21 +106,21 @@ class Material implements MaterialInterface {
         entries,
       });
     }
-    else {
-      this.colorBuffer = gpu.device.createBuffer({
-        label: 'color',
-        size: 4 * Float32Array.BYTES_PER_ELEMENT * maxInstances,
-        usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-      });
+    // else {
+    //   this.colorBuffer = gpu.device.createBuffer({
+    //     label: 'color',
+    //     size: 4 * Float32Array.BYTES_PER_ELEMENT * maxInstances,
+    //     usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+    //   });
 
-      this.bindGroup = gpu.device.createBindGroup({
-        label: 'Color',
-        layout: bindGroups.getBindGroupLayout2A(),
-        entries: [
-          { binding: 0, resource: { buffer: this.colorBuffer }},
-        ],
-      });
-    }
+    //   this.bindGroup = gpu.device.createBindGroup({
+    //     label: 'Color',
+    //     layout: bindGroups.getBindGroupLayout2A(),
+    //     entries: [
+    //       { binding: 0, resource: { buffer: this.colorBuffer }},
+    //     ],
+    //   });
+    // }
   }
 
   static async create(materialDescriptor: MaterialDescriptor): Promise<Material> {

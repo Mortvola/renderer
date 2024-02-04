@@ -16,6 +16,7 @@ class DrawableNode extends SceneNode implements DrawableNodeInterface {
     super();
     this.drawable = drawable;
     this.material = material;
+    this.color = material.color;
   }
 
   static async create(drawable: DrawableInterface, materialDescriptor: MaterialDescriptor): Promise<DrawableNode> {
