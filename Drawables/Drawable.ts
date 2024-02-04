@@ -28,7 +28,7 @@ class Drawable implements DrawableInterface {
   constructor() {
     const descriptor1 = {
       label: 'model Matrix',
-      size: 16 * 4 * Float32Array.BYTES_PER_ELEMENT * maxInstances,
+      size: 16 * Float32Array.BYTES_PER_ELEMENT * maxInstances,
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
     }
 

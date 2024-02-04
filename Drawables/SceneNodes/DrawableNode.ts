@@ -1,4 +1,4 @@
-import { Mat4, Vec4, mat4, vec4 } from "wgpu-matrix";
+import { Vec4, mat4, vec4 } from "wgpu-matrix";
 import DrawableInterface from "../DrawableInterface";
 import SceneNode from "./SceneNode";
 import { DrawableNodeInterface, MaterialInterface } from "../../types";

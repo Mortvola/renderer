@@ -8,7 +8,7 @@ class Pipeline implements PipelineInterface {
   materials: MaterialInterface[] = [];
 
   addDrawable(drawable: DrawableNodeInterface): void {
-    let entry = this.materials.find((d) => d === drawable.material);
+    let entry = this.materials.find((m) => m === drawable.material);
 
     if (!entry) {
       this.materials.push(drawable.material);
@@ -30,8 +30,8 @@ class Pipeline implements PipelineInterface {
 
         for (const drawable of material.drawables) {
           if (drawable.numInstances > 0) {
-            gpu.device.queue.writeBuffer(drawable.modelMatrixBuffer, 0, drawable.modelMatrices);  
-            gpu.device.queue.writeBuffer(drawable.instanceColorBuffer, 0, drawable.instanceColor);  
+            gpu.device.queue.writeBuffer(drawable.modelMatrixBuffer, 0, drawable.modelMatrices, 0, drawable.numInstances * 16);  
+            gpu.device.queue.writeBuffer(drawable.instanceColorBuffer, 0, drawable.instanceColor, 0, drawable.numInstances * 4);  
             passEncoder.setBindGroup(1, drawable.bindGroup);
 
             drawable.render(passEncoder, drawable.numInstances);
