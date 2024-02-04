@@ -13,6 +13,8 @@ class Reticle extends Drawable {
   private constructor(radius: number) {
     super()
 
+    this.name = 'Reticle';
+    
     this.radius[0] = radius;
 
     this.uniformBuffer3 = gpu.device.createBuffer({

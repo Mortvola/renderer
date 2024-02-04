@@ -2,6 +2,12 @@ import { Vec4, Mat4 } from 'wgpu-matrix';
 import Drawable from './Drawable';
 
 class Billboard extends Drawable {
+  constructor() {
+    super();
+
+    this.name = 'Billboard'
+  }
+
   render(passEncoder: GPURenderPassEncoder, numInstances: number) {
     // TODO: determine how many lines should be rendered based on radius?
     passEncoder.draw(6, numInstances);  

@@ -23,6 +23,8 @@ class Circle extends Drawable {
   constructor(radius: number, thickness: number, color: Vec4) {
     super()
 
+    this.name = 'Circle'
+    
     this.radius= radius;
     this.thickness = thickness;
 

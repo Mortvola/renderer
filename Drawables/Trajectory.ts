@@ -31,6 +31,8 @@ class Trajectory extends Drawable {
   constructor(trajectoryData: TrajectoryData) {
     super();
   
+    this.name = 'Trajectory';
+    
     this.trajectoryData = trajectoryData;
 
     this.trajectoryBuffer = gpu.device.createBuffer({

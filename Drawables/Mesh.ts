@@ -20,6 +20,8 @@ class Mesh extends Drawable {
   constructor(mesh: SurfaceMesh, vertices: number[], normals: number[], texcoord: number[], indices: number[]) {
     super()
   
+    this.name = 'Mesh';
+    
     this.mesh = mesh;
 
     this.vertexBuffer = gpu.device.createBuffer({
@@ -111,7 +113,7 @@ class Mesh extends Drawable {
     passEncoder.setVertexBuffer(1, this.normalBuffer);
     passEncoder.setVertexBuffer(2, this.texcoordBuffer);
     passEncoder.setIndexBuffer(this.indexBuffer, this.indexFormat);
-    
+
     passEncoder.drawIndexed(this.mesh.indexes.length, numInstances);
   }
 

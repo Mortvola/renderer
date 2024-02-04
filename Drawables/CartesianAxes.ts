@@ -28,6 +28,8 @@ class CartesianAxes extends Drawable {
   constructor() {
     super();
     
+    this.name = 'CartesianAxes';
+    
     const gridLineColor = [0.3, 0.3, 0.3, 1];
 
     // x grid lines

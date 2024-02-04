@@ -5,6 +5,8 @@ import { DrawableNodeInterface, MaterialInterface } from "../../types";
 import { MaterialDescriptor } from "../../Materials/MaterialDescriptor";
 import Material from "../../Materials/Material";
 
+const materialsMap: Map<string, Material> = new Map()
+
 class DrawableNode extends SceneNode implements DrawableNodeInterface {
   drawable: DrawableInterface;
 
@@ -16,11 +18,17 @@ class DrawableNode extends SceneNode implements DrawableNodeInterface {
     super();
     this.drawable = drawable;
     this.material = material;
-    this.color = material.color;
+    this.color = material.color.slice();
   }
 
   static async create(drawable: DrawableInterface, materialDescriptor: MaterialDescriptor): Promise<DrawableNode> {
-    const material = await Material.create(materialDescriptor);
+    const key = JSON.stringify(materialDescriptor);
+    let material = materialsMap.get(key)
+
+    if (!material) {
+      material = await Material.create(materialDescriptor);
+      materialsMap.set(key, material)
+    }
 
     return new DrawableNode(drawable, material);
   }
