@@ -1,16 +1,8 @@
 import { GraphDescriptor } from "../ShaderBuilder/GraphDescriptor";
 import { ValueType, DataType } from "../ShaderBuilder/Types";
 
-export type TextureDescriptor = {
-  url: string,
-
-  scale?: [number, number],
-
-  offset?: [number, number],
-}
-
 export type MaterialDescriptor = {
-  type: 'Circle' | 'Line' | 'Lit' | 'Trajectory';
+  type: 'Circle' | 'Line' | 'Lit' | 'Trajectory' | 'Billboard';
 
   cullMode?: 'back' | 'none',
 

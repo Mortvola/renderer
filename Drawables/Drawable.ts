@@ -13,10 +13,6 @@ class Drawable implements DrawableInterface {
 
   tag = '';
 
-  color = new Float32Array(4);
-
-  // colorBuffer: GPUBuffer;
-
   modelMatrices: Float32Array = new Float32Array(16 * 4 * maxInstances);
 
   instanceColor: Float32Array = new Float32Array(4 * maxInstances);
@@ -29,20 +25,7 @@ class Drawable implements DrawableInterface {
 
   bindGroup: GPUBindGroup;
 
-  // bindGroup2: GPUBindGroup;
-
   constructor() {
-    this.color[0] = 0.8;
-    this.color[1] = 0.8;
-    this.color[2] = 0.8;
-    this.color[3] = 1.0;
-
-    // this.colorBuffer = gpu.device.createBuffer({
-    //   label: 'color',
-    //   size: 4 * Float32Array.BYTES_PER_ELEMENT * maxInstances,
-    //   usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-    // });
-
     const descriptor1 = {
       label: 'model Matrix',
       size: 16 * 4 * Float32Array.BYTES_PER_ELEMENT * maxInstances,
@@ -60,33 +43,17 @@ class Drawable implements DrawableInterface {
     this.instanceColorBuffer = gpu.device.createBuffer(descriptor);
 
     this.bindGroup = gpu.device.createBindGroup({
-      label: 'bind group for model matrix',
+      label: 'bind group for instances',
       layout: bindGroups.getBindGroupLayout1(),
       entries: [
         { binding: 0, resource: { buffer: this.modelMatrixBuffer }},
         { binding: 1, resource: { buffer: this.instanceColorBuffer }},
       ],
     });
-
-    // this.bindGroup2 = gpu.device.createBindGroup({
-    //   label: 'Color',
-    //   layout: bindGroups.getBindGroupLayout2A(),
-    //   entries: [
-    //     { binding: 0, resource: { buffer: this.colorBuffer }},
-    //   ],
-    // });
   }
 
   render(passEncoder: GPURenderPassEncoder, numInstances: number): void {
     throw new Error('render not implemented')
-  }
-
-  setColor(color: Vec4) {
-    throw new Error('not implemented');
-  }
-
-  getColor(): Float32Array {
-    throw new Error('not implemented');
   }
 
   hitTest(origin: Vec4, vector: Vec4): { point: Vec4, t: number, drawable: DrawableInterface} | null {

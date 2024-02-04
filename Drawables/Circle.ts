@@ -12,8 +12,6 @@ class Circle extends Drawable {
 
   thickness: number;
 
-  color = new Float32Array(4);
-
   circleStructure = makeStructuredView(defs.structs.Circle);
 
   bindGroup3: GPUBindGroup;
@@ -28,11 +26,6 @@ class Circle extends Drawable {
     this.radius= radius;
     this.thickness = thickness;
 
-    this.color[0] = color[0];
-    this.color[1] = color[1];
-    this.color[2] = color[2];
-    this.color[3] = color[3];
-    
     this.circleDataBuffer = gpu.device.createBuffer({
       label: 'Circle',
       size: this.circleStructure.arrayBuffer.byteLength,
@@ -55,12 +48,11 @@ class Circle extends Drawable {
       radius: this.radius,
       numSegments: numSegments,
       thickness: this.thickness,
-      color: this.color,
+      // color: this.color,
     });
 
     gpu.device.queue.writeBuffer(this.circleDataBuffer, 0, this.circleStructure.arrayBuffer);
 
-    // passEncoder.setBindGroup(2, this.bindGroup2);
     passEncoder.setBindGroup(3, this.bindGroup3);
 
     // TODO: determine how many lines should be rendered based on radius?

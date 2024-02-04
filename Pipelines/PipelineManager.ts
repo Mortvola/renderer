@@ -4,7 +4,6 @@ import { gpu } from "../Gpu";
 import { MaterialDescriptor } from "../Materials/MaterialDescriptor";
 import Property from "../ShaderBuilder/Property";
 import { PropertyInterface } from "../ShaderBuilder/Types";
-import { litShader } from "../shaders/lit";
 import { PipelineInterface, PipelineManagerInterface } from "../types";
 import CirclePipeline from "./CirclePipeline";
 import LinePipeline from "./LinePipeline";
@@ -14,9 +13,10 @@ import Pipeline from "./Pipeline";
 // import ReticlePipeline from "./ReticlePipeline";
 import TrajectoryPipeline from "./TrajectoryPipeline";
 import { generateShaderModule } from "../ShaderBuilder/ShaderBuilder";
+import BillboardPipeline from "./BillboardPipeline";
 
 export type PipelineType =
-  'Lit' | 'pipeline' | 'Line' | 'billboard' | 'drag-handles' | 'Circle' | 'outline' | 'reticle' |
+  'Lit' | 'pipeline' | 'Line' | 'Billboard' | 'drag-handles' | 'Circle' | 'outline' | 'reticle' |
   'Trajectory';
 
 type Pipelines = {
@@ -53,6 +53,7 @@ class PipelineManager implements PipelineManagerInterface {
       // this.pipelines.push({ type: 'billboard', pipeline: new BillboardPipeline() });
       // this.pipelines.push({ type: 'drag-handles', pipeline: new DragHandlesPipeline() });
       this.pipelines.push({ type: 'Circle', pipeline: new CirclePipeline() });
+      this.pipelines.push({ type: 'Billboard', pipeline: new BillboardPipeline() });
       this.pipelines.push({ type: 'outline', pipeline: new OutlinePipeline() });
       // this.pipelines.push({ type: 'reticle', pipeline: new ReticlePipeline() });
       this.pipelines.push({ type: 'Trajectory', pipeline: new TrajectoryPipeline() });

@@ -5,7 +5,7 @@ import Pipeline from "./Pipeline";
 
 const label = 'reticle';
 
-class ReticlePipeline extends Pipeline {
+class TexturedPipeline extends Pipeline {
   constructor() {
     super();
 
@@ -100,4 +100,4 @@ class ReticlePipeline extends Pipeline {
   }
 }
 
-export default ReticlePipeline;
+export default TexturedPipeline;

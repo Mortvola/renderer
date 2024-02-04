@@ -17,19 +17,11 @@ interface DrawableInterface {
 
   instanceColorBuffer: GPUBuffer;
 
-  // color: Float32Array;
-
-  // colorBuffer: GPUBuffer;
-
   bindGroup: GPUBindGroup;
 
   numInstances: number;
 
   render(passEncoder: GPURenderPassEncoder, numInstances: number): void;
-
-  setColor(color: Vec4): void;
-
-  getColor(): Float32Array;
 
   hitTest(origin: Vec4, vector: Vec4): { point: Vec4, t: number, drawable: DrawableInterface} | null;
 

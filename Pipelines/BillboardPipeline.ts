@@ -1,48 +1,24 @@
 import { bindGroups } from '../BindGroups';
 import { gpu } from '../Gpu';
-import { litShader } from '../shaders/lit';
+import { billboardShader } from '../shaders/billboard';
 import Pipeline from "./Pipeline";
 
-class LitPipeline extends Pipeline {
+const label = 'BillboardPipeline';
+
+class BillboardPipeline extends Pipeline {
   constructor() {
     super();
 
     const shaderModule = gpu.device.createShaderModule({
-      label: 'lit',
-      code: litShader,
+      label,
+      code: billboardShader,
     })
     
-    const vertexBufferLayout: GPUVertexBufferLayout[] = [
-      {
-        attributes: [
-          {
-            shaderLocation: 0, // position
-            offset: 0,
-            format: "float32x4",
-          },
-        ],
-        arrayStride: 16,
-        stepMode: "vertex",
-      },
-      {
-        attributes: [
-          {
-            shaderLocation: 1, // normal
-            offset: 0,
-            format: "float32x4",
-          }
-        ],
-        arrayStride: 16,
-        stepMode: "vertex",
-      }
-    ];
-    
     const pipelineDescriptor: GPURenderPipelineDescriptor = {
-      label: 'lit',
+      label,
       vertex: {
         module: shaderModule,
         entryPoint: "vs",
-        buffers: vertexBufferLayout,
       },
       fragment: {
         module: shaderModule,
@@ -55,7 +31,7 @@ class LitPipeline extends Pipeline {
       },
       primitive: {
         topology: "triangle-list",
-        cullMode: "back",
+        cullMode: "none",
         frontFace: "ccw",
       },
       depthStencil: {
@@ -64,11 +40,11 @@ class LitPipeline extends Pipeline {
         format: "depth24plus"
       },
       layout: gpu.device.createPipelineLayout({
+        label,
         bindGroupLayouts: [
           bindGroups.getBindGroupLayout0(),
           bindGroups.getBindGroupLayout1(),
-          bindGroups.getBindGroupLayout2A(),
-        ],
+        ]
       }),
     };
     
@@ -76,4 +52,4 @@ class LitPipeline extends Pipeline {
   }
 }
 
-export default LitPipeline;
+export default BillboardPipeline;

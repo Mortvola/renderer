@@ -1,11 +1,11 @@
 import { Vec4, mat4, vec3, vec4 } from "wgpu-matrix"
 import { ContainerNodeInterface, ParticleSystemInterface } from "./types";
-import Mesh from "./Drawables/Mesh";
-import { plane } from "./Drawables/Shapes/plane";
 import DrawableNode from "./Drawables/SceneNodes/DrawableNode";
-import { litMaterial } from "./Materials/Lit";
 import { degToRad } from "./Math";
 import { ParticleDescriptor } from "../State/types";
+import DrawableInterface from "./Drawables/DrawableInterface";
+import Billboard from "./Drawables/Billboard";
+import { billboardMaterial } from "./Materials/Billboard";
 
 type Point = {
   velocity: number,
@@ -43,7 +43,7 @@ class ParticleSystem implements ParticleSystemInterface {
 
   initialColor: number[][];
 
-  mesh: Mesh | null = null;
+  drawable: DrawableInterface | null = null;
 
   constructor(id: number, descriptor?: ParticleDescriptor) {
     this.id = id
@@ -94,8 +94,8 @@ class ParticleSystem implements ParticleSystemInterface {
       point.drawable.color[3] = point.color[3];
     }
 
-    if (!this.mesh) {
-      this.mesh = await Mesh.create(plane(1, 1, vec4.create(1, 1, 1, 1)))
+    if (!this.drawable) {
+      this.drawable = new Billboard()
     }
 
     // Add new particles
@@ -109,7 +109,7 @@ class ParticleSystem implements ParticleSystemInterface {
       
         // while (this.points.length < this.maxPoints) {
         for (; numToEmit > 0; numToEmit -= 1) {
-          const drawable = await DrawableNode.create(this.mesh, litMaterial);
+          const drawable = await DrawableNode.create(this.drawable, billboardMaterial);
     
           let origin = vec4.create(0, 0, 0, 1)
 

@@ -7,8 +7,6 @@ import { gpu } from '../Gpu';
 class Mesh extends Drawable {
   mesh: SurfaceMesh;
 
-  color = new Float32Array(4);
-
   vertexBuffer: GPUBuffer;
 
   normalBuffer: GPUBuffer;
@@ -23,7 +21,6 @@ class Mesh extends Drawable {
     super()
   
     this.mesh = mesh;
-    this.setColor(mesh.color);
 
     this.vertexBuffer = gpu.device.createBuffer({
       size: vertices.length * Float32Array.BYTES_PER_ELEMENT,
@@ -99,17 +96,6 @@ class Mesh extends Drawable {
     return new Mesh(mesh, vertices, normals, texcoords, indices);
   }
 
-  setColor(color: Vec4) {
-    this.color[0] = color[0];
-    this.color[1] = color[1];
-    this.color[2] = color[2];
-    this.color[3] = color[3];
-  }
-
-  getColor(): Float32Array {
-    return this.color;
-  }
-
   hitTest(origin: Vec4, vector: Vec4): { point: Vec4, t: number, drawable: DrawableInterface} | null {
     const result = this.mesh.hitTest(origin, vector);
 
@@ -124,8 +110,8 @@ class Mesh extends Drawable {
     passEncoder.setVertexBuffer(0, this.vertexBuffer);
     passEncoder.setVertexBuffer(1, this.normalBuffer);
     passEncoder.setVertexBuffer(2, this.texcoordBuffer);
-
     passEncoder.setIndexBuffer(this.indexBuffer, this.indexFormat);
+    
     passEncoder.drawIndexed(this.mesh.indexes.length, numInstances);
   }
 

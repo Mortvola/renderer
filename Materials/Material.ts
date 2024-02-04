@@ -42,6 +42,11 @@ class Material implements MaterialInterface {
   ) {
     this.pipeline = pipeline;
     
+    this.color[0] = materialDescriptor.color ? materialDescriptor.color[0] : 0.5;
+    this.color[1] = materialDescriptor.color ? materialDescriptor.color[1] : 0.5;
+    this.color[2] = materialDescriptor.color ? materialDescriptor.color[2] : 0.5;
+    this.color[3] = materialDescriptor.color ? materialDescriptor.color[3] : 1;
+    
     this.transparent = materialDescriptor.transparent ?? false;
 
     if (materialDescriptor.color) {

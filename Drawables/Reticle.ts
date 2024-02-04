@@ -3,8 +3,6 @@ import Drawable from './Drawable';
 import { bindGroups } from '../BindGroups';
 import { gpu } from '../Gpu';
 
-const label = 'reticle';
-
 class Reticle extends Drawable {
   radius = new Float32Array(1);
 
