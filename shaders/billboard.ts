@@ -53,9 +53,28 @@ fn vs(
   return output;
 }
 
+struct FragmentOut {
+  @location(0) color: vec4f,
+  @location(1) bright: vec4f,
+}
+
 @fragment
-fn fs(fragData: VertexOut) -> @location(0) vec4f
+fn fs(fragData: VertexOut) -> FragmentOut
 {
-  return fragData.color;
+  var out: FragmentOut;
+
+  out.color = fragData.color * 1.4;
+
+  // Compute relative luminance (coefficients from https://www.w3.org/TR/AERT/#color-contrast
+  var luminance = dot(out.color.rgb, vec3f(0.299, 0.587, 0.114));
+
+  if (luminance > 0.9) {
+    out.bright = out.color;
+  }
+  else {
+    out.bright = vec4(0.0, 0.0, 0.0, 1.0);
+  }
+
+  return out;
 }
 `

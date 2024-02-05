@@ -1,5 +1,6 @@
 import { bindGroups } from '../BindGroups';
 import { gpu } from '../Gpu';
+import { bloom, outputFormat } from '../RenderSetings';
 import { lineShader } from '../shaders/line';
 import Pipeline from "./Pipeline";
 
@@ -31,6 +32,16 @@ class LinePipeline extends Pipeline {
       },
     ];    
     
+    const targets: GPUColorTargetState[] = [{
+      format: outputFormat,
+    }]
+
+    if (bloom) {
+      targets.push({
+        format: outputFormat,
+      })
+    }
+
     const pipelineDescriptor: GPURenderPipelineDescriptor = {
       label: 'line',
       vertex: {
@@ -41,11 +52,7 @@ class LinePipeline extends Pipeline {
       fragment: {
         module: shaderModule,
         entryPoint: "fragment_line",
-        targets: [
-          {
-            format: navigator.gpu.getPreferredCanvasFormat(),
-          },
-        ],
+        targets,
       },
       primitive: {
         topology: "line-list",

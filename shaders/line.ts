@@ -23,9 +23,19 @@ fn vertex_line(vert: Vertex) -> VertexOut
   return output;
 }
 
+struct FragmentOut {
+  @location(0) color: vec4f,
+  @location(1) bright: vec4f,
+}
+
 @fragment
-fn fragment_line(fragData: VertexOut) -> @location(0) vec4f
+fn fragment_line(fragData: VertexOut) -> FragmentOut
 {
-  return fragData.color;
+  var out: FragmentOut;
+
+  out.color = fragData.color;
+  out.bright = vec4(0.0, 0.0, 0.0, 1.0);
+
+  return out;
 }
 `

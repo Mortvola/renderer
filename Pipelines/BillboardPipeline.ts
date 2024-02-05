@@ -1,5 +1,6 @@
 import { bindGroups } from '../BindGroups';
 import { gpu } from '../Gpu';
+import { bloom, outputFormat } from '../RenderSetings';
 import { billboardShader } from '../shaders/billboard';
 import Pipeline from "./Pipeline";
 
@@ -14,6 +15,16 @@ class BillboardPipeline extends Pipeline {
       code: billboardShader,
     })
     
+    const targets: GPUColorTargetState[] = [{
+      format: outputFormat,
+    }]
+
+    if (bloom) {
+      targets.push({
+        format: outputFormat,
+      })
+    }
+
     const pipelineDescriptor: GPURenderPipelineDescriptor = {
       label,
       vertex: {
@@ -23,11 +34,7 @@ class BillboardPipeline extends Pipeline {
       fragment: {
         module: shaderModule,
         entryPoint: "fs",
-        targets: [
-          {
-            format: navigator.gpu.getPreferredCanvasFormat(),
-          },
-        ],
+        targets,
       },
       primitive: {
         topology: "triangle-list",

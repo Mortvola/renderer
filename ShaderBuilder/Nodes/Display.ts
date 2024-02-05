@@ -20,7 +20,7 @@ class Display extends OperationNode {
   }
 
   output(): string {
-    return `return ${this.getExpression()};`;
+    return `var fragOut = ${this.getExpression()};`;
   }
 }
 

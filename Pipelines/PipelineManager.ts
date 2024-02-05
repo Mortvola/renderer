@@ -14,6 +14,7 @@ import Pipeline from "./Pipeline";
 import TrajectoryPipeline from "./TrajectoryPipeline";
 import { generateShaderModule } from "../ShaderBuilder/ShaderBuilder";
 import BillboardPipeline from "./BillboardPipeline";
+import { bloom, outputFormat } from "../RenderSetings";
 
 export type PipelineType =
   'Lit' | 'pipeline' | 'Line' | 'Billboard' | 'drag-handles' | 'Circle' | 'outline' | 'reticle' |
@@ -163,15 +164,13 @@ class PipelineManager implements PipelineManagerInterface {
         }
       ];
 
-      let target: GPUColorTargetState = {
-        format: navigator.gpu.getPreferredCanvasFormat(),
-      }
+      const targets: GPUColorTargetState[] = [];
 
       let depthWriteEnabled = materialDescriptor.depthWriteEnabled ?? true;
 
       if (materialDescriptor.transparent) {
-        target = {
-          format: navigator.gpu.getPreferredCanvasFormat(),
+        targets.push({
+          format: outputFormat,
           blend: {
             color: {
               srcFactor: 'src-alpha' as GPUBlendFactor,
@@ -182,7 +181,18 @@ class PipelineManager implements PipelineManagerInterface {
               dstFactor: 'one-minus-src-alpha' as GPUBlendFactor,
             },
           },
-        };  
+        });  
+      }
+      else {
+        targets.push({
+          format: outputFormat,
+        })
+      }
+
+      if (bloom) {
+        targets.push({
+          format: outputFormat,
+        })
       }
 
       // Create the bindgropu layout entries with samplers and textures, if any.
@@ -231,7 +241,7 @@ class PipelineManager implements PipelineManagerInterface {
         fragment: {
           module: shaderModule,
           entryPoint: "fs",
-          targets: [target],
+          targets,
         },
         primitive: {
           topology: "triangle-list",

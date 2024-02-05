@@ -1,5 +1,6 @@
 import { bindGroups } from '../BindGroups';
 import { gpu } from '../Gpu';
+import { outputFormat } from '../RenderSetings';
 import { litShader } from '../shaders/lit';
 import Pipeline from "./Pipeline";
 
@@ -49,7 +50,7 @@ class LitPipeline extends Pipeline {
         entryPoint: "fs",
         targets: [
           {
-            format: navigator.gpu.getPreferredCanvasFormat(),
+            format: outputFormat,
           },
         ],
       },

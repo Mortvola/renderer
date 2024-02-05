@@ -7,7 +7,7 @@ import {
 import Camera from './Camera';
 import { degToRad } from './Math';
 import ContainerNode from './Drawables/SceneNodes/ContainerNode';
-import RenderPass from './RenderPass';
+import RenderPass from './RenderPasses/RenderPass';
 import Light, { isLight } from './Drawables/Light';
 import CartesianAxes from './Drawables/CartesianAxes';
 import DrawableNode from './Drawables/SceneNodes/DrawableNode';
@@ -17,7 +17,9 @@ import { lights } from "./shaders/lights";
 import { gpu } from './Gpu';
 import { bindGroups } from './BindGroups';
 import { pipelineManager } from './Pipelines/PipelineManager';
-import TransparentRenderPass from './TransparentRenderPass';
+import TransparentRenderPass from './RenderPasses/TransparentRenderPass';
+import BloomPass from './RenderPasses/BloomPass';
+import { outputFormat } from './RenderSetings';
 
 const requestPostAnimationFrame = (task: (timestamp: number) => void) => {
   requestAnimationFrame((timestamp: number) => {
@@ -66,6 +68,8 @@ class Renderer implements RendererInterface {
 
   transparentPass = new TransparentRenderPass();
 
+  bloomPass: BloomPass | null = null;
+
   lights: Light[] = [];
 
   reticlePosition = vec2.create(0, 0);
@@ -109,8 +113,9 @@ class Renderer implements RendererInterface {
 
     this.context.configure({
       device: gpu.device,
-      format: navigator.gpu.getPreferredCanvasFormat(),
-      alphaMode: 'opaque',
+      format: outputFormat,
+      alphaMode: 'premultiplied',
+      colorSpace: 'display-p3',
     });
 
     this.camera.computeViewTransform();
@@ -276,8 +281,11 @@ class Renderer implements RendererInterface {
         format: 'depth24plus',
         usage: GPUTextureUsage.RENDER_ATTACHMENT,
       });
+
       this.depthTextureView = depthTexture.createView();
 
+      this.bloomPass = new BloomPass(this.context);
+            
       this.aspectRatio[0] = this.context.canvas.width / this.context.canvas.height;
 
       this.camera.perspectiveTransform = mat4.perspective(
@@ -299,8 +307,6 @@ class Renderer implements RendererInterface {
 
       this.renderedDimensions = [this.context.canvas.width, this.context.canvas.height];
     }
-
-    const view = this.context.getCurrentTexture().createView();
 
     if (this.camera.projection === 'Perspective') {
       gpu.device.queue.writeBuffer(this.frameBindGroup.buffer[0], 0, this.camera.perspectiveTransform as Float32Array);
@@ -343,10 +349,17 @@ class Renderer implements RendererInterface {
 
     const commandEncoder = gpu.device.createCommandEncoder();
 
-    this.mainRenderPass.render(view, this.depthTextureView!, commandEncoder, this.frameBindGroup.bindGroup);
-
-    this.transparentPass.render(view, this.depthTextureView!, commandEncoder, this.frameBindGroup.bindGroup);
+    // const canvasView = this.context.getCurrentTexture().createView();
+    const sceneView = this.bloomPass?.screenTextureView
+    const bloomView = this.bloomPass?.bloomTextureView
     
+    this.mainRenderPass.render(sceneView!, bloomView!, this.depthTextureView!, commandEncoder, this.frameBindGroup.bindGroup);
+    this.transparentPass.render(sceneView!, bloomView!, this.depthTextureView!, commandEncoder, this.frameBindGroup.bindGroup);
+    
+    if (this.bloomPass) {
+      this.bloomPass.render(this.context.getCurrentTexture().createView(), commandEncoder);      
+    }
+
     // if (this.selected.selection.length > 0) {
     //   // Transform camera position to world space.
     //   const origin = vec4.transformMat4(vec4.create(0, 0, 0, 1), this.camera.viewTransform);

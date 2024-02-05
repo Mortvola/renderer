@@ -1,6 +1,7 @@
-import { isContainerNode } from "./Drawables/SceneNodes/ContainerNode";
-import { isDrawableNode } from "./Drawables/SceneNodes/utils";
-import { DrawableNodeInterface, PipelineInterface, RenderPassInterface, SceneNodeInterface } from "./types";
+import { isContainerNode } from "../Drawables/SceneNodes/ContainerNode";
+import { isDrawableNode } from "../Drawables/SceneNodes/utils";
+import { bloom } from "../RenderSetings";
+import { DrawableNodeInterface, PipelineInterface, RenderPassInterface, SceneNodeInterface } from "../types";
 
 class RenderPass implements RenderPassInterface {
   pipelines: PipelineInterface[] = [];
@@ -55,17 +56,30 @@ class RenderPass implements RenderPassInterface {
   //   }
   // }
 
-  getDescriptor(view: GPUTextureView, depthView: GPUTextureView | null): GPURenderPassDescriptor {
+  getDescriptor(
+    view: GPUTextureView,
+    bright: GPUTextureView,
+    depthView: GPUTextureView | null,
+  ): GPURenderPassDescriptor {
+    const colorAttachments: GPURenderPassColorAttachment[] = [{
+      view,
+      clearValue: { r: 0.0, g: 0.0, b: 0.0, a: 1.0 },
+      loadOp: "clear" as GPULoadOp,
+      storeOp: "store" as GPUStoreOp,
+    }]
+
+    if (bloom) {
+      colorAttachments.push({
+        view: bright,
+        clearValue: { r: 0.0, g: 0.0, b: 0.0, a: 1.0 },
+        loadOp: "clear" as GPULoadOp,
+        storeOp: "store" as GPUStoreOp,
+      })
+    }
+
     const descriptor: GPURenderPassDescriptor = {
       label: 'main render pass',
-      colorAttachments: [
-        {
-          view,
-          clearValue: { r: 0.0, g: 0.0, b: 0.0, a: 1.0 },
-          loadOp: "clear" as GPULoadOp,
-          storeOp: "store" as GPUStoreOp,
-        },
-      ],
+      colorAttachments,
     };
 
     if (depthView) {
@@ -80,8 +94,14 @@ class RenderPass implements RenderPassInterface {
     return descriptor;
   }
 
-  render(view: GPUTextureView, depthView: GPUTextureView | null, commandEncoder: GPUCommandEncoder, frameBindGroup: GPUBindGroup) {
-    const passEncoder = commandEncoder.beginRenderPass(this.getDescriptor(view, depthView));
+  render(
+    view: GPUTextureView,
+    bright: GPUTextureView,
+    depthView: GPUTextureView | null,
+    commandEncoder: GPUCommandEncoder,
+    frameBindGroup: GPUBindGroup,
+  ) {
+    const passEncoder = commandEncoder.beginRenderPass(this.getDescriptor(view, bright, depthView));
 
     passEncoder.setBindGroup(0, frameBindGroup);
 
