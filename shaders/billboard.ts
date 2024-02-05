@@ -63,7 +63,7 @@ fn fs(fragData: VertexOut) -> FragmentOut
 {
   var out: FragmentOut;
 
-  out.color = fragData.color * 1.4;
+  out.color = fragData.color;
 
   // Compute relative luminance (coefficients from https://www.w3.org/TR/AERT/#color-contrast
   var luminance = dot(out.color.rgb, vec3f(0.299, 0.587, 0.114));
