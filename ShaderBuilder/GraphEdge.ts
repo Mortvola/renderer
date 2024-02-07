@@ -1,5 +1,5 @@
 import { runInAction } from "mobx";
-import { GraphEdgeInterface, InputPortInterface, OutputPortInterface } from "./Types";
+import { DataType, GraphEdgeInterface, InputPortInterface, OutputPortInterface } from "./Types";
 
 class GraphEdge implements GraphEdgeInterface {
   output: OutputPortInterface;
@@ -17,16 +17,16 @@ class GraphEdge implements GraphEdgeInterface {
     })
   }
 
-  getVarName(): string {
-    return this.output.getVarName() ?? '';
+  getVarName(): [string, DataType] {
+    return this.output.getVarName() ?? ['', 'float'];
   }
 
   setVarName(name: string | null): void {
     this.output.node.setVarName(name);
   }
 
-  getValue(): string {
-    return this.output.getValue() ?? '';
+  getValue(): [string, DataType] {
+    return this.output.getValue() ?? ['', 'float'];
   }
 }
 

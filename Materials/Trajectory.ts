@@ -1,5 +1,5 @@
-import { MaterialDescriptor } from "./MaterialDescriptor";
+import { ShaderDescriptor } from "../shaders/ShaderDescriptor";
 
-export const trajectoryMaterial: MaterialDescriptor = {
+export const trajectoryMaterial: ShaderDescriptor = {
   type: 'Trajectory',
 }

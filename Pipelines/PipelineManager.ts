@@ -1,7 +1,7 @@
 import { makeShaderDataDefinitions, makeStructuredView } from "webgpu-utils";
 import { bindGroups } from "../BindGroups";
 import { gpu } from "../Gpu";
-import { MaterialDescriptor } from "../Materials/MaterialDescriptor";
+import { ShaderDescriptor } from "../shaders/ShaderDescriptor";
 import Property from "../ShaderBuilder/Property";
 import { PropertyInterface } from "../ShaderBuilder/Types";
 import { DrawableType, PipelineInterface, PipelineManagerInterface, StageBindings } from "../types";
@@ -86,7 +86,7 @@ class PipelineManager implements PipelineManagerInterface {
   getPipeline(
     drawableType: DrawableType,
     vertexProperties: PropertyInterface[],
-    materialDescriptor?: MaterialDescriptor,
+    materialDescriptor?: ShaderDescriptor,
   ): [PipelineInterface, StageBindings | null, StageBindings | null, boolean] {
     let fromGraph = false;
 

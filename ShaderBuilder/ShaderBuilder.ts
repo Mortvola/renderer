@@ -1,5 +1,5 @@
 import { gpu } from "../Gpu";
-import { MaterialDescriptor } from "../Materials/MaterialDescriptor";
+import { ShaderDescriptor } from "../shaders/ShaderDescriptor";
 import { bloom } from "../RenderSetings";
 import { common } from "../shaders/common";
 import { getFragmentStage } from "../shaders/fragmentStage";
@@ -35,6 +35,7 @@ import StageGraph from "./StageGraph";
 import { DataType, GraphEdgeInterface, GraphNodeInterface, PropertyInterface, getLength, isPropertyNode } from "./Types";
 import Value from "./Value";
 import ValueNode from "./ValueNode";
+import VertexColor from "./Nodes/VertexColor";
 
 export const buildStageGraph = (graphDescr: GraphStageDescriptor, properties: Property[]): StageGraph => {
   let nodes: GraphNodeInterface[] = [];
@@ -131,6 +132,10 @@ export const buildStageGraph = (graphDescr: GraphStageDescriptor, properties: Pr
 
       case 'Subtract':
         node = new Subtract(nodeDescr.id);
+        break;
+      
+      case 'VertexColor':
+        node = new VertexColor(nodeDescr.id);
         break;
       
       case 'value': {
@@ -417,7 +422,7 @@ export const generateShaderCode = (
 export const generateCode = (
   drawableType: DrawableType,
   vertexProperties: PropertyInterface[],
-  materialDescriptor?: MaterialDescriptor,
+  materialDescriptor?: ShaderDescriptor,
 ): [string, Property[], Property[]] => {
   let props: Property[] = [];
 
@@ -439,7 +444,7 @@ export const generateCode = (
 export const generateShaderModule = (
   drawableType: DrawableType,
   vertexProperties: PropertyInterface[],
-  materialDescriptor?: MaterialDescriptor,
+  materialDescriptor?: ShaderDescriptor,
 ): [GPUShaderModule, Property[], Property[], string] => {
   const [code, vertProperties, fragProperties] = generateCode(drawableType, vertexProperties, materialDescriptor);
   

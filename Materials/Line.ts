@@ -1,5 +1,5 @@
-import { MaterialDescriptor } from "./MaterialDescriptor";
+import { ShaderDescriptor } from "../shaders/ShaderDescriptor";
 
-export const lineMaterial: MaterialDescriptor = {
+export const lineMaterial: ShaderDescriptor = {
   type: 'Line',
 }

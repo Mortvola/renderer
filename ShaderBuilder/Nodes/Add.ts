@@ -1,6 +1,7 @@
 import OperationNode from "../OperationNode";
 import InputPort from "../Ports/InputPort";
 import OutputPort from "../Ports/OutputPort";
+import { DataType } from "../Types";
 
 class Add extends OperationNode {
   constructor(id?: number) {
@@ -14,11 +15,11 @@ class Add extends OperationNode {
     this.outputPort = [new OutputPort(this, 'vec2f', 'result')]
   }
 
-  getExpression(): string {
-    const varA = this.inputPorts[0].getValue();
-    const varB = this.inputPorts[1].getValue();
+  getExpression(): [string, DataType] {
+    const [varA, dataTypeA] = this.inputPorts[0].getValue();
+    const [varB] = this.inputPorts[1].getValue();
 
-    return `${varA} + ${varB}`;
+    return [`${varA} + ${varB}`, dataTypeA];
   }
 }
 

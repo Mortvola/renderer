@@ -4,6 +4,7 @@ import BluePort from "../Ports/BluePort";
 import GreenPort from "../Ports/GreenPort";
 import InputPort from "../Ports/InputPort";
 import RedPort from "../Ports/RedPort";
+import { DataType } from "../Types";
 
 class Split extends OperationNode {
   constructor(id?: number) {
@@ -21,10 +22,10 @@ class Split extends OperationNode {
     ]
   }
 
-  getExpression(): string {
-    const rgba = this.inputPorts[0].getValue();
+  getExpression(): [string, DataType] {
+    const [rgba] = this.inputPorts[0].getValue();
 
-    return `${rgba}`;
+    return [`${rgba}`, 'vec4f'];
   }
 }
 

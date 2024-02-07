@@ -1,7 +1,7 @@
 import { makeObservable, observable } from "mobx";
 import GraphNode from "./GraphNode";
 import OutputPort from "./Ports/OutputPort";
-import { PropertyNodeInterface } from "./Types";
+import { DataType, PropertyNodeInterface } from "./Types";
 import Property from "./Property";
 import { PropertyDescriptor } from "./GraphDescriptor";
 
@@ -32,8 +32,8 @@ class PropertyNode extends GraphNode implements PropertyNodeInterface {
     })
   }
 
-  getVarName() {
-    return this.property.name;
+  getVarName(): [string, DataType] {
+    return [this.property.name, this.getDataType()];
   }
 
   setVarName(varName: string | null) {
@@ -43,12 +43,12 @@ class PropertyNode extends GraphNode implements PropertyNodeInterface {
     return this.property.name;
   }
 
-  getValue(): string {
+  getValue(): [string, DataType] {
     if (this.property.value.dataType === 'texture2D' || this.property.value.dataType === 'sampler') {
       return this.getVarName();
     }
 
-    return `fragProperties.${this.getVarName()}`;
+    return [`fragProperties.${this.getVarName()}`, this.getDataType()];
   }
 
   output(): string {

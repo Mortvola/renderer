@@ -7,6 +7,8 @@ import InputPort from "../Ports/InputPort";
 import OutputPort from "../Ports/OutputPort";
 import RedPort from "../Ports/RedPort";
 import { GraphNodeDescriptor } from "../GraphDescriptor";
+import { DataType } from "../Types";
+import RGBPort from "../Ports/RGBPort";
 
 export type SampleTextureSettings = {
   addressModeU: string,
@@ -44,6 +46,7 @@ class SampleTexture extends OperationNode {
 
     this.outputPort = [
       new OutputPort(this, 'vec4f', 'rgba'),
+      new RGBPort(this, 'vec3f', 'rgb'),
       new RedPort(this, 'float', 'r'),
       new GreenPort(this, 'float', 'g'),
       new BluePort(this, 'float', 'b'),
@@ -63,11 +66,11 @@ class SampleTexture extends OperationNode {
     return descriptor
   }
 
-  getExpression(): string {
-    const texture = this.inputPorts[0].getValue();
+  getExpression(): [string, DataType] {
+    const [texture] = this.inputPorts[0].getValue();
     const sampler = this.samplerName;
-    const textCoord = this.inputPorts[1].getValue();
-    return `textureSample(${texture}, ${sampler}, ${textCoord})`;
+    const [textCoord] = this.inputPorts[1].getValue();
+    return [`textureSample(${texture}, ${sampler}, ${textCoord})`, 'vec4f'];
   }
 }
 

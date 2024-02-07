@@ -1,6 +1,7 @@
 import OperationNode from "../OperationNode";
 import InputPort from "../Ports/InputPort";
 import OutputPort from "../Ports/OutputPort";
+import { DataType } from "../Types";
 
 class TileAndScroll extends OperationNode {
   constructor(id?: number) {
@@ -15,12 +16,12 @@ class TileAndScroll extends OperationNode {
     this.outputPort = [new OutputPort(this, 'vec2f', 'result')]
   }
 
-  getExpression(): string {
-    const uv = this.inputPorts[0].getValue();
-    const tile = this.inputPorts[1].getValue();
-    const scroll = this.inputPorts[2].getValue();
+  getExpression(): [string, DataType] {
+    const [uv] = this.inputPorts[0].getValue();
+    const [tile] = this.inputPorts[1].getValue();
+    const [scroll] = this.inputPorts[2].getValue();
 
-    return `(${uv}) * (${tile}) + ${scroll}`
+    return [`(${uv}) * (${tile}) + ${scroll}`, 'vec2f']
   }
 }
 

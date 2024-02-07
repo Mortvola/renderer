@@ -1,5 +1,5 @@
 import { makeObservable, observable, runInAction } from "mobx";
-import { GraphNodeInterface, NodeType } from "./Types";
+import { DataType, GraphNodeInterface, NodeType } from "./Types";
 import InputPort from "./Ports/InputPort";
 import OutputPort from "./Ports/OutputPort";
 import { GraphNodeDescriptor } from "./GraphDescriptor";
@@ -66,12 +66,16 @@ class GraphNode implements GraphNodeInterface {
     return numEdges;
   }
 
-  getVarName(): string | null {
+  getDataType(): DataType {
+    return 'float'
+  }
+
+  getVarName(): [string, DataType] {
     if (this.outputVarName === null) {
       this.outputVarName = generatVarName();
     }
 
-    return this.outputVarName;
+    return [this.outputVarName, this.getDataType()];
   }
 
   setVarName(name: string | null) {
@@ -82,13 +86,13 @@ class GraphNode implements GraphNodeInterface {
     return '';
   }
 
-  getExpression(): string {
-    return '';
+  getExpression(): [string, DataType] {
+    return ['', this.getDataType()];
   }
 
-  getValue(): string {
+  getValue(): [string, DataType] {
     if (this.getNumOutputEdges() > 1) {
-      return this.getVarName() ?? '';
+      return this.getVarName() ?? ['', 'float'];
     }
 
     return this.getExpression();
@@ -99,7 +103,10 @@ class GraphNode implements GraphNodeInterface {
       return '';
     }
 
-    return `var ${this.getVarName()} = ${this.getExpression()};\n`;
+    const [lhs] = this.getVarName();
+    const [rhs] = this.getExpression();
+
+    return `var ${lhs} = ${rhs};\n`;
   }
 
   static nextNodeId = 0;

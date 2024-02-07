@@ -1,6 +1,7 @@
 import OperationNode from "../OperationNode";
 import InputPort from "../Ports/InputPort";
 import OutputPort from "../Ports/OutputPort";
+import { DataType } from "../Types";
 
 class Twirl extends OperationNode {
   constructor(id?: number) {
@@ -17,12 +18,12 @@ class Twirl extends OperationNode {
     ]
   }
 
-  getExpression(): string {
-    const uv = this.inputPorts[0].getValue();
-    const strength = this.inputPorts[1].getValue();
-    const offset = this.inputPorts[2].getValue();
+  getExpression(): [string, DataType] {
+    const [uv] = this.inputPorts[0].getValue();
+    const [strength] = this.inputPorts[1].getValue();
+    const [offset] = this.inputPorts[2].getValue();
 
-    return `twirl(${uv}, ${strength}, ${offset})`;
+    return [`twirl(${uv}, ${strength}, ${offset})`, 'vec2f'];
   }
 }
 

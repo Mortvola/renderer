@@ -10,37 +10,37 @@ class Value implements ValueInterface {
     this.value = value;
   }
 
-  getValueString(): string {
+  getValueString(): [string, DataType] {
     switch (typeof this.value) {
       case 'string':
-        return this.value;
+        return [this.value, this.dataType];
 
       case 'number': {
         if (this.dataType === 'uv') {
-          return 'vertexOut.texcoord';
+          return ['vertexOut.texcoord', this.dataType];
         }
       
-        return this.value.toString();
+        return [this.value.toString(), this.dataType];
       }
 
       case 'object': {
         if (Array.isArray(this.value)) {
           if (this.value.length === 2) {
-            return `vec2f(${this.value[0]}, ${this.value[1]})`;
+            return [`vec2f(${this.value[0]}, ${this.value[1]})`, this.dataType];
           }
   
           if (this.value.length === 3) {
-            return `vec3f(${this.value[0]}, ${this.value[1]}, ${this.value[2]})`;
+            return [`vec3f(${this.value[0]}, ${this.value[1]}, ${this.value[2]})`, this.dataType];
           }
   
           if (this.value.length === 4) {
-            return `vec4f(${this.value[0]}, ${this.value[1]}, ${this.value[2]}, ${this.value[3]})`;
+            return [`vec4f(${this.value[0]}, ${this.value[1]}, ${this.value[2]}, ${this.value[3]})`, this.dataType];
           }
         }
       }
     }
 
-    return '';
+    return ['', this.dataType];
   }
 }
 

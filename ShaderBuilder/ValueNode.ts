@@ -1,7 +1,7 @@
 import { GraphNodeDescriptor, ValueDescriptor } from "./GraphDescriptor";
 import GraphNode from "./GraphNode";
 import OutputPort from "./Ports/OutputPort";
-import { ValueInterface, ValueNodeInterface } from "./Types";
+import { DataType, ValueInterface, ValueNodeInterface } from "./Types";
 
 class ValueNode extends GraphNode implements ValueNodeInterface {
   value: ValueInterface;
@@ -25,8 +25,8 @@ class ValueNode extends GraphNode implements ValueNodeInterface {
     })
   }
 
-  getExpression(): string {
-    return this.value.getValueString() ?? '';
+  getExpression(): [string, DataType] {
+    return this.value.getValueString() ?? ['', this.getDataType()];
   }
 }
 

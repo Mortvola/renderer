@@ -1,6 +1,7 @@
 import OperationNode from "../OperationNode";
 import InputPort from "../Ports/InputPort";
 import OutputPort from "../Ports/OutputPort";
+import { DataType } from "../Types";
 
 class Voronoi extends OperationNode {
   constructor(id?: number) {
@@ -16,11 +17,11 @@ class Voronoi extends OperationNode {
     ]
   }
 
-  getExpression(): string {
-    const uv = this.inputPorts[0].getValue();
-    const density = this.inputPorts[1].getValue();
+  getExpression(): [string, DataType] {
+    const [uv] = this.inputPorts[0].getValue();
+    const [density] = this.inputPorts[1].getValue();
 
-    return `voronoi(${uv}, ${density})`;
+    return [`voronoi(${uv}, ${density})`, 'float'];
   }
 }
 

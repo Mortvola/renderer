@@ -1,20 +1,23 @@
+import { DataType } from "../Types";
 import OutputPort from "./OutputPort";
 
 class GreenPort extends OutputPort {
-  getVarName(): string {
+  getVarName(): [string, DataType] {
     if (this.node.getVarName()) {
-      return `${this.node.getVarName()}.g`
+      return [`${this.node.getVarName()}.g`, this.dataType]
     }
 
-    return '';
+    return ['', this.dataType];
   }
 
-  getValue(): string {
+  getValue(): [string, DataType] {
     if (this.node.getValue()) {
-      return `${this.node.getValue()}.g`
+      const varA = this.node.getValue()
+
+      return [`(${varA}).g`, this.dataType]
     }
 
-    return '';
+    return ['', this.dataType];
   }
 }
 

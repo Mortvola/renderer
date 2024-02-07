@@ -1,20 +1,23 @@
+import { DataType } from "../Types";
 import OutputPort from "./OutputPort";
 
 class BluePort extends OutputPort {
-  getVarName(): string {
+  getVarName(): [string, DataType] {
     if (this.node.getVarName()) {
-      return `${this.node.getVarName()}.b`
+      return [`${this.node.getVarName()}.b`, this.dataType]
     }
 
-    return '';
+    return ['', this.dataType];
   }
 
-  getValue(): string {
+  getValue(): [string, DataType] {
     if (this.node.getValue()) {
-      return `${this.node.getValue()}.b`
+      const varA = this.node.getValue()
+
+      return [`(${varA}).b`, this.dataType]
     }
 
-    return '';
+    return ['', this.dataType];
   }
 }
 

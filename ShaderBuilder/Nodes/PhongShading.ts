@@ -5,7 +5,7 @@ import GreenPort from "../Ports/GreenPort";
 import InputPort from "../Ports/InputPort";
 import OutputPort from "../Ports/OutputPort";
 import RedPort from "../Ports/RedPort";
-import { SamplerDescriptor } from "../Types";
+import { DataType, SamplerDescriptor } from "../Types";
 
 class PhongShading extends OperationNode {
   sampler: SamplerDescriptor = {};
@@ -28,9 +28,9 @@ class PhongShading extends OperationNode {
     ]
   }
 
-  getExpression(): string {
-    const color = this.inputPorts[0].getValue();
-    return `phong(vertexOut, ${color})`;
+  getExpression(): [string, DataType] {
+    const [color] = this.inputPorts[0].getValue();
+    return [`phong(vertexOut, ${color})`, 'vec4f'];
   }
 }
 

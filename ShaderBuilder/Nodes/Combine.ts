@@ -2,6 +2,7 @@ import OperationNode from "../OperationNode";
 import InputPort from "../Ports/InputPort";
 import OutputPort from "../Ports/OutputPort";
 import RGBPort from "../Ports/RGBPort";
+import { DataType } from "../Types";
 
 class Combine extends OperationNode {
   constructor(id?: number) {
@@ -20,13 +21,13 @@ class Combine extends OperationNode {
     ]
   }
 
-  getExpression(): string {
-    const r = this.inputPorts[0].getValue();
-    const g = this.inputPorts[1].getValue();
-    const b = this.inputPorts[2].getValue();
-    const a = this.inputPorts[3].getValue();
+  getExpression(): [string, DataType] {
+    const [r] = this.inputPorts[0].getValue();
+    const [g] = this.inputPorts[1].getValue();
+    const [b] = this.inputPorts[2].getValue();
+    const [a] = this.inputPorts[3].getValue();
 
-    return `vec4f(${r}, ${g}, ${b}, ${a})`;
+    return [`vec4f(${r}, ${g}, ${b}, ${a})`, 'vec4f'];
   }
 }
 

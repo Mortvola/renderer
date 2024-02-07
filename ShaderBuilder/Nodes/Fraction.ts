@@ -1,6 +1,7 @@
 import OperationNode from "../OperationNode";
 import InputPort from "../Ports/InputPort";
 import OutputPort from "../Ports/OutputPort";
+import { DataType } from "../Types";
 
 class Fraction extends OperationNode {
   constructor(id?: number) {
@@ -13,8 +14,10 @@ class Fraction extends OperationNode {
     this.outputPort = [new OutputPort(this, 'vec2f', 'result')]
   }
 
-  getExpression(): string {
-    return `fract(${this.inputPorts[0].getValue()})`;
+  getExpression(): [string, DataType] {
+    const [value, dataType] = this.inputPorts[0].getValue();
+
+    return [`fract(${value})`, dataType];
   }
 }
 

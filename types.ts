@@ -2,7 +2,7 @@ import { Vec3, Vec4, Mat4, Quat } from 'wgpu-matrix';
 import { StructuredView } from 'webgpu-utils';
 import DrawableInterface from './Drawables/DrawableInterface';
 import { PropertyInterface, ValueType } from './ShaderBuilder/Types';
-import { MaterialDescriptor } from './Materials/MaterialDescriptor';
+import { ShaderDescriptor } from './shaders/ShaderDescriptor';
 
 export const maxInstances = 1000;
 
@@ -102,7 +102,7 @@ export interface PipelineManagerInterface {
   getPipeline(
     drawableType: DrawableType,
     vertexProperties: PropertyInterface[],
-    args: MaterialDescriptor,
+    args: ShaderDescriptor,
   ): [PipelineInterface, StageBindings | null, StageBindings | null, boolean];
 }
 

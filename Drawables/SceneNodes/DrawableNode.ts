@@ -2,7 +2,7 @@ import { Vec4, mat4, vec4 } from "wgpu-matrix";
 import DrawableInterface from "../DrawableInterface";
 import SceneNode from "./SceneNode";
 import { DrawableNodeInterface, MaterialInterface } from "../../types";
-import { MaterialDescriptor } from "../../Materials/MaterialDescriptor";
+import { ShaderDescriptor } from "../../shaders/ShaderDescriptor";
 import Material from "../../Materials/Material";
 
 const materialsMap: Map<string, Material> = new Map()
@@ -21,7 +21,7 @@ class DrawableNode extends SceneNode implements DrawableNodeInterface {
     this.color = material.color.slice();
   }
 
-  static async create(drawable: DrawableInterface, materialDescriptor?: MaterialDescriptor): Promise<DrawableNode> {
+  static async create(drawable: DrawableInterface, materialDescriptor?: ShaderDescriptor): Promise<DrawableNode> {
     const key = JSON.stringify({ type: drawable.type, descriptor: materialDescriptor });
     let material = materialsMap.get(key)
 

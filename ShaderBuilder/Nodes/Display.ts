@@ -1,5 +1,6 @@
 import OperationNode from "../OperationNode";
 import InputPort from "../Ports/InputPort";
+import { DataType } from "../Types";
 
 class Display extends OperationNode {
   constructor(id?: number) {
@@ -11,16 +12,23 @@ class Display extends OperationNode {
     ]
   }
 
-  getExpression(): string {
+  getExpression(): [string, DataType] {
     if (this.inputPorts[1].edge) {
-      return `vec4f(${this.inputPorts[0].getValue()}.rgb, ${this.inputPorts[1].getValue()})`;
+      const [varA] = this.inputPorts[0].getValue()
+      const [varB] = this.inputPorts[1].getValue()
+
+      return [`vec4f((${varA}).rgb, ${varB})`, 'vec4f'];
     }
 
-    return `${this.inputPorts[0].getValue()}`;
+    const [varA] = this.inputPorts[0].getValue();
+
+    return [`${varA}`, 'vec4f'];
   }
 
   output(): string {
-    return `var fragOut = ${this.getExpression()};`;
+    const [value] = this.getExpression()
+
+    return `var fragOut = ${value};`;
   }
 }
 

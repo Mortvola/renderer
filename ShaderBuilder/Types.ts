@@ -6,7 +6,7 @@ export type NodeType =
   'property' | 'value'
   | 'uv' | 'time'  | 'time'
   | 'Add' | 'Combine' | 'display' | 'Fraction' | 'Lerp' | 'Multiply' | 'Power' | 'SampleTexture' | 'Split' | 'Subtract' | 'TileAndScroll'
-  | 'PhongShading' | 'Twirl' | 'Voronoi';
+  | 'PhongShading' | 'Twirl' | 'VertexColor' | 'Voronoi';
 
 export type SamplerDescriptor = {};
 
@@ -35,9 +35,9 @@ export interface InputPortInterface extends PortInterface {
 
   value?: ValueInterface;
 
-  getVarName(): string;
+  getVarName(): [string, DataType];
 
-  getValue(): string;
+  getValue(): [string, DataType];
 };
 
 export const isInputPort = (r: unknown): r is InputPortInterface => (
@@ -47,9 +47,9 @@ export const isInputPort = (r: unknown): r is InputPortInterface => (
 export interface OutputPortInterface extends PortInterface {
   edges: GraphEdgeInterface[];
   
-  getVarName(): string;
+  getVarName(): [string, DataType];
 
-  getValue(): string;
+  getValue(): [string, DataType];
 };
 
 export interface GraphNodeInterface {
@@ -65,11 +65,11 @@ export interface GraphNodeInterface {
 
   createDescriptor(): GraphNodeDescriptor
 
-  getVarName(): string | null;
+  getVarName(): [string, DataType];
 
   setVarName(name: string | null): void;
 
-  getValue(): string;
+  getValue(): [string, DataType];
 
   position: { x: number, y: number };
 
@@ -107,11 +107,11 @@ export interface GraphEdgeInterface {
 
   input: InputPortInterface;
 
-  getVarName(): string;
+  getVarName(): [string, DataType];
 
   setVarName(name: string): void;
 
-  getValue(): string;
+  getValue(): [string, DataType];
 }
 
 export interface ValueInterface {
@@ -119,7 +119,7 @@ export interface ValueInterface {
 
   value: ValueType;
 
-  getValueString(): string;
+  getValueString(): [string, DataType];
 }
 
 export interface PropertyInterface {

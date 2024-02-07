@@ -38,11 +38,11 @@ class InputPort extends Port implements InputPortInterface {
     })
   }
 
-  getVarName(): string {
-    return this.edge?.getVarName() ?? '';
+  getVarName(): [string, DataType] {
+    return this.edge?.getVarName() ?? ['', this.dataType];
   }
 
-  getValue(): string {
+  getValue(): [string, DataType] {
     if (this.edge) {
       return this.edge.getValue();
     }
@@ -51,7 +51,7 @@ class InputPort extends Port implements InputPortInterface {
       return this.value.getValueString();
     }
 
-    return '';
+    return ['', this.dataType];
   }
 }
 

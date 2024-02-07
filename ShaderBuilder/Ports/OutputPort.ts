@@ -13,12 +13,12 @@ class OutputPort extends Port implements OutputPortInterface {
     })
   }
 
-  getVarName(): string {
-    return this.node.getVarName() ?? '';
+  getVarName(): [string, DataType] {
+    return this.node.getVarName() ?? ['', this.dataType];
   }
 
-  getValue(): string {
-    return this.node.getValue() ?? '';
+  getValue(): [string, DataType] {
+    return this.node.getValue() ?? ['', this.dataType];
   }
 }
 

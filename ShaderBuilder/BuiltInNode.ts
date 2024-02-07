@@ -1,5 +1,5 @@
 import GraphNode from "./GraphNode";
-import { NodeType } from "./Types";
+import { DataType, NodeType } from "./Types";
 
 class BuiltIn extends GraphNode {
   name: string;
@@ -17,8 +17,8 @@ class BuiltIn extends GraphNode {
     return this.name;
   }
 
-  getExpression(): string {
-    return this.getVarName() ?? '';
+  getExpression(): [string, DataType] {
+    return this.getVarName() ?? ['', 'float'];
   }
 }
 

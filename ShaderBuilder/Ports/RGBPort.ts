@@ -1,20 +1,23 @@
+import { DataType } from "../Types";
 import OutputPort from "./OutputPort";
 
 class RGBPort extends OutputPort {
-  getVarName(): string {
+  getVarName(): [string, DataType] {
     if (this.node.getVarName()) {
-      return `${this.node.getVarName()}.rgb`
+      return [`${this.node.getVarName()}.rgb`, this.dataType]
     }
 
-    return '';
+    return ['', this.dataType];
   }
 
-  getValue(): string {
+  getValue(): [string, DataType] {
     if (this.node.getValue()) {
-      return `${this.node.getValue()}.rgb`
+      const [varA] = this.node.getValue()
+
+      return [`(${varA}).rgb`, this.dataType]
     }
 
-    return '';
+    return ['', this.dataType];
   }
 }
 

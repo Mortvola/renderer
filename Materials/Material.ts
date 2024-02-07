@@ -3,7 +3,7 @@ import DrawableInterface from "../Drawables/DrawableInterface";
 import { gpu } from "../Gpu";
 import { pipelineManager } from "../Pipelines/PipelineManager";
 import { DrawableNodeInterface, DrawableType, MaterialInterface, PipelineInterface, StageBindings } from "../types";
-import { MaterialDescriptor } from "./MaterialDescriptor";
+import { ShaderDescriptor } from "../shaders/ShaderDescriptor";
 import { PropertyInterface, ValueType } from "../ShaderBuilder/Types";
 import Http from "../../Http/src";
 
@@ -29,7 +29,7 @@ class Material implements MaterialInterface {
   transparent: boolean;
 
   private constructor(
-    materialDescriptor: MaterialDescriptor | null,
+    materialDescriptor: ShaderDescriptor | null,
     pipeline: PipelineInterface,
     vertStageBindings: StageBindings | null,
     fragStageBindings: StageBindings | null,
@@ -75,7 +75,7 @@ class Material implements MaterialInterface {
   static async create(
     drawableType: DrawableType,
     vertexProperties: PropertyInterface[],
-    materialDescriptor?: MaterialDescriptor,
+    materialDescriptor?: ShaderDescriptor,
   ): Promise<Material> {
     const [
       pipeline, vertStageBindings, fragStageBindings, fromGraph,
