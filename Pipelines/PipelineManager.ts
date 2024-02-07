@@ -1,4 +1,4 @@
-import { StructuredView, makeShaderDataDefinitions, makeStructuredView } from "webgpu-utils";
+import { makeShaderDataDefinitions, makeStructuredView } from "webgpu-utils";
 import { bindGroups } from "../BindGroups";
 import { gpu } from "../Gpu";
 import { MaterialDescriptor } from "../Materials/MaterialDescriptor";
