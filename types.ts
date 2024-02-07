@@ -2,6 +2,7 @@ import { Vec3, Vec4, Mat4, Quat } from 'wgpu-matrix';
 import { StructuredView } from 'webgpu-utils';
 import DrawableInterface from './Drawables/DrawableInterface';
 import { PropertyInterface, ValueType } from './ShaderBuilder/Types';
+import { MaterialDescriptor } from './Materials/MaterialDescriptor';
 
 export const maxInstances = 1000;
 
@@ -45,6 +46,8 @@ export interface SceneNodeInterface {
   setFromAngles(x: number, y: number, z: number): void;
 }
 
+export type DrawableType = 'Mesh' | 'Billboard' | 'Circle' | 'Line'
+
 export interface MaterialInterface {
   pipeline: PipelineInterface | null;
 
@@ -52,15 +55,13 @@ export interface MaterialInterface {
 
   drawables: DrawableInterface[];
 
-  uniformsBuffer: GPUBuffer | null;
-
-  bindGroup: GPUBindGroup | null;
-
   transparent: boolean;
+
+  setBindGroups(passEncoder: GPURenderPassEncoder): void;
 
   addDrawable(drawableNode: DrawableNodeInterface): void;
 
-  updateProperty(name: string, value: ValueType): void;
+  updateProperty(stage: GPUShaderStageFlags, name: string, value: ValueType): void;
 }
 
 export interface DrawableNodeInterface extends SceneNodeInterface {
@@ -74,7 +75,7 @@ export interface DrawableNodeInterface extends SceneNodeInterface {
 }
 
 export interface PipelineInterface {
-  pipeline: GPURenderPipeline | null;
+  pipeline: GPURenderPipeline;
 
   // drawables: DrawableInterface[];
   materials: MaterialInterface[];
@@ -90,10 +91,19 @@ export type PipelineAttributes = {
 
 }
 
+export type StageBindings = {
+  binding: number,
+  layout: GPUBindGroupLayout | null,
+  properties: PropertyInterface[],
+  structuredView: StructuredView | null,
+}
+
 export interface PipelineManagerInterface {
-  getPipelineByArgs(
-    args: PipelineAttributes,
-  ): [PipelineInterface, GPUBindGroupLayout | null, PropertyInterface[], StructuredView | null, boolean];
+  getPipeline(
+    drawableType: DrawableType,
+    vertexProperties: PropertyInterface[],
+    args: MaterialDescriptor,
+  ): [PipelineInterface, StageBindings | null, StageBindings | null, boolean];
 }
 
 export interface ParticleSystemInterface {

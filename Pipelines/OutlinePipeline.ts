@@ -7,8 +7,6 @@ const label = 'outline';
 
 class OutlinePipeline extends Pipeline {
   constructor() {
-    super();
-
     const shaderModule = gpu.device.createShaderModule({
       label,
       code: outlineShader,
@@ -75,7 +73,7 @@ class OutlinePipeline extends Pipeline {
       }),
     };
     
-    this.pipeline = gpu.device.createRenderPipeline(pipelineDescriptor);
+    super(gpu.device.createRenderPipeline(pipelineDescriptor));
   }
 }
 

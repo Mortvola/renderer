@@ -1,7 +1,11 @@
 import { Vec4, Mat4 } from 'wgpu-matrix';
+import { DrawableType } from '../types';
+import { PropertyInterface } from '../ShaderBuilder/Types';
 
 interface DrawableInterface {
   drawable: boolean;
+
+  type: DrawableType;
 
   uuid: string;
 
@@ -20,6 +24,8 @@ interface DrawableInterface {
   bindGroup: GPUBindGroup;
 
   numInstances: number;
+
+  vertexProperties: PropertyInterface[];
 
   render(passEncoder: GPURenderPassEncoder, numInstances: number): void;
 

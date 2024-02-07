@@ -7,8 +7,6 @@ const label = 'reticle';
 
 class ReticlePipeline extends Pipeline {
   constructor() {
-    super();
-
     const shaderModule = gpu.device.createShaderModule({
       label,
       code: reticleShader,
@@ -60,7 +58,7 @@ class ReticlePipeline extends Pipeline {
       }),
     };
     
-    this.pipeline = gpu.device.createRenderPipeline(pipelineDescriptor);
+    super(gpu.device.createRenderPipeline(pipelineDescriptor));
   }
 }
 

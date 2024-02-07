@@ -2,10 +2,14 @@ import { gpu } from "../Gpu";
 import { DrawableNodeInterface, MaterialInterface, PipelineInterface } from "../types";
 
 class Pipeline implements PipelineInterface {
-  pipeline: GPURenderPipeline | null = null;
+  pipeline: GPURenderPipeline;
 
   // drawables: DrawableInterface[] = [];
   materials: MaterialInterface[] = [];
+
+  constructor(pipeline: GPURenderPipeline) {
+    this.pipeline = pipeline;
+  }
 
   addDrawable(drawable: DrawableNodeInterface): void {
     let entry = this.materials.find((m) => m === drawable.material);
@@ -22,26 +26,24 @@ class Pipeline implements PipelineInterface {
   }
 
   render(passEncoder: GPURenderPassEncoder) {
-    if (this.pipeline) {
-      passEncoder.setPipeline(this.pipeline);
+    passEncoder.setPipeline(this.pipeline);
 
-      for (const material of this.materials) {
-        passEncoder.setBindGroup(2, material.bindGroup);
+    for (const material of this.materials) {
+      material.setBindGroups(passEncoder)
 
-        for (const drawable of material.drawables) {
-          if (drawable.numInstances > 0) {
-            gpu.device.queue.writeBuffer(drawable.modelMatrixBuffer, 0, drawable.modelMatrices, 0, drawable.numInstances * 16);  
-            gpu.device.queue.writeBuffer(drawable.instanceColorBuffer, 0, drawable.instanceColor, 0, drawable.numInstances * 4);  
-            passEncoder.setBindGroup(1, drawable.bindGroup);
+      for (const drawable of material.drawables) {
+        if (drawable.numInstances > 0) {
+          gpu.device.queue.writeBuffer(drawable.modelMatrixBuffer, 0, drawable.modelMatrices, 0, drawable.numInstances * 16);  
+          gpu.device.queue.writeBuffer(drawable.instanceColorBuffer, 0, drawable.instanceColor, 0, drawable.numInstances * 4);  
+          passEncoder.setBindGroup(1, drawable.bindGroup);
 
-            drawable.render(passEncoder, drawable.numInstances);
-    
-            drawable.numInstances = 0;
-          }
+          drawable.render(passEncoder, drawable.numInstances);
+  
+          drawable.numInstances = 0;
         }
-
-        material.drawables = [];
       }
+
+      material.drawables = [];
     }
 
     this.materials = [];

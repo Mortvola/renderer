@@ -6,8 +6,6 @@ import Pipeline from "./Pipeline";
 const label = 'trajectory'
 class TrajectoryPipeline extends Pipeline {
   constructor() {
-    super();
-
     const shaderModule = gpu.device.createShaderModule({
       label,
       code: trajectoryShader,
@@ -47,7 +45,7 @@ class TrajectoryPipeline extends Pipeline {
       }),
     };
     
-    this.pipeline = gpu.device.createRenderPipeline(pipelineDescriptor);
+    super(gpu.device.createRenderPipeline(pipelineDescriptor));
   }
 }
 

@@ -2,9 +2,12 @@ import { gpu } from "../Gpu";
 import { MaterialDescriptor } from "../Materials/MaterialDescriptor";
 import { bloom } from "../RenderSetings";
 import { common } from "../shaders/common";
+import { getFragmentStage } from "../shaders/fragmentStage";
 import { phongFunction } from "../shaders/phongFunction";
 import { twirlFunction } from '../shaders/twirlFunction';
+import { getVertexStage } from "../shaders/vertexStage";
 import { voronoiFunction } from "../shaders/voronoiFunction";
+import { DrawableType } from "../types";
 import { GraphDescriptor, GraphStageDescriptor, PropertyDescriptor, ValueDescriptor } from "./GraphDescriptor";
 import GraphEdge from "./GraphEdge";
 import { setNextVarid } from "./GraphNode";
@@ -29,7 +32,7 @@ import Property from "./Property";
 import PropertyNode from "./PropertyNode";
 import ShaderGraph from "./ShaderGraph";
 import StageGraph from "./StageGraph";
-import { DataType, GraphEdgeInterface, GraphNodeInterface, getLength, isPropertyNode, isValueNode } from "./Types";
+import { DataType, GraphEdgeInterface, GraphNodeInterface, PropertyInterface, getLength, isPropertyNode } from "./Types";
 import Value from "./Value";
 import ValueNode from "./ValueNode";
 
@@ -319,160 +322,141 @@ const space = (dataType: DataType) => {
   return '';
 }
 
-export const generateShaderCode = (graph: ShaderGraph, lit: boolean): [string, Property[]] => {
+export const generateShaderCode = (
+  graph: ShaderGraph | null,
+  drawableType: DrawableType,
+  vertProperties: PropertyInterface[],
+  lit: boolean,
+): [string, Property[], Property[]] => {
   let body = '';
 
-  let bindings = '';
-  let uniforms = '';
-  let numBindings = 0;
-  let properties: Property[] = [];
+  let vertBindings = '';
+  let fragBindings = '';
+  let vertUniforms = '';
+  let fragUniforms = '';
+  let fragProperties: PropertyInterface[] = [];
 
-  if (graph.fragment) {
-    [body, properties] = generateStageShaderCode(graph.fragment);
+  let numVertBindings = 0;
+  let numFragBindings = 0;
+  let group = 2;
 
-    for (let i = 0; i < properties.length; i += 1) {
-      if (properties[i].value.dataType === 'texture2D' || properties[i].value.dataType === 'sampler') {
-        bindings = bindings.concat(
-          `@group(2) @binding(${numBindings}) var${space(properties[i].value.dataType)} ${properties[i].name}: ${bindingType(properties[i].value.dataType)};\n`
-        )  
+  for (let i = 0; i < vertProperties.length; i += 1) {
+    vertUniforms = vertUniforms.concat(
+      `${vertProperties[i].name}: ${bindingType(vertProperties[i].value.dataType)},`
+    )    
+  }
 
-        numBindings += 1;
-      }
-      else {
-        uniforms = uniforms.concat(
-          `${properties[i].name}: ${bindingType(properties[i].value.dataType)},`
-        )  
-      }
-    }
+  if (vertUniforms !== '') {
+    vertBindings = vertBindings.concat(
+      `@group(${group}) @binding(${numVertBindings}) var<uniform> vertProperties: VertProperties;`
+    )
+    group += 1;
+    numVertBindings += 1;
+
+    vertUniforms = `struct VertProperties { ${vertUniforms} }\n`
+  }
+
+  if (graph && graph.fragment) {
+    [body, fragProperties] = generateStageShaderCode(graph.fragment);
 
     console.log(body);
   }
 
-  if (uniforms !== '') {
-    bindings = bindings.concat(
-      `@group(2) @binding(${numBindings}) var<uniform> properties: Properties;`
-    )
-    numBindings += 1;
+  for (let i = 0; i < fragProperties.length; i += 1) {
+    if (fragProperties[i].value.dataType === 'texture2D' || fragProperties[i].value.dataType === 'sampler') {
+      fragBindings = fragBindings.concat(
+        `@group(${group}) @binding(${numFragBindings}) var${space(fragProperties[i].value.dataType)} ${fragProperties[i].name}: ${bindingType(fragProperties[i].value.dataType)};\n`
+      )  
 
-    uniforms = `struct Properties { ${uniforms} }\n`
+      numFragBindings += 1;
+    }
+    else {
+      fragUniforms = fragUniforms.concat(
+        `${fragProperties[i].name}: ${bindingType(fragProperties[i].value.dataType)},`
+      )  
+    }
+  }
+
+  if (fragUniforms !== '') {
+    fragBindings = fragBindings.concat(
+      `@group(${group}) @binding(${numFragBindings}) var<uniform> fragProperties: FragProperties;`
+    )
+    group += 1;
+    numFragBindings += 1;
+
+    fragUniforms = `struct FragProperties { ${fragUniforms} }\n`
   }
 
   return [
-    `
-    struct Vertex {
-      @location(0) position: vec4f,
-      @location(1) normal: vec4f,
-      @location(2) texcoord: vec2f,
-    }
-    
-    struct VertexOut {
-      @builtin(position) position : vec4f,
-      @location(0) texcoord: vec2f,
-      ${lit ? '@location(1) fragPos: vec4f,\n@location(2) normal: vec4f,' : ''}    
-    }
-        
+    `    
     ${common}
-  
-    @vertex
-    fn vs(
-      @builtin(instance_index) instanceIndex: u32,
-      vert: Vertex,
-    ) -> VertexOut
-    {
-      var output: VertexOut;
-    
-      output.position = projectionMatrix * viewMatrix * modelMatrix[instanceIndex] * vert.position;
-      output.texcoord = vert.texcoord;
-    
-      ${lit
-        ? `
-        output.fragPos = viewMatrix * modelMatrix[0] * vert.position;
-        output.normal = viewMatrix * modelMatrix[0] * vert.normal;          
-        `
-        : ''
-      }
-    
-      return output;
-    }
 
-    ${uniforms}
+    ${vertUniforms}
 
-    ${bindings}
+    ${vertBindings}
+
+    ${fragUniforms}
+
+    ${fragBindings}
     
+    ${getVertexStage(drawableType, lit)}
+
     ${lit ? phongFunction : ''}
 
     ${twirlFunction}
 
     ${voronoiFunction}
 
-    ${
-      bloom ?
-        `
-        struct FragmentOut {
-          @location(0) color: vec4f,
-          @location(1) bright: vec4f,
-        }        
-        `
-        : ''
-    }
-
-    @fragment
-    fn fs(vertexOut: VertexOut) -> ${ bloom ? 'FragmentOut' : '@location(0) vec4f' }
-    {
-      ${body}
-
-      ${
-        bloom
-          ? (
-            `
-            var out: FragmentOut;
-
-            out.color = fragOut;
-
-            // Compute relative luminance (coefficients from https://www.w3.org/TR/AERT/#color-contrast
-            var luminance = dot(out.color.rgb, vec3f(0.299, 0.587, 0.114));
-          
-            if (luminance > 0.9) {
-              out.bright = out.color;
-            }
-            else {
-              out.bright = vec4(0.0, 0.0, 0.0, 1.0);
-            }
-          
-            return out;          
-            `
-          )
-          : 'return fragOut;'
-      }
-    }
+    ${getFragmentStage(body, bloom)}
     `,
-    properties,
+    vertProperties,
+    fragProperties,
   ]
 }
 
-export const generateMaterial = (materialDescriptor: MaterialDescriptor): [string, Property[]] => {
+export const generateCode = (
+  drawableType: DrawableType,
+  vertexProperties: PropertyInterface[],
+  materialDescriptor?: MaterialDescriptor,
+): [string, Property[], Property[]] => {
   let props: Property[] = [];
 
-  if (materialDescriptor.properties) {
-    props = materialDescriptor.properties.map((p) => (
+  if (materialDescriptor?.properties) {
+    props = props.concat(materialDescriptor.properties.map((p) => (
       new Property(p.name, p.dataType, p.value)
-    ))
+    )))
   }
 
-  const graph = buildGraph(materialDescriptor.graph!, props);
+  let graph: ShaderGraph | null = null;
 
-  return generateShaderCode(graph, materialDescriptor.lit ?? false);
+  if (materialDescriptor?.graph) {
+    graph = buildGraph(materialDescriptor.graph!, props);
+  }
+
+  return generateShaderCode(graph, drawableType, vertexProperties, materialDescriptor?.lit ?? false);
 }
 
-export const generateShaderModule = (materialDescriptor: MaterialDescriptor): [GPUShaderModule, Property[], string] => {
-  const [code, properties] = generateMaterial(materialDescriptor);
+export const generateShaderModule = (
+  drawableType: DrawableType,
+  vertexProperties: PropertyInterface[],
+  materialDescriptor?: MaterialDescriptor,
+): [GPUShaderModule, Property[], Property[], string] => {
+  const [code, vertProperties, fragProperties] = generateCode(drawableType, vertexProperties, materialDescriptor);
   
-  const shaderModule = gpu.device.createShaderModule({
-    label: 'custom shader',
-    code: code,
-  })
+  let shaderModule: GPUShaderModule
+  try {
+    shaderModule = gpu.device.createShaderModule({
+      label: 'custom shader',
+      code: code,
+    })  
+  }
+  catch (error) {
+    console.log(code)
+    console.log(error);
+    throw error;
+  }
 
-  return [shaderModule, properties, code];
+  return [shaderModule, vertProperties, fragProperties, code];
 }
 
 export const createDescriptor = (nodes: GraphNodeInterface[], edges: GraphEdgeInterface[]): GraphDescriptor => {

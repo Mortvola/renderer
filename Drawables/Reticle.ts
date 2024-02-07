@@ -11,7 +11,7 @@ class Reticle extends Drawable {
   uniformBuffer3: GPUBuffer;
 
   private constructor(radius: number) {
-    super()
+    super('Billboard')
 
     this.name = 'Reticle';
     

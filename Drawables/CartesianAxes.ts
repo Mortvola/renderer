@@ -26,7 +26,7 @@ class CartesianAxes extends Drawable {
   numInstances = 0;
 
   constructor() {
-    super();
+    super('Mesh');
     
     this.name = 'CartesianAxes';
     

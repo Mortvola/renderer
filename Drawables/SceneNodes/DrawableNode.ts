@@ -21,12 +21,12 @@ class DrawableNode extends SceneNode implements DrawableNodeInterface {
     this.color = material.color.slice();
   }
 
-  static async create(drawable: DrawableInterface, materialDescriptor: MaterialDescriptor): Promise<DrawableNode> {
-    const key = JSON.stringify(materialDescriptor);
+  static async create(drawable: DrawableInterface, materialDescriptor?: MaterialDescriptor): Promise<DrawableNode> {
+    const key = JSON.stringify({ type: drawable.type, descriptor: materialDescriptor });
     let material = materialsMap.get(key)
 
     if (!material) {
-      material = await Material.create(materialDescriptor);
+      material = await Material.create(drawable.type, drawable.vertexProperties, materialDescriptor);
       materialsMap.set(key, material)
     }
 

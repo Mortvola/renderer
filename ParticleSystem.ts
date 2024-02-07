@@ -5,7 +5,7 @@ import { degToRad } from "./Math";
 import { ParticleDescriptor } from "../State/types";
 import DrawableInterface from "./Drawables/DrawableInterface";
 import Billboard from "./Drawables/Billboard";
-import { billboardMaterial } from "./Materials/Billboard";
+import Material from "./Materials/Material";
 
 type Point = {
   velocity: number,
@@ -43,9 +43,11 @@ class ParticleSystem implements ParticleSystemInterface {
 
   initialColor: number[][];
 
+  material: Material | undefined;
+
   drawable: DrawableInterface | null = null;
 
-  constructor(id: number, descriptor?: ParticleDescriptor) {
+  private constructor(id: number, material?: Material, descriptor?: ParticleDescriptor) {
     this.id = id
 
     this.rate = descriptor?.rate ?? 10
@@ -58,6 +60,16 @@ class ParticleSystem implements ParticleSystemInterface {
     this.initialeSize = descriptor?.initialSize ?? 1;
     this.finalSize = descriptor?.finalSize ?? this.initialeSize;
     this.initialColor = descriptor?.initialColor ?? [[1, 1, 1, 1], [1, 1, 1, 1]]
+    this.material = material
+  }
+
+  static async create(id: number, descriptor?: ParticleDescriptor) {
+    let material: Material | undefined = undefined
+    if (descriptor?.material) {
+
+    }
+
+    return new ParticleSystem(id, material, descriptor)
   }
 
   async update(time: number, elapsedTime: number, scene: ContainerNodeInterface): Promise<void> {
@@ -109,7 +121,7 @@ class ParticleSystem implements ParticleSystemInterface {
       
         // while (this.points.length < this.maxPoints) {
         for (; numToEmit > 0; numToEmit -= 1) {
-          const drawable = await DrawableNode.create(this.drawable, billboardMaterial);
+          const drawable = await DrawableNode.create(this.drawable);
     
           let origin = vec4.create(0, 0, 0, 1)
 

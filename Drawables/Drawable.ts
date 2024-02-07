@@ -2,10 +2,13 @@ import { Mat4, vec4, Vec4 } from 'wgpu-matrix';
 import DrawableInterface from "./DrawableInterface";
 import { bindGroups } from '../BindGroups';
 import { gpu } from '../Gpu';
-import { maxInstances } from '../types';
+import { DrawableType, maxInstances } from '../types';
+import { PropertyInterface } from '../ShaderBuilder/Types';
 
 class Drawable implements DrawableInterface {
   drawable = true;
+
+  type: DrawableType;
 
   uuid = '';
 
@@ -25,7 +28,11 @@ class Drawable implements DrawableInterface {
 
   bindGroup: GPUBindGroup;
 
-  constructor() {
+  vertexProperties: PropertyInterface[] = [];
+
+  constructor(type: DrawableType) {
+    this.type = type;
+
     const descriptor1 = {
       label: 'model Matrix',
       size: 16 * Float32Array.BYTES_PER_ELEMENT * maxInstances,

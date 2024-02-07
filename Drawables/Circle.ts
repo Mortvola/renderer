@@ -4,14 +4,11 @@ import { circleShader } from '../shaders/circle';
 import { makeShaderDataDefinitions, makeStructuredView } from 'webgpu-utils';
 import { bindGroups } from '../BindGroups';
 import { gpu } from '../Gpu';
+import Value from '../ShaderBuilder/Value';
 
 const defs = makeShaderDataDefinitions(circleShader);
 
 class Circle extends Drawable {
-  radius: number;
-
-  thickness: number;
-
   circleStructure = makeStructuredView(defs.structs.Circle);
 
   bindGroup3: GPUBindGroup;
@@ -21,12 +18,15 @@ class Circle extends Drawable {
   circleData = new Float32Array(4);
 
   constructor(radius: number, thickness: number, color: Vec4) {
-    super()
+    super('Circle')
 
     this.name = 'Circle'
     
-    this.radius= radius;
-    this.thickness = thickness;
+    this.vertexProperties.push(
+      { name: 'radius', value: new Value('float', radius), builtin: false },
+      { name: 'thickness', value: new Value('float', thickness), builtin: false },
+      { name: 'numSegments', value: new Value('float', 64), builtin: false },
+    )
 
     this.circleDataBuffer = gpu.device.createBuffer({
       label: 'Circle',
@@ -45,17 +45,6 @@ class Circle extends Drawable {
 
   render(passEncoder: GPURenderPassEncoder) {
     const numSegments = 64;
-
-    this.circleStructure.set({
-      radius: this.radius,
-      numSegments: numSegments,
-      thickness: this.thickness,
-      // color: this.color,
-    });
-
-    gpu.device.queue.writeBuffer(this.circleDataBuffer, 0, this.circleStructure.arrayBuffer);
-
-    passEncoder.setBindGroup(3, this.bindGroup3);
 
     // TODO: determine how many lines should be rendered based on radius?
     passEncoder.draw(numSegments * 2 * 3);  

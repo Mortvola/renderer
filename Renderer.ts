@@ -20,6 +20,7 @@ import { pipelineManager } from './Pipelines/PipelineManager';
 import TransparentRenderPass from './RenderPasses/TransparentRenderPass';
 import BloomPass from './RenderPasses/BloomPass';
 import { outputFormat } from './RenderSetings';
+import Circle from './Drawables/Circle';
 
 const requestPostAnimationFrame = (task: (timestamp: number) => void) => {
   requestAnimationFrame((timestamp: number) => {

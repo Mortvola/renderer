@@ -6,8 +6,6 @@ import Pipeline from "./Pipeline";
 
 class LinePipeline extends Pipeline {
   constructor() {
-    super();
-
     const shaderModule = gpu.device.createShaderModule({
       label: 'line',
       code: lineShader,
@@ -71,7 +69,7 @@ class LinePipeline extends Pipeline {
       }),
     };
     
-    this.pipeline = gpu.device.createRenderPipeline(pipelineDescriptor);
+    super(gpu.device.createRenderPipeline(pipelineDescriptor));
   }
 }
 
