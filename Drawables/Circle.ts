@@ -11,12 +11,6 @@ const defs = makeShaderDataDefinitions(circleShader);
 class Circle extends Drawable {
   circleStructure = makeStructuredView(defs.structs.Circle);
 
-  bindGroup3: GPUBindGroup;
-
-  circleDataBuffer: GPUBuffer;
-
-  circleData = new Float32Array(4);
-
   constructor(radius: number, thickness: number, color: Vec4) {
     super('Circle')
 
@@ -27,20 +21,6 @@ class Circle extends Drawable {
       { name: 'thickness', value: new Value('float', thickness), builtin: false },
       { name: 'numSegments', value: new Value('float', 64), builtin: false },
     )
-
-    this.circleDataBuffer = gpu.device.createBuffer({
-      label: 'Circle',
-      size: this.circleStructure.arrayBuffer.byteLength,
-      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-    });
-
-    this.bindGroup3 = gpu.device.createBindGroup({
-      label: 'Circle',
-      layout: bindGroups.getBindGroupLayout3(),
-      entries: [
-        { binding: 0, resource: { buffer: this.circleDataBuffer }},
-      ],
-    });
   }
 
   render(passEncoder: GPURenderPassEncoder) {
