@@ -121,6 +121,12 @@ export type MaterialRecord = {
   properties: PropertyInterface[],
 }
 
+export type ShaderRecord = {
+  id: number,
+  name: string,
+  descriptor: ShaderDescriptor,
+}
+
 export type ParticleDescriptor = {
   maxPoints?: number,
   rate?: number,
