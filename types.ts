@@ -160,3 +160,9 @@ export type GameObjectRecord = {
   name: string,
   object: GameObject,
 }
+
+export type ParticleRecord = {
+  id: number,
+  name: string,
+  descriptor: ParticleDescriptor,
+}
