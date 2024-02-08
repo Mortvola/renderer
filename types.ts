@@ -139,3 +139,24 @@ export type ParticleDescriptor = {
   initialColor?: number[][],
   materialId?: number,
 }
+
+export type ModelItem = {
+  id: number,
+  materials: Record<string, number>,
+}
+
+export type ParticleItem = {
+  id: number,
+}
+
+export type GameObjectItem = { item: ModelItem | ParticleItem, type: 'model' | 'particle' }
+
+export type GameObject = {
+  items: GameObjectItem[],
+}
+
+export type GameObjectRecord = {
+  id: number,
+  name: string,
+  object: GameObject,
+}
