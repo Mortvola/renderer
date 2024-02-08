@@ -1,6 +1,6 @@
 import Http from "../../Http/src";
-import { MaterialRecord } from "../../Project/Types/types";
 import { shaderManager } from "../shaders/ShaderManager";
+import { MaterialRecord } from "../types";
 import { MaterialDescriptor } from "./MaterialDescriptor";
 
 class MaterialManager {

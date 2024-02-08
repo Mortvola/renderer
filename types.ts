@@ -113,3 +113,11 @@ export interface ParticleSystemInterface {
 
   removePoints(scene: ContainerNodeInterface): void
 }
+
+export type MaterialRecord = {
+  id: number,
+  name: string,
+  shaderId: number,
+  properties: PropertyInterface[],
+}
+
