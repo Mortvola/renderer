@@ -9,16 +9,30 @@ class Gpu {
     return this.d;
   }
 
+  adpapterPromise: Promise<GPUAdapter | null> | null = null;
+
+  devicePromise: Promise<GPUDevice> | null = null;
+
   async ready(): Promise<boolean> {
     if (this.d) {
       return true;
     }
     
     if (navigator.gpu) {
-      const adapter = await navigator.gpu.requestAdapter();
+      if (!this.adpapterPromise) {
+        this.adpapterPromise = navigator.gpu.requestAdapter();
+      }
+
+      const adapter = await this.adpapterPromise
+      this.adpapterPromise = null;
   
       if (adapter) {  
-         this.d = await adapter.requestDevice();
+        if (!this.devicePromise) {
+          this.devicePromise = adapter.requestDevice();
+        }
+
+        this.d = await this.devicePromise
+        this.devicePromise = null
       
         return this.d !== undefined;
       }

@@ -23,7 +23,8 @@ class Vector extends ValueNode {
     let expression = '';
 
     for (const port of this.inputPorts) {
-      expression += `${port.getValue()},`
+      const [value] = port.getValue()
+      expression += `${value},`
     }
 
     // TODO: fix this for other vector sizes.

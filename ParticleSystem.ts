@@ -1,5 +1,5 @@
 import { Vec4, mat4, vec3, vec4 } from "wgpu-matrix"
-import { ContainerNodeInterface, ParticleSystemInterface } from "./types";
+import { ContainerNodeInterface, ParticleSystemInterface, SceneNodeInterface } from "./types";
 import DrawableNode from "./Drawables/SceneNodes/DrawableNode";
 import { degToRad } from "./Math";
 import { ParticleDescriptor } from "../State/types";
@@ -110,11 +110,15 @@ class ParticleSystem implements ParticleSystemInterface {
       point.drawable.color[3] = point.color[3];
     }
 
+    // Add new particles
+    await this.emit(time, elapsedTime, scene)
+  }
+
+  private async emit(time: number, elapsedTime: number, scene: ContainerNodeInterface) {
     if (!this.drawable) {
       this.drawable = new Billboard()
     }
 
-    // Add new particles
     if (this.points.length < this.maxPoints) {
       const emitElapsedTime = time - this.lastEmitTime;
 

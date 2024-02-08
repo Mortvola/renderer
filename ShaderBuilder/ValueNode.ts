@@ -1,4 +1,4 @@
-import { GraphNodeDescriptor, ValueDescriptor } from "./GraphDescriptor";
+import { ValueDescriptor } from "./GraphDescriptor";
 import GraphNode from "./GraphNode";
 import OutputPort from "./Ports/OutputPort";
 import { DataType, ValueInterface, ValueNodeInterface } from "./Types";

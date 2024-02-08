@@ -48,7 +48,9 @@ class PropertyNode extends GraphNode implements PropertyNodeInterface {
       return this.getVarName();
     }
 
-    return [`fragProperties.${this.getVarName()}`, this.getDataType()];
+    const [varA] = this.getVarName()
+
+    return [`fragProperties.${varA}`, this.getDataType()];
   }
 
   output(): string {

@@ -12,7 +12,7 @@ class BluePort extends OutputPort {
 
   getValue(): [string, DataType] {
     if (this.node.getValue()) {
-      const varA = this.node.getValue()
+      const [varA] = this.node.getValue()
 
       return [`(${varA}).b`, this.dataType]
     }
