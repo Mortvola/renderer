@@ -121,3 +121,15 @@ export type MaterialRecord = {
   properties: PropertyInterface[],
 }
 
+export type ParticleDescriptor = {
+  maxPoints?: number,
+  rate?: number,
+  angle?: number,
+  lifetime?: [number, number],
+  originRadius?: number,
+  initialVelocity?: number,
+  initialSize?: number,
+  finalSize?: number,
+  initialColor?: number[][],
+  materialId?: number,
+}

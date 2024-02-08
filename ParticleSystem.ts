@@ -1,8 +1,7 @@
 import { Vec4, mat4, vec3, vec4 } from "wgpu-matrix"
-import { ContainerNodeInterface, ParticleSystemInterface, SceneNodeInterface } from "./types";
+import { ContainerNodeInterface, ParticleDescriptor, ParticleSystemInterface } from "./types";
 import DrawableNode from "./Drawables/SceneNodes/DrawableNode";
 import { degToRad } from "./Math";
-import { ParticleDescriptor } from "../State/types";
 import DrawableInterface from "./Drawables/DrawableInterface";
 import Billboard from "./Drawables/Billboard";
 import { MaterialDescriptor } from "./Materials/MaterialDescriptor";
