@@ -1,5 +1,6 @@
 import { bindGroups } from '../BindGroups';
 import { gpu } from '../Gpu';
+import { bloom, outputFormat } from '../RenderSetings';
 import { trajectoryShader } from '../shaders/trajectory';
 import Pipeline from "./Pipeline";
 
@@ -11,6 +12,16 @@ class TrajectoryPipeline extends Pipeline {
       code: trajectoryShader,
     })
 
+    const targets: GPUColorTargetState[] = [{
+      format: outputFormat,
+    }]
+
+    if (bloom) {
+      targets.push({
+        format: outputFormat,
+      })
+    }
+
     const pipelineDescriptor: GPURenderPipelineDescriptor = {
       label,
       vertex: {
@@ -20,11 +31,7 @@ class TrajectoryPipeline extends Pipeline {
       fragment: {
         module: shaderModule,
         entryPoint: "fs",
-        targets: [
-          {
-            format: navigator.gpu.getPreferredCanvasFormat(),
-          },
-        ],
+        targets,
       },
       primitive: {
         topology: "line-list",

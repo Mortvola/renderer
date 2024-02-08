@@ -45,9 +45,19 @@ fn vs(@builtin(vertex_index) vertexIndex : u32) -> VertexOut
   return output;
 }
 
+struct FragmentOut {
+  @location(0) color: vec4f,
+  @location(1) bright: vec4f,
+}
+
 @fragment
-fn fs(fragData: VertexOut) -> @location(0) vec4f
+fn fs(fragData: VertexOut) -> FragmentOut
 {
-  return fragData.color;
+  var out: FragmentOut;
+
+  out.color = fragData.color;
+  out.bright = vec4(0.0, 0.0, 0.0, 1.0);
+
+  return out;
 }
 `
