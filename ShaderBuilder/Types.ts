@@ -38,6 +38,8 @@ export interface InputPortInterface extends PortInterface {
   getVarName(): [string, DataType];
 
   getValue(): [string, DataType];
+
+  getDataType(): DataType;
 };
 
 export const isInputPort = (r: unknown): r is InputPortInterface => (
@@ -50,6 +52,8 @@ export interface OutputPortInterface extends PortInterface {
   getVarName(): [string, DataType];
 
   getValue(): [string, DataType];
+
+  getDataType(): DataType;
 };
 
 export interface GraphNodeInterface {
@@ -64,6 +68,8 @@ export interface GraphNodeInterface {
   settings?: unknown;
 
   createDescriptor(): GraphNodeDescriptor
+
+  getDataType(): DataType;
 
   getVarName(): [string, DataType];
 
@@ -112,6 +118,8 @@ export interface GraphEdgeInterface {
   setVarName(name: string): void;
 
   getValue(): [string, DataType];
+
+  getDataType(): DataType;
 }
 
 export interface ValueInterface {
@@ -139,8 +147,35 @@ export const getLength = (dataType: DataType) => {
     case 'vec3f':
       return 3;
     case 'vec4f':
+    case 'color':
       return 4;
   }
 
   return 0;
+}
+
+export const convertType = (type: string) => {
+  switch (type) {
+    case 'float':
+      return '1';
+
+    case 'vec2f':
+      return '2';
+
+    case 'vec3f':
+      return '3';
+      
+    case 'vec4f':
+    case 'color':
+      return '4';
+
+    case 'texture2D':
+      return 'T2';
+
+    case 'sampler':
+      return 'S';
+
+    default:
+      return type;
+  }
 }

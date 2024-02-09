@@ -5,12 +5,16 @@ import Port from "./Port";
 class OutputPort extends Port implements OutputPortInterface {
   edges: GraphEdgeInterface[] = [];
 
-  constructor(node: GraphNodeInterface, dataYype: DataType, name: string) {
-    super(node, dataYype, name);
+  constructor(node: GraphNodeInterface, dataType: DataType, name: string) {
+    super(node, dataType, name);
 
     makeObservable(this, {
       edges: observable,
     })
+  }
+
+  getDataType(): DataType {
+    return this.node.getDataType()
   }
 
   getVarName(): [string, DataType] {

@@ -19,6 +19,10 @@ class RGBPort extends OutputPort {
 
     return ['', this.dataType];
   }
+
+  getDataType(): DataType {
+    return 'vec3f'
+  }
 }
 
 export default RGBPort;

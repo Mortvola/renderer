@@ -19,6 +19,10 @@ class RedPort extends OutputPort {
 
     return ['', this.dataType];
   }
+
+  getDataType(): DataType {
+    return 'float'
+  }
 }
 
 export default RedPort;

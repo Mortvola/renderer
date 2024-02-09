@@ -38,6 +38,14 @@ class InputPort extends Port implements InputPortInterface {
     })
   }
 
+  getDataType(): DataType {
+    if (this.edge) {
+      return this.edge.getDataType()
+    }
+    
+    return this.dataType
+  }
+
   getVarName(): [string, DataType] {
     return this.edge?.getVarName() ?? ['', this.dataType];
   }

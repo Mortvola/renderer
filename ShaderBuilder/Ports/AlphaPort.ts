@@ -19,6 +19,10 @@ class AlphaPort extends OutputPort {
 
     return ['', this.dataType];
   }
+
+  getDataType(): DataType {
+    return 'float'
+  }
 }
 
 export default AlphaPort;

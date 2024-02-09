@@ -32,6 +32,10 @@ class PropertyNode extends GraphNode implements PropertyNodeInterface {
     })
   }
 
+  getDataType(): DataType {
+    return this.property.value.dataType
+  }
+
   getVarName(): [string, DataType] {
     return [this.property.name, this.getDataType()];
   }

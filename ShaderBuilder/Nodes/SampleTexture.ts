@@ -58,6 +58,10 @@ class SampleTexture extends OperationNode {
     })
   }
 
+  getDataType(): DataType {
+    return 'vec4f'
+  }
+  
   createDescriptor(): GraphNodeDescriptor {
     const descriptor = super.createDescriptor()
 

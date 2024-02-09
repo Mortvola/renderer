@@ -17,6 +17,10 @@ class GraphEdge implements GraphEdgeInterface {
     })
   }
 
+  getDataType(): DataType {
+    return this.output.getDataType()
+  }
+
   getVarName(): [string, DataType] {
     return this.output.getVarName() ?? ['', 'float'];
   }
