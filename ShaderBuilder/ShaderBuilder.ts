@@ -316,6 +316,10 @@ const bindingType = (dataType: DataType) => {
     return 'f32';
   }
 
+  if (dataType === 'color') {
+    return 'vec4f'
+  }
+
   return dataType;
 }
 

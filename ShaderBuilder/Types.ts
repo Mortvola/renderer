@@ -1,6 +1,6 @@
 import { GraphNodeDescriptor } from "./GraphDescriptor";
 
-export type DataType = 'float' | 'vec2f' | 'vec3f' | 'vec4f' | 'texture2D' | 'sampler' | 'rgba' | 'string' | 'uv';
+export type DataType = 'float' | 'vec2f' | 'vec3f' | 'vec4f' | 'texture2D' | 'sampler' | 'rgba' | 'string' | 'uv' | 'color';
 
 export type NodeType =
   'property' | 'value'
