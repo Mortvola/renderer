@@ -6,7 +6,7 @@ import { ShaderDescriptor } from './shaders/ShaderDescriptor';
 
 export const maxInstances = 1000;
 
-export interface ContainerNodeInterface {
+export interface ContainerNodeInterface extends SceneNodeInterface {
   addNode(node: SceneNodeInterface): void;
 
   removeNode(node: SceneNodeInterface): void;

@@ -75,9 +75,22 @@ class ParticleSystem implements ParticleSystemInterface {
     return new ParticleSystem(id, materialDescriptor, descriptor)
   }
 
+  reset() {
+    this.lastEmitTime = 0
+    this.points = []
+  }
+
   async update(time: number, elapsedTime: number, scene: ContainerNodeInterface): Promise<void> {
+    if (!this.drawable) {
+      this.drawable = new Billboard()
+      console.log('created particle drawable')
+    }
+
+    console.log('particle sytem update')
     if (this.lastEmitTime === 0) {
       this.lastEmitTime = time;
+
+      this.emitSome(1, scene)
       return
     }
 
@@ -114,10 +127,6 @@ class ParticleSystem implements ParticleSystemInterface {
   }
 
   private async emit(time: number, elapsedTime: number, scene: ContainerNodeInterface) {
-    if (!this.drawable) {
-      this.drawable = new Billboard()
-    }
-
     if (this.points.length < this.maxPoints) {
       const emitElapsedTime = time - this.lastEmitTime;
 
@@ -127,69 +136,74 @@ class ParticleSystem implements ParticleSystemInterface {
         this.lastEmitTime = time;
       
         // while (this.points.length < this.maxPoints) {
-        for (; numToEmit > 0; numToEmit -= 1) {
-          const drawable = await DrawableNode.create(this.drawable, this.materialDescriptor?.shaderDescriptor);
-    
-          let origin = vec4.create(0, 0, 0, 1)
-
-          // const offset = Math.random() * this.originRadius;
-          const offset = this.originRadius;
-          const rotate = degToRad(Math.random() * 360);
-
-          let transform = mat4.identity()
-          mat4.rotateY(transform, rotate, transform)
-          mat4.translate(transform, vec4.create(0, 0, offset, 1), transform)
-          vec4.transformMat4(origin, transform, origin)
-
-          drawable.translate = origin
-          drawable.scale = vec3.create(this.initialeSize, this.initialeSize, this.initialeSize);
-
-          scene.addNode(drawable)
-    
-          // const vector = vec4.create(0, 1, 0, 0)
-
-          // transform = mat4.identity()
-          // mat4.rotateY(transform, degToRad(Math.random() * 360), transform)
-          // mat4.rotateX(transform, degToRad(this.angle), transform)
-          // vec4.transformMat4(vector, transform, vector)
-
-          const p1 = vec4.create(0, 1, 0, 1);
-
-          transform = mat4.identity()
-          mat4.rotateY(transform, rotate, transform)
-          mat4.translate(transform, vec4.create(0, 0, offset, 1), transform)
-          mat4.rotateX(transform, degToRad(this.angle), transform)
-          vec4.transformMat4(p1, transform, p1)
-
-          const vector = vec4.subtract(p1, origin)
-
-          // console.log(`angle: ${vec3.angle(vec3.create(0, 1, 0), vector)}`)
-
-          const lifetime = (this.maxLifetime - this.minLifetime) * Math.random() + this.minLifetime;
-          const sizeChangeRate = (this.finalSize - this.initialeSize) / lifetime;
-
-          const computeRandomColor = (color1: number[], color2: number[]) => {
-            return [
-              Math.random() * (color2[0] - color1[0]) + color1[0],
-              Math.random() * (color2[1] - color1[1]) + color1[1],
-              Math.random() * (color2[2] - color1[2]) + color1[2],
-              1,
-            ]
-          }
-
-          const point = {
-            velocity: this.initialVelocity,
-            direction: vector,
-            lifetime,
-            drawable,
-            size: this.initialeSize,
-            sizeChangeRate,
-            color: computeRandomColor(this.initialColor[0], this.initialColor[1]),
-          }
-    
-          this.points.push(point)
-        }
+        this.emitSome(numToEmit, scene)
       }
+    }
+  }
+
+  async emitSome(numToEmit: number, scene: ContainerNodeInterface) {
+    for (; numToEmit > 0; numToEmit -= 1) {
+      const drawable = await DrawableNode.create(this.drawable!, this.materialDescriptor?.shaderDescriptor);
+
+      let origin = vec4.create(0, 0, 0, 1)
+
+      // const offset = Math.random() * this.originRadius;
+      const offset = this.originRadius;
+      const rotate = degToRad(Math.random() * 360);
+
+      let transform = mat4.identity()
+      mat4.rotateY(transform, rotate, transform)
+      mat4.translate(transform, vec4.create(0, 0, offset, 1), transform)
+      vec4.transformMat4(origin, transform, origin)
+
+      drawable.translate = origin
+      drawable.scale = vec3.create(this.initialeSize, this.initialeSize, this.initialeSize);
+
+      console.log('added particle to scene')
+      scene.addNode(drawable)
+
+      // const vector = vec4.create(0, 1, 0, 0)
+
+      // transform = mat4.identity()
+      // mat4.rotateY(transform, degToRad(Math.random() * 360), transform)
+      // mat4.rotateX(transform, degToRad(this.angle), transform)
+      // vec4.transformMat4(vector, transform, vector)
+
+      const p1 = vec4.create(0, 1, 0, 1);
+
+      transform = mat4.identity()
+      mat4.rotateY(transform, rotate, transform)
+      mat4.translate(transform, vec4.create(0, 0, offset, 1), transform)
+      mat4.rotateX(transform, degToRad(this.angle), transform)
+      vec4.transformMat4(p1, transform, p1)
+
+      const vector = vec4.subtract(p1, origin)
+
+      // console.log(`angle: ${vec3.angle(vec3.create(0, 1, 0), vector)}`)
+
+      const lifetime = (this.maxLifetime - this.minLifetime) * Math.random() + this.minLifetime;
+      const sizeChangeRate = (this.finalSize - this.initialeSize) / lifetime;
+
+      const computeRandomColor = (color1: number[], color2: number[]) => {
+        return [
+          Math.random() * (color2[0] - color1[0]) + color1[0],
+          Math.random() * (color2[1] - color1[1]) + color1[1],
+          Math.random() * (color2[2] - color1[2]) + color1[2],
+          1,
+        ]
+      }
+
+      const point = {
+        velocity: this.initialVelocity,
+        direction: vector,
+        lifetime,
+        drawable,
+        size: this.initialeSize,
+        sizeChangeRate,
+        color: computeRandomColor(this.initialColor[0], this.initialColor[1]),
+      }
+
+      this.points.push(point)
     }
   }
 
