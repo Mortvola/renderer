@@ -1,7 +1,8 @@
+import { PropertyInterface } from "../ShaderBuilder/Types";
 import { ShaderDescriptor } from "../shaders/ShaderDescriptor";
 
 export type MaterialDescriptor = {
-  properties?: Record<string, number | string>,
+  properties?: PropertyInterface[],
 
   shaderDescriptor?: ShaderDescriptor | number,
 }

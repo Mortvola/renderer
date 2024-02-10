@@ -8,7 +8,7 @@ import { MaterialDescriptor } from "./MaterialDescriptor";
 class MaterialManager {
   materialDescriptors: Map<number, MaterialRecord> = new Map()
   
-  materials: Map<string, Material> = new Map()
+  materials: Map<string | number, Map<string, Material>> = new Map()
 
   async getDescriptor(id: number, withShaderDescriptor = true): Promise<MaterialDescriptor | undefined> {
     let materialRecord = this.materialDescriptors.get(id)
@@ -29,7 +29,7 @@ class MaterialManager {
 
         if (shaderDescriptor) {
           return {
-            properties: {}, // materialRecord.properties.map((p) => { }),
+            properties: [], // materialRecord.properties.map((p) => { }),
             shaderDescriptor: shaderDescriptor,
           }
         }
@@ -40,37 +40,54 @@ class MaterialManager {
 
           shaderDescriptor: materialRecord.shaderId,
           
-          properties: materialRecord.properties.reduce<Record<string, number | string>>((result, p) => {
-            if (typeof p.value.value === 'string') {
-              result[p.name] = p.value.value
-            }
-
-            if (typeof p.value.value === 'number') {
-              result[p.name] = p.value.value
-            }
-
-            return result
-          }, {})
+          properties: materialRecord.properties,
         })
       }
     }
   }
 
-  async get(id: number, drawableType: DrawableType, vertexProperties: PropertyInterface[]): Promise<Material> {
-    const key = JSON.stringify({
-      id,
-      drawableType,
-      vertexProperties,
-    })
+  async get(id: MaterialDescriptor | number | undefined, drawableType: DrawableType, vertexProperties: PropertyInterface[]): Promise<Material> {
+    const key = JSON.stringify(id)
+    const subKey = JSON.stringify({ drawableType, vertexProperties })
 
-    let material = this.materials.get(key)
+    let map = this.materials.get(key)
+
+    if (!map) {      
+      let descriptor: MaterialDescriptor | undefined = undefined
+
+      if (typeof id === 'number') {
+        descriptor = await this.getDescriptor(id, false)
+      }
+      else {
+        descriptor = id
+      }
+
+      const material = await Material.create(drawableType, vertexProperties, descriptor)
+
+      const map: Map<string, Material> = new Map()
+
+      map.set(subKey, material)
+
+      this.materials.set(key, map)
+
+      return material
+    }
+
+    let material = map.get(subKey)
 
     if (!material) {
-      const descriptor = await this.getDescriptor(id, false)
+      let descriptor: MaterialDescriptor | undefined = undefined
+
+      if (typeof id === 'number') {
+        descriptor = await this.getDescriptor(id, false)
+      }
+      else {
+        descriptor = id
+      }
 
       material = await Material.create(drawableType, vertexProperties, descriptor)
 
-      this.materials.set(key, material)
+      map.set(subKey, material)
     }
 
     return material
@@ -78,21 +95,21 @@ class MaterialManager {
 
   async applyPropertyValues(
     id: number,
-    drawableType: DrawableType,
-    vertexProperties: PropertyInterface[],
     properties: PropertyInterface[]
   ) {
-    const key = JSON.stringify({
-      id,
-      drawableType,
-      vertexProperties,
-    })
+    const key = JSON.stringify(id)
 
-    let material = this.materials.get(key)
+    let map = this.materials.get(key)
 
-    if (material) {
-      material.setPropertyValues(GPUShaderStage.FRAGMENT, properties);
+    if (map) {
+      for (const [, material] of map) {
+        material.setPropertyValues(GPUShaderStage.FRAGMENT, properties);
+      }
     }
+
+    Http.patch(`/materials/${id}`, {
+      properties
+    })
   }
 
   setMaterialDescriptor(id: number, descriptor: MaterialDescriptor) {

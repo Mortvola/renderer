@@ -35,6 +35,7 @@ class Material implements MaterialInterface {
     shaderDescriptor: ShaderDescriptor | null,
     pipeline: PipelineInterface,
     textures: GPUTexture[],
+    fragProperties?: PropertyInterface[],
   ) {
     this.pipeline = pipeline;
     
@@ -66,7 +67,7 @@ class Material implements MaterialInterface {
         bindGroup,
       }
 
-      this.setPropertyValues(GPUShaderStage.FRAGMENT, pipeline.fragmentStageBindings.properties);  
+      this.setPropertyValues(GPUShaderStage.FRAGMENT, fragProperties ?? pipeline.fragmentStageBindings.properties);  
     }
   }
 
@@ -120,6 +121,7 @@ class Material implements MaterialInterface {
       shaderDescriptor ?? null,
       pipeline,
       textures,
+      materialDescriptor?.properties,
     );
   }
 

@@ -32,7 +32,7 @@ class DrawableNode extends SceneNode implements DrawableNodeInterface {
       matDescriptor = materialDescriptor
     }
 
-    const material = await Material.create(drawable.type, drawable.vertexProperties, matDescriptor);
+    const material = await materialManager.get(matDescriptor, drawable.type, drawable.vertexProperties)
 
     return new DrawableNode(drawable, material);
   }
