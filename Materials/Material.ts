@@ -67,7 +67,11 @@ class Material implements MaterialInterface {
         bindGroup,
       }
 
-      this.setPropertyValues(GPUShaderStage.FRAGMENT, fragProperties ?? pipeline.fragmentStageBindings.properties);  
+      this.setPropertyValues(GPUShaderStage.FRAGMENT, pipeline.fragmentStageBindings.properties);
+
+      if (fragProperties) {
+        this.setPropertyValues(GPUShaderStage.FRAGMENT, fragProperties);
+      }
     }
   }
 
