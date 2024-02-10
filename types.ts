@@ -116,6 +116,8 @@ export interface ParticleSystemInterface {
   update(time: number, elapsedTime: number, scene: ContainerNodeInterface): Promise<void>
 
   removePoints(scene: ContainerNodeInterface): void
+
+  reset(): void
 }
 
 export type MaterialRecord = {

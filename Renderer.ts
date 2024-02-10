@@ -404,6 +404,7 @@ class Renderer implements RendererInterface {
 
   addParticleSystem(particleSystem: ParticleSystemInterface): void {
     if (!this.particleSystems.some((p) => p === particleSystem)) {
+      particleSystem.reset()
       this.particleSystems.push(particleSystem)
     }
   }
