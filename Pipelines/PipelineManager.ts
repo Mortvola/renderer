@@ -89,7 +89,10 @@ class PipelineManager implements PipelineManagerInterface {
     let vertStageBindings: StageBindings | null = null;
     let fragStageBindings: StageBindings | null = null;
 
-    const key = JSON.stringify({ type: drawableType, descriptor: shaderDescr });
+    const key = JSON.stringify({
+      drawableType,
+      shaderDescr
+    });
 
     let pipelineEntry: PipelineMapEntry | undefined = this.pipelineMap.get(key);
 

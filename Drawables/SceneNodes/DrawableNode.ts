@@ -23,16 +23,7 @@ class DrawableNode extends SceneNode implements DrawableNodeInterface {
   }
 
   static async create(drawable: DrawableInterface, materialDescriptor?: MaterialDescriptor | number): Promise<DrawableNode> {
-    let matDescriptor: MaterialDescriptor | undefined = undefined
-
-    if (typeof materialDescriptor === 'number') {
-      matDescriptor = await materialManager.getDescriptor(materialDescriptor, false)
-    }
-    else {
-      matDescriptor = materialDescriptor
-    }
-
-    const material = await materialManager.get(matDescriptor, drawable.type, drawable.vertexProperties)
+    const material = await materialManager.get(materialDescriptor, drawable.type, drawable.vertexProperties)
 
     return new DrawableNode(drawable, material);
   }

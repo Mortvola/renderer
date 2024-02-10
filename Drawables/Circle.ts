@@ -2,8 +2,6 @@ import { Vec4, Mat4 } from 'wgpu-matrix';
 import Drawable from './Drawable';
 import { circleShader } from '../shaders/circle';
 import { makeShaderDataDefinitions, makeStructuredView } from 'webgpu-utils';
-import { bindGroups } from '../BindGroups';
-import { gpu } from '../Gpu';
 import Value from '../ShaderBuilder/Value';
 
 const defs = makeShaderDataDefinitions(circleShader);

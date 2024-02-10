@@ -36,6 +36,7 @@ class Material implements MaterialInterface {
     pipeline: PipelineInterface,
     textures: GPUTexture[],
     fragProperties?: PropertyInterface[],
+    vertProperties?: PropertyInterface[],
   ) {
     this.pipeline = pipeline;
     
@@ -55,7 +56,11 @@ class Material implements MaterialInterface {
         bindGroup,
       }
 
-      this.setPropertyValues(GPUShaderStage.VERTEX, pipeline.vertexStageBindings.properties);  
+      this.setPropertyValues(GPUShaderStage.VERTEX, pipeline.vertexStageBindings.properties);
+
+      if (vertProperties) {
+        this.setPropertyValues(GPUShaderStage.VERTEX, vertProperties);
+      }
     }
 
     if (pipeline.fragmentStageBindings) {
@@ -126,6 +131,7 @@ class Material implements MaterialInterface {
       pipeline,
       textures,
       materialDescriptor?.properties,
+      vertexProperties,
     );
   }
 
