@@ -12,6 +12,7 @@ import Pipeline from "./Pipeline";
 import TrajectoryPipeline from "./TrajectoryPipeline";
 import { generateShaderModule } from "../ShaderBuilder/ShaderBuilder";
 import { bloom, outputFormat } from "../RenderSetings";
+import { shaderManager } from "../shaders/ShaderManager";
 
 export type PipelineType =
   'Line'| 'outline' | 'reticle' | 'Trajectory';
@@ -23,9 +24,6 @@ type Pipelines = {
 
 type PipelineMapEntry = {
   pipeline: PipelineInterface,
-  vertStageBindings: StageBindings | null,
-  fragStageBindings: StageBindings | null,
-  fromGraph: boolean,
 }
 
 class PipelineManager implements PipelineManagerInterface {
@@ -83,33 +81,35 @@ class PipelineManager implements PipelineManagerInterface {
     return gpu.device.createBindGroupLayout(bindGroupDescriptor);
   }
 
-  getPipeline(
+  async getPipeline(
     drawableType: DrawableType,
     vertexProperties: PropertyInterface[],
-    materialDescriptor?: ShaderDescriptor,
-  ): [PipelineInterface, StageBindings | null, StageBindings | null, boolean] {
-    let fromGraph = false;
-
+    shaderDescr?: ShaderDescriptor | number,
+  ): Promise<PipelineInterface> {
     let vertStageBindings: StageBindings | null = null;
     let fragStageBindings: StageBindings | null = null;
 
-    const key = JSON.stringify({ type: drawableType, descriptor: materialDescriptor });
+    const key = JSON.stringify({ type: drawableType, descriptor: shaderDescr });
 
     let pipelineEntry: PipelineMapEntry | undefined = this.pipelineMap.get(key);
 
     if (pipelineEntry) {
-      return [
-        pipelineEntry.pipeline,
-        pipelineEntry.vertStageBindings,
-        pipelineEntry.fragStageBindings,
-        pipelineEntry.fromGraph,
-      ];
+      return pipelineEntry.pipeline
+    }
+
+    let shaderDescriptor: ShaderDescriptor | undefined
+
+    if (typeof shaderDescr === 'number') {
+      shaderDescriptor = await shaderManager.getDescriptor(shaderDescr)
+    }
+    else {
+      shaderDescriptor = shaderDescr
     }
 
     let pipeline: PipelineInterface;
 
-    if (materialDescriptor && !materialDescriptor.graph) {
-      const entry = this.pipelines.find((pipeline) => pipeline.type === materialDescriptor.type);
+    if (shaderDescriptor && !shaderDescriptor.graph) {
+      const entry = this.pipelines.find((pipeline) => pipeline.type === shaderDescriptor!.type);
 
       if (!entry) {
         throw new Error('pipeline not found')
@@ -117,25 +117,18 @@ class PipelineManager implements PipelineManagerInterface {
 
       pipeline = entry.pipeline
 
-      this.pipelineMap.set(key, {
-        pipeline,
-        vertStageBindings: null,
-        fragStageBindings: null,
-        fromGraph: false,
-      });
+      this.pipelineMap.set(key, { pipeline });
     }
     else {
       let vertProperties: Property[] = [];
       let fragProperties: Property[] = [];
   
-      fromGraph = true;
-
       let vertexBufferLayout: GPUVertexBufferLayout[] | undefined = undefined;
 
       let shaderModule: GPUShaderModule;
       let code: string;
 
-      [shaderModule, vertProperties, fragProperties, code] = generateShaderModule(drawableType, vertexProperties, materialDescriptor);
+      [shaderModule, vertProperties, fragProperties, code] = generateShaderModule(drawableType, vertexProperties, shaderDescriptor);
 
       if (drawableType === 'Mesh') {
         vertexBufferLayout = [
@@ -177,7 +170,7 @@ class PipelineManager implements PipelineManagerInterface {
 
       const targets: GPUColorTargetState[] = [];
 
-      if (materialDescriptor?.transparent) {
+      if (shaderDescriptor?.transparent) {
         targets.push({
           format: outputFormat,
           blend: {
@@ -265,11 +258,11 @@ class PipelineManager implements PipelineManagerInterface {
         },
         primitive: {
           topology: "triangle-list",
-          cullMode: materialDescriptor?.cullMode ?? 'none',
+          cullMode: shaderDescriptor?.cullMode ?? 'none',
           frontFace: "ccw",
         },
         depthStencil: {
-          depthWriteEnabled: materialDescriptor?.depthWriteEnabled ?? true,
+          depthWriteEnabled: shaderDescriptor?.depthWriteEnabled ?? true,
           depthCompare: "less",
           format: "depth24plus"
         },
@@ -278,13 +271,13 @@ class PipelineManager implements PipelineManagerInterface {
       
       const gpuPipeline = gpu.device.createRenderPipeline(pipelineDescriptor);
 
-      pipeline = new Pipeline(gpuPipeline);
+      pipeline = new Pipeline(gpuPipeline, vertStageBindings, fragStageBindings);
 
-      this.pipelineMap.set(key, { pipeline, vertStageBindings, fragStageBindings, fromGraph });
+      this.pipelineMap.set(key, { pipeline });
     }
 
     console.log(`pipelines created: ${this.pipelineMap.size}`)
-    return [pipeline, vertStageBindings, fragStageBindings, fromGraph];
+    return pipeline;
   }
 }
 

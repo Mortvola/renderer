@@ -32,6 +32,10 @@ class PhongShading extends OperationNode {
     const [color] = this.inputPorts[0].getValue();
     return [`phong(vertexOut, ${color})`, 'vec4f'];
   }
+
+  getDataType(): DataType {
+    return 'vec4f'
+  }
 }
 
 export default PhongShading;

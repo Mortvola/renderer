@@ -1,14 +1,24 @@
 import { gpu } from "../Gpu";
-import { DrawableNodeInterface, MaterialInterface, PipelineInterface } from "../types";
+import { DrawableNodeInterface, MaterialInterface, PipelineInterface, StageBindings } from "../types";
 
 class Pipeline implements PipelineInterface {
   pipeline: GPURenderPipeline;
 
+  vertexStageBindings: StageBindings | null
+
+  fragmentStageBindings: StageBindings | null
+
   // drawables: DrawableInterface[] = [];
   materials: MaterialInterface[] = [];
 
-  constructor(pipeline: GPURenderPipeline) {
+  constructor(
+    pipeline: GPURenderPipeline,
+    vertexStageBindings: StageBindings | null,
+    fragmentStageBindings: StageBindings | null,
+  ) {
     this.pipeline = pipeline;
+    this.vertexStageBindings = vertexStageBindings
+    this.fragmentStageBindings = fragmentStageBindings
   }
 
   addDrawable(drawable: DrawableNodeInterface): void {

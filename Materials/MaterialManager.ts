@@ -1,13 +1,17 @@
 import Http from "../../Http/src";
+import { PropertyInterface } from "../ShaderBuilder/Types";
 import { shaderManager } from "../shaders/ShaderManager";
-import { MaterialRecord } from "../types";
+import { DrawableType, MaterialRecord } from "../types";
+import Material from "./Material";
 import { MaterialDescriptor } from "./MaterialDescriptor";
 
 class MaterialManager {
-  materials: Map<number, MaterialRecord> = new Map()
+  materialDescriptors: Map<number, MaterialRecord> = new Map()
+  
+  materials: Map<string, Material> = new Map()
 
-  async getDescriptor(id: number): Promise<MaterialDescriptor | undefined> {
-    let materialRecord = this.materials.get(id)
+  async getDescriptor(id: number, withShaderDescriptor = true): Promise<MaterialDescriptor | undefined> {
+    let materialRecord = this.materialDescriptors.get(id)
 
     if (!materialRecord) {
       const response = await Http.get<MaterialRecord>(`/materials/${id}`);
@@ -15,19 +19,79 @@ class MaterialManager {
       if (response.ok) {
         materialRecord = await response.body();
 
-        this.materials.set(id, materialRecord)
+        this.materialDescriptors.set(id, materialRecord)
       }  
     }
 
     if (materialRecord) {
-      const shaderDescriptor = await shaderManager.getDescriptor(materialRecord.shaderId);
+      if (withShaderDescriptor) {
+        const shaderDescriptor = await shaderManager.getDescriptor(materialRecord.shaderId);
 
-      if (shaderDescriptor) {
-        return {
-          properties: [], // materialRecord.properties.map((p) => { }),
-          shaderDescriptor: shaderDescriptor,
+        if (shaderDescriptor) {
+          return {
+            properties: {}, // materialRecord.properties.map((p) => { }),
+            shaderDescriptor: shaderDescriptor,
+          }
         }
       }
+      else {
+        return ({
+          ...materialRecord,
+
+          shaderDescriptor: materialRecord.shaderId,
+          
+          properties: materialRecord.properties.reduce<Record<string, number | string>>((result, p) => {
+            if (typeof p.value.value === 'string') {
+              result[p.name] = p.value.value
+            }
+
+            if (typeof p.value.value === 'number') {
+              result[p.name] = p.value.value
+            }
+
+            return result
+          }, {})
+        })
+      }
+    }
+  }
+
+  async get(id: number, drawableType: DrawableType, vertexProperties: PropertyInterface[]): Promise<Material> {
+    const key = JSON.stringify({
+      id,
+      drawableType,
+      vertexProperties,
+    })
+
+    let material = this.materials.get(key)
+
+    if (!material) {
+      const descriptor = await this.getDescriptor(id, false)
+
+      material = await Material.create(drawableType, vertexProperties, descriptor)
+
+      this.materials.set(key, material)
+    }
+
+    return material
+  }
+
+  async applyPropertyValues(
+    id: number,
+    drawableType: DrawableType,
+    vertexProperties: PropertyInterface[],
+    properties: PropertyInterface[]
+  ) {
+    const key = JSON.stringify({
+      id,
+      drawableType,
+      vertexProperties,
+    })
+
+    let material = this.materials.get(key)
+
+    if (material) {
+      material.setPropertyValues(GPUShaderStage.FRAGMENT, properties);
     }
   }
 

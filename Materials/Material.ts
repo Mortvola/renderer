@@ -3,11 +3,14 @@ import DrawableInterface from "../Drawables/DrawableInterface";
 import { gpu } from "../Gpu";
 import { pipelineManager } from "../Pipelines/PipelineManager";
 import { DrawableNodeInterface, DrawableType, MaterialInterface, PipelineInterface, StageBindings } from "../types";
-import { ShaderDescriptor } from "../shaders/ShaderDescriptor";
 import { PropertyInterface, ValueType } from "../ShaderBuilder/Types";
 import Http from "../../Http/src";
+import { MaterialDescriptor } from "./MaterialDescriptor";
+import { shaderManager } from "../shaders/ShaderManager";
+import { ShaderDescriptor } from "../shaders/ShaderDescriptor";
 
 const downloadedTextures: Map<number, GPUTexture> = new Map();
+const texturePromises: Map<number, Promise<GPUTexture>> = new Map();
 
 type MaterialBindings = {
   uniformsBuffer: GPUBuffer | null,
@@ -29,63 +32,65 @@ class Material implements MaterialInterface {
   transparent: boolean;
 
   private constructor(
-    materialDescriptor: ShaderDescriptor | null,
+    shaderDescriptor: ShaderDescriptor | null,
     pipeline: PipelineInterface,
-    vertStageBindings: StageBindings | null,
-    fragStageBindings: StageBindings | null,
     textures: GPUTexture[],
-    fromGraph: boolean,
   ) {
     this.pipeline = pipeline;
     
-    this.color[0] = materialDescriptor?.color ? materialDescriptor.color[0] : 0.5;
-    this.color[1] = materialDescriptor?.color ? materialDescriptor.color[1] : 0.5;
-    this.color[2] = materialDescriptor?.color ? materialDescriptor.color[2] : 0.5;
-    this.color[3] = materialDescriptor?.color ? materialDescriptor.color[3] : 1;
+    this.color[0] = shaderDescriptor?.color ? shaderDescriptor.color[0] : 0.5;
+    this.color[1] = shaderDescriptor?.color ? shaderDescriptor.color[1] : 0.5;
+    this.color[2] = shaderDescriptor?.color ? shaderDescriptor.color[2] : 0.5;
+    this.color[3] = shaderDescriptor?.color ? shaderDescriptor.color[3] : 1;
     
-    this.transparent = materialDescriptor?.transparent ?? false;
+    this.transparent = shaderDescriptor?.transparent ?? false;
 
-    if (fromGraph) {
-      if (vertStageBindings) {
-        const [uniformsBuffer, bindGroup] = this.createBindGroup(vertStageBindings, [])
+    if (pipeline.vertexStageBindings) {
+      const [uniformsBuffer, bindGroup] = this.createBindGroup(pipeline.vertexStageBindings, [])
 
-        this.vertBindings = {
-          stageBindings: vertStageBindings,
-          uniformsBuffer,
-          bindGroup,
-        }
-
-        this.setPropertyValues(GPUShaderStage.VERTEX, vertStageBindings.properties);  
+      this.vertBindings = {
+        stageBindings: pipeline.vertexStageBindings,
+        uniformsBuffer,
+        bindGroup,
       }
 
-      if (fragStageBindings) {
-        const [uniformsBuffer, bindGroup] = this.createBindGroup(fragStageBindings, textures)
+      this.setPropertyValues(GPUShaderStage.VERTEX, pipeline.vertexStageBindings.properties);  
+    }
 
-        this.fragBindings = {
-          stageBindings: fragStageBindings,
-          uniformsBuffer,
-          bindGroup,
-        }
+    if (pipeline.fragmentStageBindings) {
+      const [uniformsBuffer, bindGroup] = this.createBindGroup(pipeline.fragmentStageBindings, textures)
 
-        this.setPropertyValues(GPUShaderStage.FRAGMENT, fragStageBindings.properties);  
+      this.fragBindings = {
+        stageBindings: pipeline.fragmentStageBindings,
+        uniformsBuffer,
+        bindGroup,
       }
+
+      this.setPropertyValues(GPUShaderStage.FRAGMENT, pipeline.fragmentStageBindings.properties);  
     }
   }
 
   static async create(
     drawableType: DrawableType,
     vertexProperties: PropertyInterface[],
-    materialDescriptor?: ShaderDescriptor,
+    materialDescriptor?: MaterialDescriptor,
   ): Promise<Material> {
-    const [
-      pipeline, vertStageBindings, fragStageBindings, fromGraph,
-    ] = pipelineManager.getPipeline(drawableType, vertexProperties, materialDescriptor)
+    let shaderDescriptor: ShaderDescriptor | undefined
+
+    if (typeof materialDescriptor?.shaderDescriptor === 'number') {
+      shaderDescriptor = await shaderManager.getDescriptor(materialDescriptor.shaderDescriptor)
+    }
+    else {
+      shaderDescriptor = materialDescriptor?.shaderDescriptor
+    }
+
+    const pipeline = await pipelineManager.getPipeline(drawableType, vertexProperties, shaderDescriptor)
 
     const textures: GPUTexture[] = [];
 
     // Find textures in the properties
-    if (fragStageBindings) {
-      for (const property of fragStageBindings.properties) {
+    if (pipeline.fragmentStageBindings) {
+      for (const property of pipeline.fragmentStageBindings.properties) {
         if (property.value.dataType === 'texture2D') {
           const textureId = property.value.value as number;
 
@@ -97,7 +102,14 @@ class Material implements MaterialInterface {
             flipY = (await response.body()).flipY;
           }
 
-          const texture = await Material.retrieveTexture(textureId, flipY);
+          let texturePromise = texturePromises.get(textureId)
+
+          if (!texturePromise) {
+            texturePromise = Material.retrieveTexture(textureId, flipY);
+            texturePromises.set(textureId, texturePromise)
+          }
+
+          const texture = await texturePromise
 
           textures.push(texture);
         }
@@ -105,12 +117,9 @@ class Material implements MaterialInterface {
     }
 
     return new Material(
-      materialDescriptor ?? null,
+      shaderDescriptor ?? null,
       pipeline,
-      vertStageBindings,
-      fragStageBindings,
       textures,
-      fromGraph,
     );
   }
 

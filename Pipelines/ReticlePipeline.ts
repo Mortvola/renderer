@@ -58,7 +58,7 @@ class ReticlePipeline extends Pipeline {
       }),
     };
     
-    super(gpu.device.createRenderPipeline(pipelineDescriptor));
+    super(gpu.device.createRenderPipeline(pipelineDescriptor), null,  null);
   }
 }
 

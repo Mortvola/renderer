@@ -5,7 +5,6 @@ import { degToRad } from "./Math";
 import DrawableInterface from "./Drawables/DrawableInterface";
 import Billboard from "./Drawables/Billboard";
 import { MaterialDescriptor } from "./Materials/MaterialDescriptor";
-import { materialManager } from "./Materials/MaterialManager";
 
 type Point = {
   velocity: number,
@@ -45,11 +44,11 @@ class ParticleSystem implements ParticleSystemInterface {
 
   materialId: number | undefined = undefined;
 
-  materialDescriptor: MaterialDescriptor | undefined;
+  materialDescriptor: MaterialDescriptor | number | undefined;
 
   drawable: DrawableInterface | null = null;
 
-  private constructor(id: number, materialDescriptor?: MaterialDescriptor, descriptor?: ParticleDescriptor) {
+  private constructor(id: number, descriptor?: ParticleDescriptor) {
     this.id = id
 
     this.rate = descriptor?.rate ?? 10
@@ -63,16 +62,11 @@ class ParticleSystem implements ParticleSystemInterface {
     this.finalSize = descriptor?.finalSize ?? this.initialeSize;
     this.initialColor = descriptor?.initialColor ?? [[1, 1, 1, 1], [1, 1, 1, 1]]
     this.materialId = descriptor?.materialId
-    this.materialDescriptor = materialDescriptor
+    this.materialDescriptor = descriptor?.materialId
   }
 
   static async create(id: number, descriptor?: ParticleDescriptor) {
-    let materialDescriptor: MaterialDescriptor | undefined = undefined
-    if (descriptor?.materialId) {
-      materialDescriptor = await materialManager.getDescriptor(descriptor.materialId)
-    }
-
-    return new ParticleSystem(id, materialDescriptor, descriptor)
+    return new ParticleSystem(id, descriptor)
   }
 
   reset() {
@@ -143,7 +137,7 @@ class ParticleSystem implements ParticleSystemInterface {
 
   async emitSome(numToEmit: number, scene: ContainerNodeInterface) {
     for (; numToEmit > 0; numToEmit -= 1) {
-      const drawable = await DrawableNode.create(this.drawable!, this.materialDescriptor?.shaderDescriptor);
+      const drawable = await DrawableNode.create(this.drawable!, this.materialDescriptor);
 
       let origin = vec4.create(0, 0, 0, 1)
 

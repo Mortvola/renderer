@@ -77,6 +77,10 @@ export interface DrawableNodeInterface extends SceneNodeInterface {
 export interface PipelineInterface {
   pipeline: GPURenderPipeline;
 
+  vertexStageBindings: StageBindings | null
+
+  fragmentStageBindings: StageBindings | null
+
   // drawables: DrawableInterface[];
   materials: MaterialInterface[];
 
@@ -103,7 +107,7 @@ export interface PipelineManagerInterface {
     drawableType: DrawableType,
     vertexProperties: PropertyInterface[],
     args: ShaderDescriptor,
-  ): [PipelineInterface, StageBindings | null, StageBindings | null, boolean];
+  ): Promise<PipelineInterface>
 }
 
 export interface ParticleSystemInterface {
