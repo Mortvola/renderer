@@ -1,5 +1,5 @@
 /* eslint-disable no-restricted-syntax */
-import { Vec4, mat4, vec2, vec4 } from 'wgpu-matrix';
+import { Vec4, mat4, vec4 } from 'wgpu-matrix';
 import {
   makeShaderDataDefinitions,
   makeStructuredView,
@@ -72,14 +72,10 @@ class Renderer implements RendererInterface {
 
   lights: Light[] = [];
 
-  reticlePosition = vec2.create(0, 0);
-
   particleSystems: ParticleSystemInterface[] = [];
 
   constructor(frameBindGroupLayout: GPUBindGroupLayout, cartesianAxes: DrawableNode, test?: SceneNodeInterface) {
     this.createCameraBindGroups(frameBindGroupLayout);
-
-    // this.reticle = reticle;
 
     this.aspectRatio[0] = 1.0;
     this.scene.addNode(cartesianAxes);

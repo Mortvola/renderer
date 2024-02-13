@@ -8,14 +8,13 @@ import { DrawableType, PipelineInterface, PipelineManagerInterface, StageBinding
 import LinePipeline from "./LinePipeline";
 import OutlinePipeline from "./OutlinePipeline";
 import Pipeline from "./Pipeline";
-// import ReticlePipeline from "./ReticlePipeline";
 import TrajectoryPipeline from "./TrajectoryPipeline";
 import { generateShaderModule } from "../ShaderBuilder/ShaderBuilder";
 import { bloom, outputFormat } from "../RenderSetings";
 import { shaderManager } from "../shaders/ShaderManager";
 
 export type PipelineType =
-  'Line'| 'outline' | 'reticle' | 'Trajectory';
+  'Line'| 'outline' | 'Trajectory';
 
 type Pipelines = {
   type: PipelineType,

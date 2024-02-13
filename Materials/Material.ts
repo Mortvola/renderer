@@ -240,7 +240,7 @@ class Material implements MaterialInterface {
     }
   }
 
-  setPropertyValues(stage: GPUShaderStageFlags, properties: PropertyInterface[]) {
+  setPropertyValues(stage: GPUShaderStageFlags, properties: PropertyInterface[]): void {
     let bindings: MaterialBindings | null = null
 
     if (stage === GPUShaderStage.VERTEX) {

@@ -2,11 +2,8 @@ import { Vec4, mat4, vec4 } from "wgpu-matrix";
 import DrawableInterface from "../DrawableInterface";
 import SceneNode from "./SceneNode";
 import { DrawableNodeInterface, MaterialInterface } from "../../types";
-import Material from "../../Materials/Material";
 import { MaterialDescriptor } from "../../Materials/MaterialDescriptor";
 import { materialManager } from "../../Materials/MaterialManager";
-
-const materialsMap: Map<string, Material> = new Map()
 
 class DrawableNode extends SceneNode implements DrawableNodeInterface {
   drawable: DrawableInterface;
