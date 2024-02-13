@@ -1,5 +1,5 @@
-import { vec4, mat4, quat, Vec4, Mat4 } from 'wgpu-matrix';
-import { normalizeDegrees, degToRad } from './Math';
+import { vec4, mat4, quat, Vec4, Mat4, vec3 } from 'wgpu-matrix';
+import { normalizeDegrees, degToRad, radToDeg } from './Math';
 
 export type ProjectionType = 'Perspective' | 'Orthographic';
 
@@ -20,6 +20,8 @@ class Camera {
 
   rotateY = 0;
 
+  finalRotateY = 0;
+
   near = 0.125;
   
   far = 2000;
@@ -30,9 +32,15 @@ class Camera {
 
   maxVelocity = 10;
 
+  rotationPoint = vec4.create(0, 0, 0, 1);
+
+  finalTranslate = vec3.create(0, 0, 0)
+
   moveCameraTo: Vec4 | null = null;
 
   moveCameraStartTime: number | null = null;
+
+  updateRotation = false
 
   constructor(offset?: number, position?: Vec4) {
     if (offset) {
@@ -80,27 +88,59 @@ class Camera {
     this.computeViewTransform();
   }
 
+  computeRotationInfo() {
+    const p1 = vec4.transformMat4(vec4.create(0, 0, 0, 1), this.viewTransform)
+
+    const transform = mat4.identity()
+    mat4.translate(transform, this.finalTranslate, transform)
+    mat4.rotateY(transform, degToRad(this.finalRotateY), transform)
+    mat4.translate(transform, vec3.negate(this.finalTranslate), transform)
+    mat4.translate(transform, this.position, transform)
+
+    const p2 = vec4.transformMat4(vec4.create(0, 0, 0, 1), transform)
+
+    const v1 = vec3.subtract(p1, p2)
+    v1[1] = 0
+    vec3.normalize(v1, v1)
+
+    const angle = normalizeDegrees(radToDeg(Math.atan2(v1[0], v1[2])))
+
+    this.position = p2;
+    this.finalRotateY = 0;
+    this.rotateY = angle
+    this.finalTranslate = this.rotationPoint.slice()
+  }
+
+  setRotatePoint(point: Vec4) {
+    this.rotationPoint = point.slice()
+    this.updateRotation = true
+  }
+
   changeRotation(deltaX: number, deltaY: number) {
-    this.rotateY = normalizeDegrees(this.rotateY + deltaX);
+    if (this.updateRotation) {
+      this.computeRotationInfo()
+      this.updateRotation = false
+    }
+
+    this.finalRotateY = normalizeDegrees(this.finalRotateY + deltaX);
     this.rotateX = normalizeDegrees(this.rotateX + deltaY);
 
     this.computeViewTransform();
   }
 
   computeViewTransform() {
-    this.viewTransform = mat4.identity();
+    this.viewTransform = mat4.identity()
 
-    const cameraQuat = quat.fromEuler(degToRad(this.rotateX), degToRad(this.rotateY), degToRad(0), "zyx");
-    const t = mat4.fromQuat(cameraQuat);
-    
-    const translate1 = mat4.translation(this.position);
-    const translate2 = mat4.translation(vec4.create(0, 0, this.offset));
+    mat4.translate(this.viewTransform, this.finalTranslate, this.viewTransform)
+    mat4.rotateY(this.viewTransform, degToRad(this.finalRotateY), this.viewTransform)
+    mat4.translate(this.viewTransform, vec3.negate(this.finalTranslate), this.viewTransform)
 
-    mat4.multiply(this.viewTransform, translate1, this.viewTransform)
-    mat4.multiply(this.viewTransform, t, this.viewTransform)
-    mat4.multiply(this.viewTransform, translate2, this.viewTransform)
+    mat4.translate(this.viewTransform, this.position, this.viewTransform)
+    mat4.rotateY(this.viewTransform, degToRad(this.rotateY), this.viewTransform)
+    mat4.rotateX(this.viewTransform, degToRad(this.rotateX), this.viewTransform)
+    mat4.translate(this.viewTransform, vec4.create(0, 0, this.offset, 1), this.viewTransform)
 
-    this.updateListener();
+    // this.updateListener();
   }
 
   changeOffset(delta: number) {

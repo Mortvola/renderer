@@ -46,7 +46,7 @@ export interface SceneNodeInterface {
   setFromAngles(x: number, y: number, z: number): void;
 }
 
-export type DrawableType = 'Mesh' | 'Billboard' | 'Circle' | 'Line'
+export type DrawableType = 'Mesh' | 'Billboard' | 'Circle' | 'Line' | '2D'
 
 export interface MaterialInterface {
   pipeline: PipelineInterface | null;
@@ -61,6 +61,8 @@ export interface MaterialInterface {
 
   addDrawable(drawableNode: DrawableNodeInterface): void;
 
+  setPropertyValues(stage: GPUShaderStageFlags, properties: PropertyInterface[]): void;
+  
   updateProperty(stage: GPUShaderStageFlags, name: string, value: ValueType): void;
 }
 

@@ -2,7 +2,7 @@ import { DrawableType } from "../types";
 
 export const getVertexStage = (drawableType: DrawableType, lit: boolean): string => {
   if (drawableType === 'Mesh') {
-    return `
+    return /*wgsl*/`
       struct Vertex {
         @location(0) position: vec4f,
         @location(1) normal: vec4f,
@@ -42,7 +42,7 @@ export const getVertexStage = (drawableType: DrawableType, lit: boolean): string
   }
 
   if (drawableType === 'Billboard') {
-    return `
+    return /*wgsl*/`
       struct VertexOut {
         @builtin(position) position : vec4f,
         @location(0) color : vec4f,
@@ -96,7 +96,7 @@ export const getVertexStage = (drawableType: DrawableType, lit: boolean): string
   }
 
   if (drawableType === 'Circle') {
-    return `
+    return /*wgsl*/`
       struct VertexOut {
         @builtin(position) position : vec4f,
         @location(0) color : vec4f,
@@ -144,6 +144,57 @@ export const getVertexStage = (drawableType: DrawableType, lit: boolean): string
 
         output.position = projectionMatrix * viewMatrix * modelMatrix[0] * vec4f(x, y, 0, 1);
 
+        output.color = instanceColor[instanceIndex];
+
+        return output;
+      }
+    `
+  }
+
+  if (drawableType === '2D') {
+    return /*wgsl*/`
+      struct VertexOut {
+        @builtin(position) position : vec4f,
+        @location(0) color : vec4f,
+        @location(1) texcoord: vec2f,
+      }
+
+      @vertex
+      fn vs(
+        @builtin(instance_index) instanceIndex: u32,
+        @builtin(vertex_index) vertexIndex : u32,
+      ) -> VertexOut
+      {
+        var output : VertexOut;
+        
+        var vertex = vec4(0.0, 0.0, 0, 1);
+
+        if (vertexIndex == 0 || vertexIndex == 5) {
+          vertex.x = vertProperties.x + vertProperties.width;
+          vertex.y = vertProperties.y; //  * aspectRatio;
+          output.texcoord.x = 1.0;
+          output.texcoord.y = 0.0;
+        }
+        else if (vertexIndex == 1) {
+          vertex.x = vertProperties.x;
+          vertex.y = vertProperties.y; // * aspectRatio;
+          output.texcoord.x = 0.0;
+          output.texcoord.y = 0.0;
+        }
+        else if (vertexIndex == 2 || vertexIndex == 3) {
+          vertex.x = vertProperties.x;
+          vertex.y = vertProperties.y - vertProperties.height * aspectRatio;
+          output.texcoord.x = 0.0;
+          output.texcoord.y = 1.0;
+        }
+        else if (vertexIndex == 4) {
+          vertex.x = vertProperties.x + vertProperties.width;
+          vertex.y = vertProperties.y - vertProperties.height * aspectRatio;
+          output.texcoord.x = 1.0;
+          output.texcoord.y = 1.0;
+        }
+
+        output.position = vertex;
         output.color = instanceColor[instanceIndex];
 
         return output;

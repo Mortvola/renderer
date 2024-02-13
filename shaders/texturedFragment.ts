@@ -7,11 +7,21 @@ ${textureAttributes}
 @group(2) @binding(2) var ourTexture: texture_2d<f32>;
 @group(2) @binding(3) var<uniform> texAttr: TextureAttributes;
 
-@fragment
-fn fs(vertexOut: VertexOut) -> @location(0) vec4f
-{
-  var offset = vec2f(0, time);
+struct FragmentOut {
+  @location(0) color: vec4f,
+  @location(1) bright: vec4f,
+}
 
-  return textureSample(ourTexture, ourSampler, fract(vertexOut.texcoord * texAttr.scale + offset));
+@fragment
+fn fs(vertexOut: VertexOut) -> FragmentOut
+{
+  var color = textureSample(ourTexture, ourSampler, vertexOut.texcoord);
+
+  var out: FragmentOut;
+
+  out.color = color;
+  out.bright = vec4(0.0, 0.0, 0.0, 1.0);
+
+  return out;
 }
 `

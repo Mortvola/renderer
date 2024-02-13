@@ -1,46 +1,26 @@
 import { Vec4, Mat4 } from 'wgpu-matrix';
 import Drawable from './Drawable';
-import { bindGroups } from '../BindGroups';
-import { gpu } from '../Gpu';
+import Property from '../ShaderBuilder/Property';
 
 class Reticle extends Drawable {
-  radius = new Float32Array(1);
-
-  bindGroup3: GPUBindGroup;
-
-  uniformBuffer3: GPUBuffer;
-
-  private constructor(radius: number) {
-    super('Billboard')
+  private constructor(x: number, y: number, width: number, height: number) {
+    super('2D')
 
     this.name = 'Reticle';
     
-    this.radius[0] = radius;
-
-    this.uniformBuffer3 = gpu.device.createBuffer({
-      label: 'radius',
-      size: Float32Array.BYTES_PER_ELEMENT,
-      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-    });
-
-    this.bindGroup3 = gpu.device.createBindGroup({
-      label: 'radius',
-      layout: bindGroups.getBindGroupLayout3(),
-      entries: [
-        { binding: 0, resource: { buffer: this.uniformBuffer3 }},
-      ],
-    });
+    this.vertexProperties.push(
+      new Property('x', 'float', x),
+      new Property('y', 'float', y),
+      new Property('width', 'float', width),
+      new Property('height', 'float', height),
+    )
   }
 
-  static async create(radius: number): Promise<Reticle> {
-    return new Reticle(radius);
+  static async create(x: number, y: number, width: number, height: number): Promise<Reticle> {
+    return new Reticle(x, y, width, height);
   }
 
   render(passEncoder: GPURenderPassEncoder) {
-    gpu.device.queue.writeBuffer(this.uniformBuffer3, 0, this.radius);
-
-    passEncoder.setBindGroup(3, this.bindGroup3);
-
     passEncoder.draw(6);  
   }
 
