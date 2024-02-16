@@ -1,4 +1,5 @@
 import { common } from "./common";
+import { meshInstances } from "./meshInstances";
 
 export const outlineShader = /*wgsl*/`
 struct Vertex {
@@ -11,6 +12,8 @@ struct VertexOut {
 }
 
 ${common}
+
+${meshInstances}
 
 @group(2) @binding(0) var<uniform> color: vec4f;
 

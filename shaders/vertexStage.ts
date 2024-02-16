@@ -170,26 +170,26 @@ export const getVertexStage = (drawableType: DrawableType, lit: boolean): string
         var vertex = vec4(0.0, 0.0, 0, 1);
 
         if (vertexIndex == 0 || vertexIndex == 5) {
-          vertex.x = vertProperties.x + vertProperties.width;
-          vertex.y = vertProperties.y; //  * aspectRatio;
+          vertex.x = dimensions[instanceIndex].x + dimensions[instanceIndex].width;
+          vertex.y = dimensions[instanceIndex].y; //  * aspectRatio;
           output.texcoord.x = 1.0;
           output.texcoord.y = 0.0;
         }
         else if (vertexIndex == 1) {
-          vertex.x = vertProperties.x;
-          vertex.y = vertProperties.y; // * aspectRatio;
+          vertex.x = dimensions[instanceIndex].x;
+          vertex.y = dimensions[instanceIndex].y; // * aspectRatio;
           output.texcoord.x = 0.0;
           output.texcoord.y = 0.0;
         }
         else if (vertexIndex == 2 || vertexIndex == 3) {
-          vertex.x = vertProperties.x;
-          vertex.y = vertProperties.y - vertProperties.height * aspectRatio;
+          vertex.x = dimensions[instanceIndex].x;
+          vertex.y = dimensions[instanceIndex].y - dimensions[instanceIndex].height * aspectRatio;
           output.texcoord.x = 0.0;
           output.texcoord.y = 1.0;
         }
         else if (vertexIndex == 4) {
-          vertex.x = vertProperties.x + vertProperties.width;
-          vertex.y = vertProperties.y - vertProperties.height * aspectRatio;
+          vertex.x = dimensions[instanceIndex].x + dimensions[instanceIndex].width;
+          vertex.y = dimensions[instanceIndex].y - dimensions[instanceIndex].height * aspectRatio;
           output.texcoord.x = 1.0;
           output.texcoord.y = 1.0;
         }

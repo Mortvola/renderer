@@ -9,7 +9,4 @@ ${lights}
 @group(0) @binding(3) var<uniform> aspectRatio: f32;
 @group(0) @binding(4) var<storage> pointLights: Lights;
 @group(0) @binding(5) var<uniform> time: f32;
-
-@group(1) @binding(0) var<uniform> modelMatrix: array<mat4x4f, 1000>;
-@group(1) @binding(1) var<uniform> instanceColor: array<vec4f, 1000>;
 `

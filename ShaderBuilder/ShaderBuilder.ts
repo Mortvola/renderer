@@ -36,6 +36,8 @@ import { DataType, GraphEdgeInterface, GraphNodeInterface, PropertyInterface, ge
 import Value from "./Value";
 import ValueNode from "./ValueNode";
 import VertexColor from "./Nodes/VertexColor";
+import { meshInstances } from "../shaders/meshInstances";
+import { twoDimensional } from "../shaders/twoDimensional";
 
 export const buildStageGraph = (graphDescr: GraphStageDescriptor, properties: Property[]): StageGraph => {
   let nodes: GraphNodeInterface[] = [];
@@ -399,6 +401,12 @@ export const generateShaderCode = (
   return [
     `    
     ${common}
+
+    ${
+      drawableType === '2D'
+        ? twoDimensional
+        : meshInstances
+    }
 
     ${vertUniforms}
 
