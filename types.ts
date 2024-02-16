@@ -169,6 +169,14 @@ export type GameObject2DRecord = {
   object: GameObject2D,
 }
 
+export const isGameObject2DRecord = (r: unknown): r is GameObject2DRecord => (
+  (r as GameObject2DRecord).object !== undefined
+  && (r as GameObject2DRecord).object.x !== undefined
+  && (r as GameObject2DRecord).object.y !== undefined
+  && (r as GameObject2DRecord).object.width !== undefined
+  && (r as GameObject2DRecord).object.height !== undefined
+)
+
 export type ParticleRecord = {
   id: number,
   name: string,
