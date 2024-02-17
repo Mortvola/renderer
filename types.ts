@@ -17,6 +17,15 @@ export interface RenderPassInterface {
   addDrawable(drawable: DrawableNodeInterface | SceneNode2d): void;
 }
 
+export interface RenderPass2DInterface {
+  addDrawable(
+    sceneNode2d: SceneNode2d,
+    canvasWidth: number,
+    canvasHeight: number,
+    dimensions: { x: number, y: number, width: number, height: number },    
+  ): void;
+}
+
 export interface RendererInterface {
   scene: ContainerNodeInterface;
 

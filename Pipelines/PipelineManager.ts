@@ -265,7 +265,7 @@ class PipelineManager implements PipelineManagerInterface {
         },
         depthStencil: {
           depthWriteEnabled: shaderDescriptor?.depthWriteEnabled ?? true,
-          depthCompare: "less",
+          depthCompare: 'less',
           format: "depth24plus"
         },
         layout: pipelineLayout,

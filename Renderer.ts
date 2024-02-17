@@ -21,7 +21,6 @@ import TransparentRenderPass from './RenderPasses/TransparentRenderPass';
 import BloomPass from './RenderPasses/BloomPass';
 import { outputFormat } from './RenderSetings';
 import SceneNode2d from './Drawables/SceneNodes/SceneNode2d';
-import ContainerNode2d from './Drawables/SceneNodes/ContainerNode2d';
 import RenderPass2D from './RenderPasses/RenderPass2D';
 
 const requestPostAnimationFrame = (task: (timestamp: number) => void) => {
@@ -67,7 +66,7 @@ class Renderer implements RendererInterface {
 
   scene = new ContainerNode();
 
-  scene2d = new ContainerNode2d();
+  scene2d = new SceneNode2d();
 
   mainRenderPass = new RenderPass();
 
@@ -252,21 +251,82 @@ class Renderer implements RendererInterface {
     this.render = false;
   }
 
-  update2DLayout() {
-    let stack: SceneNode2d[] = [...this.scene2d.nodes]
+  update2DLayout(canvasWidth: number, canvasHeight: number) {
+    // let stack: SceneNode2d[] = [...this.scene2d.nodes]
 
-    while (stack.length > 0) {
-      const node = stack[0];
-      stack = stack.slice(1);
+    // while (stack.length > 0) {
+    //   const node = stack[0];
+    //   stack = stack.slice(1);
 
-      if (node.material) {
-        // node.addInstanceInfo()
+    //   if (node.material || node.color) {
+    //     // node.addInstanceInfo()
 
-        this.renderPass2D.addDrawable(node)
-      }
+    //     this.renderPass2D.addDrawable(node, canvasWidth, canvasHeight)
+    //   }
 
-      stack = stack.concat(...node.nodes)
+    //   stack = stack.concat(...node.nodes)
+    // }
+  }
+
+  getElementDimension(dimension: number | string, canvasDimension: number) {
+    let dim = 0;
+
+    if (typeof dimension === 'number') {
+      dim = dimension
     }
+    else {
+      const result = /([0-9]+)%/.exec(dimension)
+
+      if (result) {
+        dim = parseFloat(result[1]) * canvasDimension * 4
+      }
+    }
+
+    return dim;
+  }
+
+  update2dLayout2(container: SceneNode2d, x?: number, y?: number): [number, number] {
+    let left = (x ?? 0) + (container.margin?.left ?? 0);
+    let top = (y ?? 0) - (container.margin?.top ?? 0);
+
+    if (container.position === 'absolute') {
+      left = container.x ?? 0;
+      top = container.y ?? 0;
+    }
+
+    let width = 0;
+    let height = 0;
+    let childLeft = left;
+    let childTop = top;
+
+    for (const node of container.nodes) {
+      const [childWidth, childHeight] = this.update2dLayout2(node, childLeft, childTop)
+
+      width += childWidth;
+      height = Math.max(height, childHeight);
+
+      childLeft += childWidth;
+    }
+
+    if (container.width) {
+      width = this.getElementDimension(container.width, this.context!.canvas.width)
+    }
+
+    if (container.height) {
+      height = this.getElementDimension(container.height, this.context!.canvas.height)
+    }
+
+    if (container.material || container.color) {
+      this.renderPass2D.addDrawable(
+        container,
+        this.context!.canvas.width,
+        this.context!.canvas.height,
+        { x: left, y: top, width, height })
+    }
+
+    return [
+      width + (container.margin?.left ?? 0) + (container.margin?.right ?? 0),
+      height + (container.margin?.top ?? 0) + (container.margin?.bottom ?? 0)]
   }
 
   updateTransforms() {
@@ -290,8 +350,6 @@ class Renderer implements RendererInterface {
 
     // this.cursor.translate[0] = this.camera.position[0];
     // this.cursor.translate[2] = this.camera.position[2];
-
-    this.update2DLayout()
 
     this.updateTransforms();
 
@@ -378,6 +436,8 @@ class Renderer implements RendererInterface {
     this.mainRenderPass.render(sceneView!, bloomView!, this.depthTextureView!, commandEncoder, this.frameBindGroup.bindGroup);
     this.transparentPass.render(sceneView!, bloomView!, this.depthTextureView!, commandEncoder, this.frameBindGroup.bindGroup);
     
+    this.update2dLayout2(this.scene2d)
+
     this.renderPass2D.render(sceneView!, bloomView!, this.depthTextureView!, commandEncoder, this.frameBindGroup.bindGroup);
 
     if (this.bloomPass) {

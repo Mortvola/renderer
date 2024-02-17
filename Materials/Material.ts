@@ -82,6 +82,8 @@ class Material implements MaterialInterface {
     vertexProperties: PropertyInterface[],
     materialDescriptor?: MaterialDescriptor,
   ): Promise<Material> {
+    await gpu.ready()
+    
     let shaderDescriptor: ShaderDescriptor | undefined
 
     if (typeof materialDescriptor?.shaderDescriptor === 'number') {

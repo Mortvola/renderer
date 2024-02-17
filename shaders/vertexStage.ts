@@ -171,25 +171,25 @@ export const getVertexStage = (drawableType: DrawableType, lit: boolean): string
 
         if (vertexIndex == 0 || vertexIndex == 5) {
           vertex.x = dimensions[instanceIndex].x + dimensions[instanceIndex].width;
-          vertex.y = dimensions[instanceIndex].y; //  * aspectRatio;
+          vertex.y = dimensions[instanceIndex].y * aspectRatio;
           output.texcoord.x = 1.0;
           output.texcoord.y = 0.0;
         }
         else if (vertexIndex == 1) {
           vertex.x = dimensions[instanceIndex].x;
-          vertex.y = dimensions[instanceIndex].y; // * aspectRatio;
+          vertex.y = dimensions[instanceIndex].y * aspectRatio;
           output.texcoord.x = 0.0;
           output.texcoord.y = 0.0;
         }
         else if (vertexIndex == 2 || vertexIndex == 3) {
           vertex.x = dimensions[instanceIndex].x;
-          vertex.y = dimensions[instanceIndex].y - dimensions[instanceIndex].height * aspectRatio;
+          vertex.y = (dimensions[instanceIndex].y - dimensions[instanceIndex].height) * aspectRatio;
           output.texcoord.x = 0.0;
           output.texcoord.y = 1.0;
         }
         else if (vertexIndex == 4) {
           vertex.x = dimensions[instanceIndex].x + dimensions[instanceIndex].width;
-          vertex.y = dimensions[instanceIndex].y - dimensions[instanceIndex].height * aspectRatio;
+          vertex.y = (dimensions[instanceIndex].y - dimensions[instanceIndex].height) * aspectRatio;
           output.texcoord.x = 1.0;
           output.texcoord.y = 1.0;
         }
