@@ -2,6 +2,7 @@ import SceneNode2d from "../Drawables/SceneNodes/SceneNode2d";
 import { gpu } from "../Gpu";
 import Material from "../Materials/Material";
 import { bloom } from "../RenderSetings";
+import SceneGraph2D from "../SceneGraph2d";
 import { MaterialInterface, PipelineInterface, RenderPass2DInterface, maxInstances } from "../types";
 
 type PipelineEntry = {
@@ -78,32 +79,6 @@ class RenderPass2D implements RenderPass2DInterface {
         material = sceneNode2d.material
       }
 
-      // let width = 0
-      // let height = 0;
-
-      // if (typeof sceneNode2d.width === 'number') {
-      //   width = sceneNode2d.width
-      // }
-      // else {
-      //   const result = /([0-9]+)px/.exec(sceneNode2d.width)
-
-      //   if (result) {
-      //     width = parseFloat(result[1]) / canvasWidth * 4
-      //   }
-      // }
-
-      // if (typeof sceneNode2d.height === 'number') {
-      //   height = sceneNode2d.height
-      // }
-      // else {
-      //   const result = /([0-9]+)px/.exec(sceneNode2d.height)
-
-      //   if (result) {
-      //     height = parseFloat(result[1]) / canvasHeight * 4 / (canvasWidth / canvasHeight)
-      //   }
-      // }
-
-
       const aspectRatio = (canvasWidth / canvasHeight)
 
       let dimensions = { x: d.x / canvasWidth * 4, y: d.y / canvasHeight * 4 / aspectRatio, width: d.width / canvasWidth * 4, height: d.height / canvasHeight * 4 / aspectRatio }
@@ -121,11 +96,6 @@ class RenderPass2D implements RenderPass2DInterface {
         let dimensions = { x: d.x / canvasWidth * 4, y: d.y / canvasHeight * 4 / aspectRatio, width: d.width / canvasWidth * 4, height: d.height / canvasHeight * 4 / aspectRatio }
 
         this.addElement(defaultMaterial, dimensions, sceneNode2d.border.color)
-
-        // dimensions.x += sceneNode2d.border.width / canvasWidth * 2
-        // dimensions.y -= sceneNode2d.border.width / canvasHeight * 2
-        // dimensions.width -= (sceneNode2d.border.width / canvasWidth) * 4
-        // dimensions.height -= (sceneNode2d.border.width / canvasHeight) * 4 / (canvasWidth / canvasHeight)
       }
 
       this.addElement(material, dimensions, sceneNode2d.color)
@@ -216,30 +186,43 @@ class RenderPass2D implements RenderPass2DInterface {
     depthView: GPUTextureView | null,
     commandEncoder: GPUCommandEncoder,
     frameBindGroup: GPUBindGroup,
+    scene2d: SceneGraph2D,
   ) {
-    const passEncoder = commandEncoder.beginRenderPass(this.getDescriptor(view, bright, depthView));
+    if (scene2d.indexBuffer) {
+      const passEncoder = commandEncoder.beginRenderPass(this.getDescriptor(view, bright, depthView));
 
-    passEncoder.setBindGroup(0, frameBindGroup);
+      passEncoder.setBindGroup(0, frameBindGroup);
 
-    gpu.device.queue.writeBuffer(this.dimensionsBuffer, 0, this.instanceDimensions, 0, this.numInstances * 4);  
-    gpu.device.queue.writeBuffer(this.colorsBuffer, 0, this.instanceColor, 0, this.numInstances * 4);  
+      passEncoder.setVertexBuffer(0, scene2d.vertexBuffer);
+      passEncoder.setVertexBuffer(1, scene2d.texcoordBuffer);
+      passEncoder.setIndexBuffer(scene2d.indexBuffer, scene2d.indexFormat);
 
-    passEncoder.setBindGroup(1, this.bindGroup);
+      passEncoder.setBindGroup(1, scene2d.bindGroup);
 
-    for (const pipelineEntry of this.pipelines) {
-      passEncoder.setPipeline(pipelineEntry.pipeline.pipeline);
-  
-      for (const [material, instances] of pipelineEntry.materials) {
-        material.setBindGroups(passEncoder)
-        passEncoder.draw(6, instances.count, undefined, instances.index);  
+      for (const pipelineEntry of scene2d.pipelines) {
+        passEncoder.setPipeline(pipelineEntry.pipeline.pipeline);
+    
+        for (const [material, instances] of pipelineEntry.materials) {
+          material.setBindGroups(passEncoder)
+
+          for (const [mesh, meshInfo] of instances) {
+            passEncoder.drawIndexed(
+              mesh.indices.length,
+              meshInfo.instanceCount,
+              meshInfo.firstIndex,
+              meshInfo.baseVertex,
+              meshInfo.firstInstance,
+            );    
+          }
+        }
       }
+
+      this.numInstances = 0;
+
+      this.pipelines = [];
+
+      passEncoder.end();
     }
-
-    this.numInstances = 0;
-
-    this.pipelines = [];
-
-    passEncoder.end();
   }
 }
 

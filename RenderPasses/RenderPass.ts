@@ -97,7 +97,7 @@ class RenderPass implements RenderPassInterface {
             gpu.device.queue.writeBuffer(drawable.instanceColorBuffer, 0, drawable.instanceColor, 0, drawable.numInstances * 4);  
             passEncoder.setBindGroup(1, drawable.bindGroup);
   
-            drawable.render(passEncoder, drawable.numInstances);
+            drawable.render(passEncoder);
     
             drawable.numInstances = 0;
           }

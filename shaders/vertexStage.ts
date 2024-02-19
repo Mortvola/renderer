@@ -153,6 +153,16 @@ export const getVertexStage = (drawableType: DrawableType, lit: boolean): string
 
   if (drawableType === '2D') {
     return /*wgsl*/`
+      struct Dimensions {
+        x: f32,
+        y: f32,
+        width: f32,
+        height: f32,
+      }
+    
+      @group(1) @binding(0) var<uniform> instanceColor: array<vec4f, 1000>;
+      @group(1) @binding(1) var<uniform> dimensions: array<Dimensions, 1000>;
+
       struct VertexOut {
         @builtin(position) position : vec4f,
         @location(0) color : vec4f,
@@ -195,6 +205,41 @@ export const getVertexStage = (drawableType: DrawableType, lit: boolean): string
         }
 
         output.position = vertex;
+        output.color = instanceColor[instanceIndex];
+
+        return output;
+      }
+    `
+  }
+
+  if (drawableType === 'Mesh2D') {
+    return /*wgsl*/`
+      @group(1) @binding(0) var<uniform> transform: array<mat3x3f, 1000>;
+      @group(1) @binding(1) var<uniform> instanceColor: array<vec4f, 1000>;
+
+      struct Vertex {
+        @location(0) position: vec2f,
+        @location(1) texcoord: vec2f,
+      }
+
+      struct VertexOut {
+        @builtin(position) position : vec4f,
+        @location(0) color : vec4f,
+        @location(1) texcoord: vec2f,
+      }
+
+      @vertex
+      fn vs(
+        @builtin(instance_index) instanceIndex: u32,
+        vertex: Vertex,
+      ) -> VertexOut
+      {
+        var output : VertexOut;
+
+        var point = transform[instanceIndex] * vec3f(vertex.position, 1);
+
+        output.position = vec4f(point.xy, 0, 1);
+        output.texcoord = vertex.texcoord;
         output.color = instanceColor[instanceIndex];
 
         return output;

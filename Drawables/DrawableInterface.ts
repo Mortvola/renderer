@@ -27,7 +27,7 @@ interface DrawableInterface {
 
   vertexProperties: PropertyInterface[];
 
-  render(passEncoder: GPURenderPassEncoder, numInstances: number): void;
+  render(passEncoder: GPURenderPassEncoder): void;
 
   hitTest(origin: Vec4, vector: Vec4): { point: Vec4, t: number, drawable: DrawableInterface} | null;
 

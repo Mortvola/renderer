@@ -169,6 +169,32 @@ class PipelineManager implements PipelineManagerInterface {
           }
         ];
       }
+      else if (drawableType === 'Mesh2D') {
+        vertexBufferLayout = [
+          {
+            attributes: [
+              {
+                shaderLocation: 0, // position
+                offset: 0,
+                format: "float32x2",
+              },
+            ],
+            arrayStride: 8,
+            stepMode: "vertex",
+          },
+          {
+            attributes: [
+              {
+                shaderLocation: 1, // texcoord
+                offset: 0,
+                format: "float32x2",
+              }
+            ],
+            arrayStride: 8,
+            stepMode: "vertex",
+          }
+        ];
+      }
 
       const targets: GPUColorTargetState[] = [];
 
@@ -247,7 +273,7 @@ class PipelineManager implements PipelineManagerInterface {
       });
 
       const pipelineDescriptor: GPURenderPipelineDescriptor = {
-        label: 'base pipeline',
+        label: `${drawableType} pipeline`,
         vertex: {
           module: shaderModule,
           entryPoint: "vs",
