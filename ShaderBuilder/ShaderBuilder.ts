@@ -41,6 +41,8 @@ import Step from "./Nodes/Step";
 import Clamp from "./Nodes/Clamp";
 import Max from "./Nodes/Max";
 import Min from "./Nodes/Min";
+import FWidth from "./Nodes/FWidth";
+import Divide from "./Nodes/Divide";
 
 export const buildStageGraph = (graphDescr: GraphStageDescriptor, properties: Property[]): StageGraph => {
   let nodes: GraphNodeInterface[] = [];
@@ -83,6 +85,10 @@ export const buildStageGraph = (graphDescr: GraphStageDescriptor, properties: Pr
         node = new Output(nodeDescr.id);
         break;
 
+      case 'Divide':
+        node = new Divide(nodeDescr.id);
+        break;
+  
       case 'uv':
         node = new UV(nodeDescr.id)
         break;
@@ -99,6 +105,10 @@ export const buildStageGraph = (graphDescr: GraphStageDescriptor, properties: Pr
         node = new Fraction(nodeDescr.id);
         break;
 
+      case 'FWidth':
+        node = new FWidth(nodeDescr.id);
+        break;
+  
       case 'Max':
         node = new Max(nodeDescr.id);
         break;

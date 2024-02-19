@@ -1,11 +1,12 @@
 import OperationNode from "../OperationNode";
 import InputPort from "../Ports/InputPort";
 import OutputPort from "../Ports/OutputPort";
-import { DataType, convertType } from "../Types";
+import { DataType } from "../Types";
+import { convertType } from '../Types'
 
-class Subtract extends OperationNode {
+class Divide extends OperationNode {
   constructor(id?: number) {
-    super('Subtract', 'Subtract', id)
+    super('Divide', 'Divide', id)
 
     this.inputPorts = [
       new InputPort(this, 'vec2f', 'A'),
@@ -33,13 +34,13 @@ class Subtract extends OperationNode {
 
     return 'vec2f'
   }
-  
+
   getExpression(): [string, DataType] {
     const [varA, dataTypeA] = this.inputPorts[0].getValue();
     const [varB] = this.inputPorts[1].getValue();
 
-    return [`${varA} - (${varB})`, dataTypeA];
+    return [`(${varA}) / (${varB})`, dataTypeA];
   }
 }
 
-export default Subtract;
+export default Divide;
