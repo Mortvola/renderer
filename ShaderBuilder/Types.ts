@@ -5,7 +5,7 @@ export type DataType = 'float' | 'vec2f' | 'vec3f' | 'vec4f' | 'texture2D' | 'sa
 export type NodeType =
   'property' | 'value'
   | 'uv' | 'time'  | 'time'
-  | 'Add' | 'Combine' | 'display' | 'Fraction' | 'Lerp' | 'Multiply' | 'Power' | 'SampleTexture' | 'Split' | 'Subtract' | 'TileAndScroll'
+  | 'Add' | 'Clamp' | 'Combine' | 'display' | 'Fraction' | 'Lerp' | 'Multiply' | 'Power' | 'SampleTexture' | 'Split' | 'Subtract' | 'Step' | 'TileAndScroll'
   | 'PhongShading' | 'Twirl' | 'VertexColor' | 'Voronoi';
 
 export type SamplerDescriptor = {};
