@@ -38,6 +38,8 @@ import ValueNode from "./ValueNode";
 import VertexColor from "./Nodes/VertexColor";
 import { meshInstances } from "../shaders/meshInstances";
 import { twoDimensional } from "../shaders/twoDimensional";
+import Step from "./Nodes/Step";
+import Clamp from "./Nodes/Clamp";
 
 export const buildStageGraph = (graphDescr: GraphStageDescriptor, properties: Property[]): StageGraph => {
   let nodes: GraphNodeInterface[] = [];
@@ -112,6 +114,10 @@ export const buildStageGraph = (graphDescr: GraphStageDescriptor, properties: Pr
         node = new Split(nodeDescr.id);
         break;
   
+      case 'Clamp':
+        node = new Clamp(nodeDescr.id);
+        break;
+
       case 'Combine':
         node = new Combine(nodeDescr.id);
         break;
@@ -132,6 +138,10 @@ export const buildStageGraph = (graphDescr: GraphStageDescriptor, properties: Pr
         node = new Lerp(nodeDescr.id);
         break;
 
+      case 'Step':
+        node = new Step(nodeDescr.id);
+        break;
+  
       case 'Subtract':
         node = new Subtract(nodeDescr.id);
         break;

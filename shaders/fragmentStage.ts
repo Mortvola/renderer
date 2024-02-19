@@ -31,7 +31,7 @@ export const getFragmentStage = (body: string, bloom: boolean): string => {
             // Compute relative luminance (coefficients from https://www.w3.org/TR/AERT/#color-contrast
             var luminance = dot(out.color.rgb, vec3f(0.299, 0.587, 0.114));
           
-            if (luminance > 0.9) {
+            if (luminance > 1.0) {
               out.bright = out.color;
             }
             else {
