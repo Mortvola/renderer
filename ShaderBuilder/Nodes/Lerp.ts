@@ -16,6 +16,12 @@ class Lerp extends OperationNode {
     this.outputPort = [new OutputPort(this, 'vec4f', 'result')]
   }
 
+  getDataType(): DataType {
+    const typeA = this.inputPorts[0].getDataType()
+
+    return typeA;
+  }
+
   getExpression(): [string, DataType] {
     const [varA, dataTypeA] = this.inputPorts[0].getValue();
     const [varB] = this.inputPorts[1].getValue();
