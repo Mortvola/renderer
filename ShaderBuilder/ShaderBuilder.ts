@@ -39,6 +39,8 @@ import VertexColor from "./Nodes/VertexColor";
 import { meshInstances } from "../shaders/meshInstances";
 import Step from "./Nodes/Step";
 import Clamp from "./Nodes/Clamp";
+import Max from "./Nodes/Max";
+import Min from "./Nodes/Min";
 
 export const buildStageGraph = (graphDescr: GraphStageDescriptor, properties: Property[]): StageGraph => {
   let nodes: GraphNodeInterface[] = [];
@@ -97,6 +99,14 @@ export const buildStageGraph = (graphDescr: GraphStageDescriptor, properties: Pr
         node = new Fraction(nodeDescr.id);
         break;
 
+      case 'Max':
+        node = new Max(nodeDescr.id);
+        break;
+
+      case 'Min':
+        node = new Min(nodeDescr.id);
+        break;
+    
       case 'Multiply':
         node = new Multiply(nodeDescr.id);
         break;
