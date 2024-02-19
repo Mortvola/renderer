@@ -1,5 +1,4 @@
-import { mat3 } from 'wgpu-matrix';
-import { MaterialInterface, RenderPass2DInterface } from '../../types';
+import { MaterialInterface } from '../../types';
 import ContainerNode2d from './ContainerNode2d';
 
 class SceneNode2d extends ContainerNode2d {
@@ -23,24 +22,24 @@ class SceneNode2d extends ContainerNode2d {
 
   material: MaterialInterface | null = null
 
-  addInstance(
-    renderPass: RenderPass2DInterface,
-    left: number,
-    top: number,
-    width: number,
-    height: number,
-    canvasWidth: number,
-    canvasHeight: number,
-  ): void {
-    if (this.material || this.color) {
-      renderPass.addDrawable(
-        this,
-        canvasWidth,
-        canvasHeight,
-        { x: left, y: top, width, height },
-      )
-    }
-  }
+  // addInstance(
+  //   renderPass: RenderPass2DInterface,
+  //   left: number,
+  //   top: number,
+  //   width: number,
+  //   height: number,
+  //   canvasWidth: number,
+  //   canvasHeight: number,
+  // ): void {
+  //   if (this.material || this.color) {
+  //     renderPass.addDrawable(
+  //       this,
+  //       canvasWidth,
+  //       canvasHeight,
+  //       { x: left, y: top, width, height },
+  //     )
+  //   }
+  // }
 }
 
 export default SceneNode2d;
