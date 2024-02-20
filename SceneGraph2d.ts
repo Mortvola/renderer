@@ -18,19 +18,19 @@ type MapEntry = {
   }[],
 }
 
+type MeshInfo = {
+  firstInstance: number,
+  instanceCount: number,
+  firstIndex: number,
+  indexCount: number,
+  baseVertex: number,
+}
+
 type PipelineEntry = {
   pipeline: PipelineInterface,
   materials: Map<
     MaterialInterface,
-    Map<
-      Mesh2D,
-      {
-        instanceCount: number,
-        firstIndex: number,
-        baseVertex: number,
-        firstInstance: number,
-      }
-    >
+    Map<Mesh2D, MeshInfo>
   >,
 }
 
@@ -77,23 +77,7 @@ class SceneGraph2D {
   clipTransform = mat3.identity();
 
   constructor() {
-    const vertices: number[] = [];
-    const texcoords: number[] = [];
-    const indexes: number[] = [];
-
-    vertices.push(0, 0)
-    vertices.push(0, 1)
-    vertices.push(1, 1)
-    vertices.push(1, 0)
-
-    texcoords.push(0, 0)
-    texcoords.push(0, 1)
-    texcoords.push(1, 1)
-    texcoords.push(1, 0)
-    
-    indexes.push(0, 1, 3, 3, 1, 2)
-
-    this.elementMesh = new Mesh2D(vertices, texcoords, indexes, 1, 1)
+    this.elementMesh = SceneGraph2D.allocateBaseElement()
 
     this.transformsBuffer = gpu.device.createBuffer({
       label: 'model Matrix',
@@ -124,13 +108,33 @@ class SceneGraph2D {
     });
 
     this.bindGroup = gpu.device.createBindGroup({
-      label: 'bind group for dimensions',
+      label: 'bind group for 2D instances',
       layout: bindGroupLayout,
       entries: [
         { binding: 0, resource: { buffer: this.transformsBuffer }},
         { binding: 1, resource: { buffer: this.colorsBuffer }},
       ],
     });
+  }
+
+  static allocateBaseElement() {
+    const vertices: number[] = [];
+    const texcoords: number[] = [];
+    const indexes: number[] = [];
+
+    vertices.push(0, 0)
+    vertices.push(0, 1)
+    vertices.push(1, 1)
+    vertices.push(1, 0)
+
+    texcoords.push(0, 0)
+    texcoords.push(0, 1)
+    texcoords.push(1, 1)
+    texcoords.push(1, 0)
+    
+    indexes.push(0, 1, 3, 3, 1, 2)
+
+    return new Mesh2D(vertices, texcoords, indexes, 1, 1)
   }
 
   setCanvasDimensions(width: number, height: number, scaleX?: number, scaleY?: number) {
@@ -159,7 +163,7 @@ class SceneGraph2D {
     this.needsUpdate = true
   }
 
-  getElementDimension(dimension: number | string, canvasDimension: number) {
+  private getElementDimension(dimension: number | string, canvasDimension: number) {
     let dim = 0;
 
     if (typeof dimension === 'number') {
@@ -194,7 +198,7 @@ class SceneGraph2D {
     this.needsUpdate = false;
   }
 
-  layoutELements(element: SceneNode2d, x?: number, y?: number): [number, number] {
+  private layoutELements(element: SceneNode2d, x?: number, y?: number): [number, number] {
     let left = (x ?? 0) + (element.style.margin?.left ?? 0);
     let top = (y ?? 0) + (element.style.margin?.top ?? 0);
 
@@ -224,7 +228,7 @@ class SceneGraph2D {
       height + (element.style.margin?.top ?? 0) + (element.style.margin?.bottom ?? 0)]
   }
 
-  addElement(
+  private addElement(
     element: SceneNode2d,
     x: number,
     y: number,
@@ -310,7 +314,9 @@ class SceneGraph2D {
     return [width, height]
   }
 
-  addInstances() {
+  private addInstances() {
+    this.pipelines = [];
+
     for (const [mesh, meshInfo] of this.meshes) {
       for (const instance of meshInfo.instance) {
         if (instance.material.pipeline) {
@@ -326,9 +332,10 @@ class SceneGraph2D {
             let meshMap = pipelineEntry.materials.get(instance.material);
 
             if (!meshMap) {
-              const instances = {
+              const instances: MeshInfo = {
                 instanceCount: 1,
                 firstIndex: meshInfo.firstIndex,
+                indexCount: mesh.indices.length,
                 baseVertex: meshInfo.baseVertex,
                 firstInstance: this.numInstances,
               }
@@ -340,21 +347,21 @@ class SceneGraph2D {
               pipelineEntry.materials.set(instance.material, meshMap)            
             }
             else {
-              const instances = meshMap.get(mesh)
+              let instances = meshMap.get(mesh)
 
               if (!instances) {
-                const instances = {
-                  instanceCount: 1,
+                instances = {
+                  instanceCount: 0,
                   firstIndex: meshInfo.firstIndex,
+                  indexCount: mesh.indices.length,
                   baseVertex: meshInfo.baseVertex,
                   firstInstance: this.numInstances,
                 }
   
                 meshMap.set(mesh, instances)
               }
-              else {
-                instances.instanceCount += 1
-              }
+
+              instances.instanceCount += 1
             }
 
             this.instanceTransform[this.numInstances * 12 + 0] = instance.transform[0];
@@ -384,7 +391,7 @@ class SceneGraph2D {
     gpu.device.queue.writeBuffer(this.colorsBuffer, 0, this.instanceColor, 0, this.numInstances * 4);  
   }
 
-  allocateBuffers() {
+  private allocateBuffers() {
     let verticesLength = 0;
     let texcoordLength = 0;
     let indicesLength = 0;

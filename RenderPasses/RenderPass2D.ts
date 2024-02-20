@@ -66,9 +66,9 @@ class RenderPass2D implements RenderPass2DInterface {
         for (const [material, instances] of pipelineEntry.materials) {
           material.setBindGroups(passEncoder)
 
-          for (const [mesh, meshInfo] of instances) {
+          for (const [, meshInfo] of instances) {
             passEncoder.drawIndexed(
-              mesh.indices.length,
+              meshInfo.indexCount,
               meshInfo.instanceCount,
               meshInfo.firstIndex,
               meshInfo.baseVertex,
