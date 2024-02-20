@@ -215,15 +215,7 @@ class SceneGraph2D {
       childLeft += childWidth;
     }
 
-    if (element.width) {
-      width = this.getElementDimension(element.width, this.width)
-    }
-
-    if (element.height) {
-      height = this.getElementDimension(element.height, this.height)
-    }
-
-    this.addElement(element, left, top, width, height)
+    [width, height] = this.addElement(element, left, top, width, height)
 
     return [
       width + (element.margin?.left ?? 0) + (element.margin?.right ?? 0),
@@ -236,7 +228,7 @@ class SceneGraph2D {
     y: number,
     width: number,
     height: number,
-  ) {
+  ): [number, number] {
     let material: MaterialInterface = defaultMaterial
 
     if (element.material) {
@@ -244,6 +236,9 @@ class SceneGraph2D {
     }
 
     if (isTextBox(element)) {
+      width = element.mesh.width
+      height = element.mesh.height
+
       let entry = this.meshes.get(element.mesh)
 
       if (!entry) {
@@ -251,12 +246,21 @@ class SceneGraph2D {
       }
 
       const transform = mat3.identity()
+      mat3.translate(transform, vec2.create(x, y), transform)
 
       entry.instance.push({ transform: mat3.multiply(this.clipTransform, transform), color: element.color ?? [1, 1, 1, 1], material })
 
       this.meshes.set(element.mesh, entry)
     }
     else if (element.material || element.color) {
+      if (element.width) {
+        width = this.getElementDimension(element.width, this.width)
+      }
+  
+      if (element.height) {
+        height = this.getElementDimension(element.height, this.height)
+      }
+  
       let dimensions = {
         x,
         y,
@@ -300,6 +304,8 @@ class SceneGraph2D {
 
       this.meshes.set(this.elementMesh, entry)
     }
+
+    return [width, height]
   }
 
   addInstances() {
@@ -398,7 +404,7 @@ class SceneGraph2D {
 
       let offset = 0;
       for (const [m, i] of this.meshes) {
-        i.baseVertex = offset
+        i.baseVertex = offset / 2
         mapping.set(m.vertices, offset);
         offset += m.vertices.length
       }

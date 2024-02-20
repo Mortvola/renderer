@@ -5,11 +5,14 @@ import Mesh2D from '../Mesh2D';
 import SceneNode2d from './SceneNode2d';
 
 class TextBox extends SceneNode2d {
+  text: string
+
   mesh: Mesh2D
 
-  private constructor(mesh: Mesh2D, material: MaterialInterface) {
+  private constructor(text: string, mesh: Mesh2D, material: MaterialInterface) {
     super()
 
+    this.text = text
     this.mesh = mesh
     this.material = material
   }
@@ -19,7 +22,7 @@ class TextBox extends SceneNode2d {
 
     const material = await materialManager.get(18, 'Mesh2D', [])
 
-    return new TextBox(mesh, material);
+    return new TextBox(text, mesh, material);
   }
 
   // addInstance(
@@ -43,7 +46,7 @@ class TextBox extends SceneNode2d {
 }
 
 export const isTextBox = (r: unknown): r is TextBox => (
-  (r as TextBox).mesh !== undefined
+  (r as TextBox).text !== undefined
 )
 
 export default TextBox;
