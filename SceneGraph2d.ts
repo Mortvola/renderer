@@ -189,6 +189,8 @@ class SceneGraph2D {
 
     this.allocateBuffers()
 
+    this.addInstances()
+
     this.needsUpdate = false;
   }
 
@@ -203,8 +205,8 @@ class SceneGraph2D {
 
     let width = 0;
     let height = 0;
-    let childLeft = left;
-    let childTop = top;
+    let childLeft = left + (element.style.border?.width ?? 0);
+    let childTop = top + (element.style.border?.width ?? 0);
 
     for (const node of element.nodes) {
       const [childWidth, childHeight] = this.layoutELements(node, childLeft, childTop)
@@ -474,8 +476,6 @@ class SceneGraph2D {
         this.indexBuffer.unmap();  
       }  
     }
-
-    this.addInstances()
   }
 }
 
