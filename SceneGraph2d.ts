@@ -180,7 +180,7 @@ class SceneGraph2D {
     return dim;
   }
 
-  updateLayout() {
+  async updateLayout() {
     if (this.width === 0 || this.height === 0 || !this.needsUpdate) {
       return
     }
@@ -189,7 +189,7 @@ class SceneGraph2D {
 
     this.numInstances = 0
 
-    this.layoutELements(this.scene2d)
+    await this.layoutELements(this.scene2d)
 
     this.allocateBuffers()
 
@@ -198,7 +198,13 @@ class SceneGraph2D {
     this.needsUpdate = false;
   }
 
-  private layoutELements(element: SceneNode2d, x?: number, y?: number): [number, number] {
+  private async layoutELements(
+    element: SceneNode2d,
+    x?: number,
+    y?: number,
+    parentWidth?: number,
+    parentHeight?: number,
+  ): Promise<[number, number]> {
     let left = (x ?? 0) + (element.style.margin?.left ?? 0);
     let top = (y ?? 0) + (element.style.margin?.top ?? 0);
 
@@ -207,45 +213,68 @@ class SceneGraph2D {
       top = element.style.y ?? 0;
     }
 
-    let width = 0;
-    let height = 0;
+    let maxWidth: number | undefined = undefined
+    let maxHeight: number | undefined = undefined
+
+    if (element.style.width) {
+      maxWidth = this.getElementDimension(element.style.width, this.width)
+    }
+
+    if (element.style.height) {
+      maxHeight = this.getElementDimension(element.style.height, this.height)
+    }
+
+    let childrenWidth = 0;
+    let childrenHeight = 0;
     let childLeft = left + (element.style.border?.width ?? 0);
     let childTop = top + (element.style.border?.width ?? 0);
 
     for (const node of element.nodes) {
-      const [childWidth, childHeight] = this.layoutELements(node, childLeft, childTop)
+      const [childWidth, childHeight] = await this.layoutELements(node, childLeft, childTop, maxWidth, maxHeight)
 
-      width += childWidth;
-      height = Math.max(height, childHeight);
+      childrenWidth += childWidth;
+      childrenHeight = Math.max(childrenHeight, childHeight);
 
       childLeft += childWidth;
     }
 
-    [width, height] = this.addElement(element, left, top, width, height)
+    const [width, height] = await this.addElement(
+      element, left, top, childrenWidth, childrenHeight, maxWidth, maxHeight, parentWidth, parentHeight,
+    )
 
     return [
       width + (element.style.margin?.left ?? 0) + (element.style.margin?.right ?? 0),
-      height + (element.style.margin?.top ?? 0) + (element.style.margin?.bottom ?? 0)]
+      height + (element.style.margin?.top ?? 0) + (element.style.margin?.bottom ?? 0),
+    ]
   }
 
-  private addElement(
+  private async addElement(
     element: SceneNode2d,
     x: number,
     y: number,
-    width: number,
-    height: number,
-  ): [number, number] {
+    childWidth: number,
+    childHeight: number,
+    maxWidth?: number,
+    maxHeight?: number,
+    parentWidth?: number,
+    parentHeight?: number,
+  ): Promise<[number, number]> {
     let material: MaterialInterface = defaultMaterial
 
-    if (element.material) {
-      material = element.material
-    }
+    let width = maxWidth ?? childWidth
+    let height = maxHeight ?? childHeight
 
     if (isTextBox(element)) {
-      width = element.mesh.width
-      height = element.mesh.height
+      const mesh = await element.createMesh(parentWidth)
 
-      let entry = this.meshes.get(element.mesh)
+      if (element.material) {
+        material = element.material
+      }
+  
+      width = mesh.width
+      height = mesh.height
+
+      let entry = this.meshes.get(mesh)
 
       if (!entry) {
         entry = { firstIndex: 0, baseVertex: 0, instance: [] }
@@ -256,15 +285,11 @@ class SceneGraph2D {
 
       entry.instance.push({ transform: mat3.multiply(this.clipTransform, transform), color: element.style.color ?? [1, 1, 1, 1], material })
 
-      this.meshes.set(element.mesh, entry)
+      this.meshes.set(mesh, entry)
     }
     else if (element.material || element.style.color) {
-      if (element.style.width) {
-        width = this.getElementDimension(element.style.width, this.width)
-      }
-  
-      if (element.style.height) {
-        height = this.getElementDimension(element.style.height, this.height)
+      if (element.material) {
+        material = element.material
       }
   
       let dimensions = {

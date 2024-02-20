@@ -1,4 +1,4 @@
-import { font } from '../../../Font';
+import { font } from '../../Font';
 import { materialManager } from '../../Materials/MaterialManager';
 import { MaterialInterface } from '../../types';
 import Mesh2D from '../Mesh2D';
@@ -7,22 +7,20 @@ import SceneNode2d from './SceneNode2d';
 class TextBox extends SceneNode2d {
   text: string
 
-  mesh: Mesh2D
+  mesh: Mesh2D | null = null
 
-  private constructor(text: string, mesh: Mesh2D, material: MaterialInterface) {
+  constructor(text: string) {
     super()
 
     this.text = text
-    this.mesh = mesh
-    this.material = material
   }
 
-  static async create(text: string): Promise<TextBox> {
-    const mesh = font.text(text)
+  async createMesh(maxWidth?: number): Promise<Mesh2D> {
+    this.mesh = font.text(this.text, maxWidth)
 
-    const material = await materialManager.get(18, 'Mesh2D', [])
+    this.material = await materialManager.get(18, 'Mesh2D', [])
 
-    return new TextBox(text, mesh, material);
+    return this.mesh
   }
 }
 

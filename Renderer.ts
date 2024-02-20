@@ -230,7 +230,7 @@ class Renderer implements RendererInterface {
           this.camera.updatePosition(elapsedTime, timestamp);
         }
 
-        this.drawScene(timestamp);
+        await this.drawScene(timestamp);
 
         this.previousTimestamp = timestamp;
         this.framesRendered += 1;
@@ -263,7 +263,7 @@ class Renderer implements RendererInterface {
     };
   }
 
-  drawScene(timestamp: number) {
+  async drawScene(timestamp: number) {
     if (!this.context) {
       throw new Error('context is null');
     }
@@ -362,7 +362,7 @@ class Renderer implements RendererInterface {
     this.mainRenderPass.render(sceneView!, bloomView!, this.depthTextureView!, commandEncoder, this.frameBindGroup.bindGroup);
     this.transparentPass.render(sceneView!, bloomView!, this.depthTextureView!, commandEncoder, this.frameBindGroup.bindGroup);
     
-    this.scene2d.updateLayout()
+    await this.scene2d.updateLayout()
 
     this.renderPass2D.render(sceneView!, bloomView!, this.depthTextureView!, commandEncoder, this.frameBindGroup.bindGroup, this.scene2d);
 
