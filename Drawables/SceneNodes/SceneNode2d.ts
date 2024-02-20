@@ -1,9 +1,7 @@
 import { MaterialInterface } from '../../types';
 import ContainerNode2d from './ContainerNode2d';
 
-class SceneNode2d extends ContainerNode2d {
-  name = '';
-
+export type Style = {
   position?: 'absolute'
 
   x?: number;
@@ -19,27 +17,20 @@ class SceneNode2d extends ContainerNode2d {
   margin?: { left?: number, right?: number, top?: number, bottom?: number }
   
   border?: { color: number[], width: number }
+}
+
+class SceneNode2d extends ContainerNode2d {
+  name = '';
+
+  style: Style
 
   material: MaterialInterface | null = null
 
-  // addInstance(
-  //   renderPass: RenderPass2DInterface,
-  //   left: number,
-  //   top: number,
-  //   width: number,
-  //   height: number,
-  //   canvasWidth: number,
-  //   canvasHeight: number,
-  // ): void {
-  //   if (this.material || this.color) {
-  //     renderPass.addDrawable(
-  //       this,
-  //       canvasWidth,
-  //       canvasHeight,
-  //       { x: left, y: top, width, height },
-  //     )
-  //   }
-  // }
+  constructor(style: Style = {}) {
+    super()
+
+    this.style = style
+  }
 }
 
 export default SceneNode2d;

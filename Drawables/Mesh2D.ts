@@ -23,14 +23,6 @@ class Mesh2D extends Drawable {
     this.width = width;
     this.height = height;
   }
-
-  // render(passEncoder: GPURenderPassEncoder) {
-  //   passEncoder.setVertexBuffer(0, this.vertexBuffer);
-  //   passEncoder.setVertexBuffer(1, this.texcoordBuffer);
-  //   passEncoder.setIndexBuffer(this.indexBuffer, this.indexFormat);
-
-  //   passEncoder.drawIndexed(this.numIndices, this.numInstances);
-  // }
 }
 
 export default Mesh2D;

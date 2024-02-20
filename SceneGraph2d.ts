@@ -193,12 +193,12 @@ class SceneGraph2D {
   }
 
   layoutELements(element: SceneNode2d, x?: number, y?: number): [number, number] {
-    let left = (x ?? 0) + (element.margin?.left ?? 0);
-    let top = (y ?? 0) + (element.margin?.top ?? 0);
+    let left = (x ?? 0) + (element.style.margin?.left ?? 0);
+    let top = (y ?? 0) + (element.style.margin?.top ?? 0);
 
-    if (element.position === 'absolute') {
-      left = element.x ?? 0;
-      top = element.y ?? 0;
+    if (element.style.position === 'absolute') {
+      left = element.style.x ?? 0;
+      top = element.style.y ?? 0;
     }
 
     let width = 0;
@@ -218,8 +218,8 @@ class SceneGraph2D {
     [width, height] = this.addElement(element, left, top, width, height)
 
     return [
-      width + (element.margin?.left ?? 0) + (element.margin?.right ?? 0),
-      height + (element.margin?.top ?? 0) + (element.margin?.bottom ?? 0)]
+      width + (element.style.margin?.left ?? 0) + (element.style.margin?.right ?? 0),
+      height + (element.style.margin?.top ?? 0) + (element.style.margin?.bottom ?? 0)]
   }
 
   addElement(
@@ -248,17 +248,17 @@ class SceneGraph2D {
       const transform = mat3.identity()
       mat3.translate(transform, vec2.create(x, y), transform)
 
-      entry.instance.push({ transform: mat3.multiply(this.clipTransform, transform), color: element.color ?? [1, 1, 1, 1], material })
+      entry.instance.push({ transform: mat3.multiply(this.clipTransform, transform), color: element.style.color ?? [1, 1, 1, 1], material })
 
       this.meshes.set(element.mesh, entry)
     }
-    else if (element.material || element.color) {
-      if (element.width) {
-        width = this.getElementDimension(element.width, this.width)
+    else if (element.material || element.style.color) {
+      if (element.style.width) {
+        width = this.getElementDimension(element.style.width, this.width)
       }
   
-      if (element.height) {
-        height = this.getElementDimension(element.height, this.height)
+      if (element.style.height) {
+        height = this.getElementDimension(element.style.height, this.height)
       }
   
       let dimensions = {
@@ -268,11 +268,11 @@ class SceneGraph2D {
         height,
       }
 
-      if (element.border) {
-        dimensions.x += element.border.width
-        dimensions.y += element.border.width
-        dimensions.width -= element.border.width * 2
-        dimensions.height -= element.border.width * 2
+      if (element.style.border) {
+        dimensions.x += element.style.border.width
+        dimensions.y += element.style.border.width
+        dimensions.width -= element.style.border.width * 2
+        dimensions.height -= element.style.border.width * 2
       }
 
       const transform = mat3.identity()
@@ -285,9 +285,9 @@ class SceneGraph2D {
         entry = { firstIndex: 0, baseVertex: 0, instance: [] }
       }
 
-      entry.instance.push({ transform: mat3.multiply(this.clipTransform, transform), color: element.color ?? [1, 1, 1, 1], material })
+      entry.instance.push({ transform: mat3.multiply(this.clipTransform, transform), color: element.style.color ?? [1, 1, 1, 1], material })
 
-      if (element.border) {
+      if (element.style.border) {
         let dimensions = {
           x,
           y,
@@ -299,7 +299,7 @@ class SceneGraph2D {
         mat3.translate(transform, vec2.create(dimensions.x, dimensions.y), transform)
         mat3.scale(transform, vec2.create(dimensions.width, dimensions.height), transform)
 
-        entry.instance.push({ transform: mat3.multiply(this.clipTransform, transform), color: element.border.color, material: defaultMaterial })
+        entry.instance.push({ transform: mat3.multiply(this.clipTransform, transform), color: element.style.border.color, material: defaultMaterial })
       }
 
       this.meshes.set(this.elementMesh, entry)

@@ -24,25 +24,6 @@ class TextBox extends SceneNode2d {
 
     return new TextBox(text, mesh, material);
   }
-
-  // addInstance(
-  //   renderPass: RenderPass2DInterface,
-  //   left: number,
-  //   top: number,
-  //   width: number,
-  //   height: number,
-  //   canvasWidth: number,
-  //   canvasHeight: number,
-  // ): void {
-  //   if (this.material || this.color) {
-  //     renderPass.addDrawable(
-  //       this,
-  //       canvasWidth,
-  //       canvasHeight,
-  //       { x: left, y: top, width, height },
-  //     )
-  //   }
-  // }
 }
 
 export const isTextBox = (r: unknown): r is TextBox => (
