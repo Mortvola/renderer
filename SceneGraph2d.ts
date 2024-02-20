@@ -74,6 +74,8 @@ class SceneGraph2D {
 
   pipelines: PipelineEntry[] = [];
 
+  transparentPipelines: PipelineEntry[] = [];
+
   clipTransform = mat3.identity();
 
   constructor() {
@@ -283,11 +285,11 @@ class SceneGraph2D {
       const transform = mat3.identity()
       mat3.translate(transform, vec2.create(x, y), transform)
 
-      entry.instance.push({ transform: mat3.multiply(this.clipTransform, transform), color: element.style.color ?? [1, 1, 1, 1], material })
+      entry.instance.push({ transform: mat3.multiply(this.clipTransform, transform), color: element.style.backgroundColor ?? [1, 1, 1, 1], material })
 
       this.meshes.set(mesh, entry)
     }
-    else if (element.material || element.style.color) {
+    else if (element.material || element.style.backgroundColor) {
       if (element.material) {
         material = element.material
       }
@@ -316,7 +318,7 @@ class SceneGraph2D {
         entry = { firstIndex: 0, baseVertex: 0, instance: [] }
       }
 
-      entry.instance.push({ transform: mat3.multiply(this.clipTransform, transform), color: element.style.color ?? [1, 1, 1, 1], material })
+      entry.instance.push({ transform: mat3.multiply(this.clipTransform, transform), color: element.style.backgroundColor ?? [1, 1, 1, 1], material })
 
       if (element.style.border) {
         let dimensions = {
@@ -341,16 +343,30 @@ class SceneGraph2D {
 
   private addInstances() {
     this.pipelines = [];
+    this.transparentPipelines = [];
 
     for (const [mesh, meshInfo] of this.meshes) {
       for (const instance of meshInfo.instance) {
         if (instance.material.pipeline) {
-          let pipelineEntry = this.pipelines.find((p) => p.pipeline === instance.material.pipeline) ?? null;
+          let pipelineEntry: PipelineEntry | null = null
 
-          if (!pipelineEntry) {
-            pipelineEntry = { pipeline: instance.material.pipeline, materials: new Map() }
+          if (instance.material.transparent) {
+            pipelineEntry = this.transparentPipelines.find((p) => p.pipeline === instance.material.pipeline) ?? null;
 
-            this.pipelines.push(pipelineEntry);
+            if (!pipelineEntry) {
+              pipelineEntry = { pipeline: instance.material.pipeline, materials: new Map() }
+  
+              this.transparentPipelines.push(pipelineEntry);
+            }  
+          }
+          else {
+            pipelineEntry = this.pipelines.find((p) => p.pipeline === instance.material.pipeline) ?? null;
+
+            if (!pipelineEntry) {
+              pipelineEntry = { pipeline: instance.material.pipeline, materials: new Map() }
+  
+              this.pipelines.push(pipelineEntry);
+            }  
           }
       
           if (pipelineEntry) {

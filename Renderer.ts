@@ -22,6 +22,7 @@ import BloomPass from './RenderPasses/BloomPass';
 import { outputFormat } from './RenderSetings';
 import RenderPass2D from './RenderPasses/RenderPass2D';
 import SceneGraph2D from './SceneGraph2d';
+import TransparentRenderPass2D from './RenderPasses/TransparentRenderPass2D';
 
 const requestPostAnimationFrame = (task: (timestamp: number) => void) => {
   requestAnimationFrame((timestamp: number) => {
@@ -73,6 +74,8 @@ class Renderer implements RendererInterface {
   transparentPass = new TransparentRenderPass();
 
   renderPass2D = new RenderPass2D();
+
+  transparentRenderPass2D = new TransparentRenderPass2D();
 
   bloomPass: BloomPass | null = null;
 
@@ -365,6 +368,8 @@ class Renderer implements RendererInterface {
     await this.scene2d.updateLayout()
 
     this.renderPass2D.render(sceneView!, bloomView!, this.depthTextureView!, commandEncoder, this.frameBindGroup.bindGroup, this.scene2d);
+
+    this.transparentRenderPass2D.render(sceneView!, bloomView!, this.depthTextureView!, commandEncoder, this.frameBindGroup.bindGroup, this.scene2d);
 
     if (this.bloomPass) {
       this.bloomPass.render(this.context.getCurrentTexture().createView(), commandEncoder);      
