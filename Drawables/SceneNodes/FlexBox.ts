@@ -1,6 +1,6 @@
-import SceneNode2d from './SceneNode2d';
+import ElementNode from './ElementNode';
 
-class FlexBox extends SceneNode2d {
+class FlexBox extends ElementNode {
 }
 
 export default FlexBox;

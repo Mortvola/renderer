@@ -5,6 +5,7 @@ import Material from "./Materials/Material";
 import { MaterialInterface, PipelineInterface, maxInstances } from "./types";
 import { gpu } from "./Gpu";
 import { isTextBox } from "./Drawables/SceneNodes/TextBox";
+import ElementNode, { isElementNode } from "./Drawables/SceneNodes/ElementNode";
 
 const defaultMaterial = await Material.create('Mesh2D', [])
 
@@ -36,7 +37,7 @@ type PipelineEntry = {
 
 class SceneGraph2D {
 
-  scene2d = new SceneNode2d();
+  scene2d = new ElementNode();
 
   private width: number = 0;
 
@@ -78,7 +79,7 @@ class SceneGraph2D {
 
   clipTransform = mat3.identity();
 
-  clickable: SceneNode2d[] = []
+  clickable: ElementNode[] = []
 
   constructor() {
     this.elementMesh = SceneGraph2D.allocateBaseElement()
@@ -212,91 +213,107 @@ class SceneGraph2D {
     parentHeight?: number,
     parentColor?: number[],
   ): Promise<[number, number]> {
-    let left = (x ?? 0) + (element.style.margin?.left ?? 0);
-    let top = (y ?? 0) + (element.style.margin?.top ?? 0);
-
-    if (element.style.position === 'absolute') {
-      left = element.style.x ?? 0;
-      top = element.style.y ?? 0;
-    }
-
-    let maxWidth: number | undefined = undefined
-    let maxHeight: number | undefined = undefined
-
-    if (element.style.width) {
-      maxWidth = this.getElementDimension(element.style.width, this.width)
-    }
-
-    if (element.style.height) {
-      maxHeight = this.getElementDimension(element.style.height, this.height)
-    }
-
-    let childrenWidth = 0;
-    let childrenHeight = 0;
-    let childLeft = left + (element.style.border?.width ?? 0);
-    let childTop = top + (element.style.border?.width ?? 0);
-
-    for (const node of element.nodes) {
-      const [childWidth, childHeight] = await this.layoutELements(node, childLeft, childTop, maxWidth, maxHeight, element.style.color)
-
-      childrenWidth += childWidth;
-      childrenHeight = Math.max(childrenHeight, childHeight);
-
-      childLeft += childWidth;
-    }
-
-    const [width, height] = await this.addElement(
-      element, left, top, childrenWidth, childrenHeight, maxWidth, maxHeight, parentWidth, parentHeight, parentColor,
-    )
-
-    return [
-      width + (element.style.margin?.left ?? 0) + (element.style.margin?.right ?? 0),
-      height + (element.style.margin?.top ?? 0) + (element.style.margin?.bottom ?? 0),
-    ]
-  }
-
-  private async addElement(
-    element: SceneNode2d,
-    x: number,
-    y: number,
-    childWidth: number,
-    childHeight: number,
-    maxWidth?: number,
-    maxHeight?: number,
-    parentWidth?: number,
-    parentHeight?: number,
-    parentColor?: number[],
-  ): Promise<[number, number]> {
-    let material: MaterialInterface = defaultMaterial
-
-    let width = maxWidth ?? childWidth
-    let height = maxHeight ?? childHeight
-
     if (isTextBox(element)) {
+      let material: MaterialInterface = defaultMaterial
+
       const mesh = await element.createMesh(parentWidth)
 
-      if (element.material) {
-        material = element.material
+      if (element.fontMaterial) {
+        material = element.fontMaterial
       }
-  
-      width = mesh.width
-      height = mesh.height
-
+    
       let entry = this.meshes.get(mesh)
 
       if (!entry) {
         entry = { firstIndex: 0, baseVertex: 0, instance: [] }
       }
 
-      const transform = mat3.identity()
+      let  transform = mat3.identity()
       mat3.translate(transform, vec2.create(x, y), transform)
 
+      mat3.multiply(this.clipTransform, transform, transform)
+
       // Text elements inherit the color of their parent.
-      entry.instance.push({ transform: mat3.multiply(this.clipTransform, transform), color: parentColor ?? [1, 1, 1, 1], material })
+      entry.instance.push({ transform, color: parentColor ?? [1, 1, 1, 1], material })
 
       this.meshes.set(mesh, entry)
+
+      return [mesh.width, mesh.height]
     }
-    else if (element.material || element.style.backgroundColor) {
+
+    if (isElementNode(element)) {
+      let left = (x ?? 0) + (element.style.margin?.left ?? 0);
+      let top = (y ?? 0) + (element.style.margin?.top ?? 0);
+
+      if (element.style.position === 'absolute') {
+        left = element.style.x ?? 0;
+        top = element.style.y ?? 0;
+      }
+
+      let width: number | undefined = undefined
+      let height: number | undefined = undefined
+
+      if (element.style.width) {
+        width = this.getElementDimension(element.style.width, this.width)
+      }
+
+      if (element.style.height) {
+        height = this.getElementDimension(element.style.height, this.height)
+      }
+
+      let childrenWidth = 0;
+      let childrenHeight = 0;
+      let childLeft = left + (element.style.border?.width ?? 0) + (element.style.padding?.left ?? 0);
+      let childTop = top + (element.style.border?.width ?? 0) + (element.style.padding?.top ?? 0);
+
+      for (const node of element.nodes) {
+        const [childWidth, childHeight] = await this.layoutELements(node, childLeft, childTop, width, height, element.style.color)
+
+        childrenWidth += childWidth;
+        childrenHeight = Math.max(childrenHeight, childHeight);
+
+        childLeft += childWidth;
+      }
+
+      // If a width or height specified in the style then use the
+      // width and height of the children.
+      width ??= childrenWidth
+      height ??= childrenHeight
+
+      // Add any padding to the width and height
+      width += (element.style.padding?.left ?? 0) + (element.style.padding?.right ?? 0)
+      height += (element.style.padding?.top ?? 0) + (element.style.padding?.bottom ?? 0)
+
+      await this.addElement(
+        element,
+        left,
+        top,
+        width,
+        height,
+      )
+
+      // The width and height values are only for the area occupied by the 
+      // content area and the borders. Return the width and height with
+      // the margins added in so the parent can have the total area occupied by this child.
+      return [
+        width + (element.style.margin?.left ?? 0) + (element.style.margin?.right ?? 0) + (element.style.border?.width ?? 0) * 2,
+        height + (element.style.margin?.top ?? 0) + (element.style.margin?.bottom ?? 0) + (element.style.border?.width ?? 0) * 2,
+      ]
+    }
+
+    return [0, 0]
+  }
+
+  private async addElement(
+    element: ElementNode,
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+  ): Promise<void> {
+    let material: MaterialInterface = defaultMaterial
+
+    if (element.material || element.style.backgroundColor) {
       if (element.material) {
         material = element.material
       }
@@ -308,10 +325,12 @@ class SceneGraph2D {
         height,
       }
       
+      // If this element has a click handler then add it to the list of clickable elements.
       if (element.onClick) {
         this.clickable.push(element)
       }
 
+      // Adjust dimensions if there is a border.
       if (element.style.border) {
         dimensions.x += element.style.border.width
         dimensions.y += element.style.border.width
@@ -323,8 +342,10 @@ class SceneGraph2D {
       mat3.translate(transform, vec2.create(dimensions.x, dimensions.y), transform)
       mat3.scale(transform, vec2.create(dimensions.width, dimensions.height), transform)
 
-      transform = mat3.multiply(this.clipTransform, transform)
+      mat3.multiply(this.clipTransform, transform, transform)
 
+      // Determine the screen position of the content area
+      // for determining clicks.
       const leftTop = vec2.transformMat3(vec2.create(0, 0), transform)
       const rightBottom = vec2.transformMat3(vec2.create(1, 1), transform)
 
@@ -353,13 +374,13 @@ class SceneGraph2D {
         mat3.translate(transform, vec2.create(dimensions.x, dimensions.y), transform)
         mat3.scale(transform, vec2.create(dimensions.width, dimensions.height), transform)
 
-        entry.instance.push({ transform: mat3.multiply(this.clipTransform, transform), color: element.style.border.color, material: defaultMaterial })
+        mat3.multiply(this.clipTransform, transform, transform)
+
+        entry.instance.push({ transform, color: element.style.border.color, material: defaultMaterial })
       }
 
       this.meshes.set(this.elementMesh, entry)
     }
-
-    return [width, height]
   }
 
   private addInstances() {

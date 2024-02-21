@@ -9,6 +9,8 @@ class TextBox extends SceneNode2d {
 
   mesh: Mesh2D | null = null
 
+  fontMaterial: MaterialInterface | null = null
+
   constructor(text: string) {
     super()
 
@@ -18,7 +20,7 @@ class TextBox extends SceneNode2d {
   async createMesh(maxWidth?: number): Promise<Mesh2D> {
     this.mesh = font.text(this.text, maxWidth)
 
-    this.material = await materialManager.get(18, 'Mesh2D', [])
+    this.fontMaterial = await materialManager.get(18, 'Mesh2D', [])
 
     return this.mesh
   }
