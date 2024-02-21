@@ -206,6 +206,7 @@ class SceneGraph2D {
     y?: number,
     parentWidth?: number,
     parentHeight?: number,
+    parentColor?: number[],
   ): Promise<[number, number]> {
     let left = (x ?? 0) + (element.style.margin?.left ?? 0);
     let top = (y ?? 0) + (element.style.margin?.top ?? 0);
@@ -232,7 +233,7 @@ class SceneGraph2D {
     let childTop = top + (element.style.border?.width ?? 0);
 
     for (const node of element.nodes) {
-      const [childWidth, childHeight] = await this.layoutELements(node, childLeft, childTop, maxWidth, maxHeight)
+      const [childWidth, childHeight] = await this.layoutELements(node, childLeft, childTop, maxWidth, maxHeight, element.style.color)
 
       childrenWidth += childWidth;
       childrenHeight = Math.max(childrenHeight, childHeight);
@@ -241,7 +242,7 @@ class SceneGraph2D {
     }
 
     const [width, height] = await this.addElement(
-      element, left, top, childrenWidth, childrenHeight, maxWidth, maxHeight, parentWidth, parentHeight,
+      element, left, top, childrenWidth, childrenHeight, maxWidth, maxHeight, parentWidth, parentHeight, parentColor,
     )
 
     return [
@@ -260,6 +261,7 @@ class SceneGraph2D {
     maxHeight?: number,
     parentWidth?: number,
     parentHeight?: number,
+    parentColor?: number[],
   ): Promise<[number, number]> {
     let material: MaterialInterface = defaultMaterial
 
@@ -285,7 +287,8 @@ class SceneGraph2D {
       const transform = mat3.identity()
       mat3.translate(transform, vec2.create(x, y), transform)
 
-      entry.instance.push({ transform: mat3.multiply(this.clipTransform, transform), color: element.style.backgroundColor ?? [1, 1, 1, 1], material })
+      // Text elements inherit the color of their parent.
+      entry.instance.push({ transform: mat3.multiply(this.clipTransform, transform), color: parentColor ?? [1, 1, 1, 1], material })
 
       this.meshes.set(mesh, entry)
     }

@@ -12,6 +12,8 @@ export type Style = {
 
   height?: string | number;
 
+  color?: number[]
+  
   backgroundColor?: number[]
 
   margin?: { left?: number, right?: number, top?: number, bottom?: number }
