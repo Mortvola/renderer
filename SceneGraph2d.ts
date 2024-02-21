@@ -78,6 +78,8 @@ class SceneGraph2D {
 
   clipTransform = mat3.identity();
 
+  clickable: SceneNode2d[] = []
+
   constructor() {
     this.elementMesh = SceneGraph2D.allocateBaseElement()
 
@@ -191,6 +193,8 @@ class SceneGraph2D {
 
     this.numInstances = 0
 
+    this.clickable = [];
+
     await this.layoutELements(this.scene2d)
 
     this.allocateBuffers()
@@ -303,6 +307,10 @@ class SceneGraph2D {
         width,
         height,
       }
+      
+      if (element.onClick) {
+        this.clickable.push(element)
+      }
 
       if (element.style.border) {
         dimensions.x += element.style.border.width
@@ -311,9 +319,19 @@ class SceneGraph2D {
         dimensions.height -= element.style.border.width * 2
       }
 
-      const transform = mat3.identity()
+      let transform = mat3.identity()
       mat3.translate(transform, vec2.create(dimensions.x, dimensions.y), transform)
       mat3.scale(transform, vec2.create(dimensions.width, dimensions.height), transform)
+
+      transform = mat3.multiply(this.clipTransform, transform)
+
+      const leftTop = vec2.transformMat3(vec2.create(0, 0), transform)
+      const rightBottom = vec2.transformMat3(vec2.create(1, 1), transform)
+
+      element.screen.left = leftTop[0]
+      element.screen.top = leftTop[1]
+      element.screen.right = rightBottom[0]
+      element.screen.bottom = rightBottom[1]
 
       let entry = this.meshes.get(this.elementMesh)
 
@@ -321,7 +339,7 @@ class SceneGraph2D {
         entry = { firstIndex: 0, baseVertex: 0, instance: [] }
       }
 
-      entry.instance.push({ transform: mat3.multiply(this.clipTransform, transform), color: element.style.backgroundColor ?? [1, 1, 1, 1], material })
+      entry.instance.push({ transform, color: element.style.backgroundColor ?? [1, 1, 1, 1], material })
 
       if (element.style.border) {
         let dimensions = {
@@ -527,6 +545,20 @@ class SceneGraph2D {
         this.indexBuffer.unmap();  
       }  
     }
+  }
+
+  click(x: number, y: number): boolean {
+    for (const element of this.clickable) {
+      if (x >= element.screen.left && x < element.screen.right
+        && y <= element.screen.top && y > element.screen.bottom
+        && element.onClick
+      ) {
+        element.onClick()
+        return true;
+      }
+    }
+
+    return false
   }
 }
 
