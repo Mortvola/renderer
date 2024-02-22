@@ -6,6 +6,7 @@ import { MaterialInterface, PipelineInterface, maxInstances } from "./types";
 import { gpu } from "./Gpu";
 import { isTextBox } from "./Drawables/SceneNodes/TextBox";
 import ElementNode, { isElementNode } from "./Drawables/SceneNodes/ElementNode";
+import SceneNode from "./Drawables/SceneNodes/SceneNode";
 
 const defaultMaterial = await Material.create('Mesh2D', [])
 
@@ -168,6 +169,19 @@ class SceneGraph2D {
     this.needsUpdate = true
   }
 
+  replaceNode(node: SceneNode2d | null, newNode: SceneNode2d) {
+    const index = this.scene2d.nodes.findIndex((n) => n === node)
+
+    if (index !== -1) {
+      this.scene2d.nodes[index] = newNode
+    }
+    else {
+      this.scene2d.nodes.push(newNode)
+    }
+
+    this.needsUpdate = true;
+  }
+
   private getElementDimension(dimension: number | string, canvasDimension: number) {
     let dim = 0;
 
@@ -198,11 +212,13 @@ class SceneGraph2D {
 
     await this.layoutELements(this.scene2d)
 
-    this.allocateBuffers()
+    if (this.meshes.size > 0) {
+      this.allocateBuffers()
 
-    this.addInstances()
-
-    this.needsUpdate = false;
+      this.addInstances()
+  
+      this.needsUpdate = false;  
+    }
   }
 
   private async layoutELements(

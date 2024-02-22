@@ -60,7 +60,7 @@ class BlurPass {
   createTexture(context: GPUCanvasContext) {
     return gpu.device.createTexture({
       format: outputFormat,
-      size: [context.canvas.width, context.canvas.height],
+      size: { width: context.canvas.width, height: context.canvas.height },
       usage: GPUTextureUsage.TEXTURE_BINDING |
             GPUTextureUsage.COPY_DST |
             GPUTextureUsage.RENDER_ATTACHMENT,
