@@ -4,9 +4,13 @@ import SceneNode2d from "./SceneNode2d";
 export type Style = {
   position?: 'absolute'
 
-  x?: number;
+  left?: number;
 
-  y?: number;
+  top?: number;
+
+  right?: number;
+
+  bottom?: number;
 
   flexDirection?: 'row' | 'column'
 

@@ -4,7 +4,7 @@ import SceneNode2d from "./Drawables/SceneNodes/SceneNode2d";
 import Material from "./Materials/Material";
 import { MaterialInterface, PipelineInterface, maxInstances } from "./types";
 import { gpu } from "./Gpu";
-import { isTextBox } from "./Drawables/SceneNodes/TextBox";
+import TextBox, { isTextBox } from "./Drawables/SceneNodes/TextBox";
 import ElementNode, { isElementNode } from "./Drawables/SceneNodes/ElementNode";
 
 const defaultMaterial = await Material.create('Mesh2D', [])
@@ -46,6 +46,10 @@ class SceneGraph2D {
   private scaleX: number = 1;
 
   private scaleY: number = 1;
+
+  private viewportWidth = 0;
+
+  private viewportHeight = 0;
 
   meshes: Map<Mesh2D, MapEntry> = new Map()
 
@@ -142,22 +146,23 @@ class SceneGraph2D {
     return new Mesh2D(vertices, texcoords, indexes, 1, 1)
   }
 
-  setCanvasDimensions(width: number, height: number, scaleX?: number, scaleY?: number) {
+  setCanvasDimensions(width: number, height: number, scaleX?: number, scaleY?: number, viewportWidth?: number, viewportHeight?: number) {
     this.width = width
     this.height = height
 
-    if (scaleX) {
-      this.scaleX = scaleX;
-    }
+    this.scaleX = scaleX ?? this.scaleX;
+    this.scaleY = scaleY ?? this.scaleY;
 
-    if (scaleY) {
-      this.scaleY = scaleY;
-    }
+    this.viewportWidth = viewportWidth ?? this.viewportWidth
+    this.viewportHeight = viewportHeight ?? this.viewportHeight
 
     this.clipTransform = mat3.identity()
     
-    // mat3.translate(this.clipTransform, vec2.create(-1, 1), this.clipTransform)
+    mat3.translate(this.clipTransform, vec2.create(-1, 1), this.clipTransform)
     mat3.scale(this.clipTransform, vec2.create(1 / this.width * this.scaleX, 1 / this.height * -this.scaleY), this.clipTransform)
+
+    this.scene2d.style.width = this.viewportWidth;
+    this.scene2d.style.height = this.viewportHeight;
 
     this.needsUpdate = true
   }
@@ -213,7 +218,9 @@ class SceneGraph2D {
 
     this.clickable = [];
 
-    await this.layoutELements(this.scene2d)
+    await this.layoutELements(this.scene2d, 0, 0)
+
+    await this.addElements(this.scene2d, 0, 0, this.viewportWidth, this.viewportHeight)
 
     if (this.meshes.size > 0) {
       this.allocateBuffers()
@@ -226,47 +233,28 @@ class SceneGraph2D {
 
   private async layoutELements(
     element: SceneNode2d,
-    x?: number,
-    y?: number,
+    x: number,
+    y: number,
     parentWidth?: number,
     parentHeight?: number,
     parentColor?: number[],
   ): Promise<[number, number]> {
     if (isTextBox(element)) {
-      let material: MaterialInterface = defaultMaterial
-
       const mesh = await element.createMesh(parentWidth)
 
-      if (element.fontMaterial) {
-        material = element.fontMaterial
-      }
-    
-      let entry = this.meshes.get(mesh)
-
-      if (!entry) {
-        entry = { firstIndex: 0, baseVertex: 0, instance: [] }
-      }
-
-      let  transform = mat3.identity()
-      mat3.translate(transform, vec2.create(x, y), transform)
-
-      mat3.multiply(this.clipTransform, transform, transform)
-
-      // Text elements inherit the color of their parent.
-      entry.instance.push({ transform, color: parentColor ?? [1, 1, 1, 1], material })
-
-      this.meshes.set(mesh, entry)
+      element.x = x;
+      element.y = y;
 
       return [mesh.width, mesh.height]
     }
 
     if (isElementNode(element)) {
-      let left = (x ?? 0) + (element.style.margin?.left ?? 0) + (element.style.border?.width ?? 0);
-      let top = (y ?? 0) + (element.style.margin?.top ?? 0) + (element.style.border?.width ?? 0);
+      let left = x + (element.style.margin?.left ?? 0) + (element.style.border?.width ?? 0);
+      let top = y + (element.style.margin?.top ?? 0) + (element.style.border?.width ?? 0);
 
       if (element.style.position === 'absolute') {
-        left = element.style.x ?? 0;
-        top = element.style.y ?? 0;
+        left = element.style.left ?? left;
+        top = element.style.top ?? top;
       }
 
       let width: number | undefined = undefined
@@ -282,8 +270,8 @@ class SceneGraph2D {
 
       let childrenWidth = 0;
       let childrenHeight = 0;
-      let childLeft = left + (element.style.padding?.left ?? 0);
-      let childTop = top + (element.style.padding?.top ?? 0);
+      let childLeft = (element.style.padding?.left ?? 0);
+      let childTop = (element.style.padding?.top ?? 0);
 
       for (let i = 0; i < element.nodes.length; i += 1) {
         const node = element.nodes[i]
@@ -326,13 +314,10 @@ class SceneGraph2D {
       width += (element.style.padding?.left ?? 0) + (element.style.padding?.right ?? 0)
       height += (element.style.padding?.top ?? 0) + (element.style.padding?.bottom ?? 0)
 
-      await this.addElement(
-        element,
-        left,
-        top,
-        width,
-        height,
-      )
+      element.y = top;
+      element.x = left;
+      element.width = width;
+      element.height = height;
 
       // The width and height values are only for the area occupied by the 
       // content area and the borders. Return the width and height with
@@ -346,13 +331,70 @@ class SceneGraph2D {
     return [0, 0]
   }
 
-  private async addElement(
-    element: ElementNode,
-    x: number,
-    y: number,
-    width: number,
-    height: number,
-  ): Promise<void> {
+  private async addElements(
+    element: SceneNode2d,
+    screenX: number,
+    screenY: number,
+    parentWidth: number,
+    parentHeight: number,
+  ) {
+    element.screenX = screenX + element.x
+    element.screenY = screenY + element.y
+
+    if (isTextBox(element)) {      
+      this.addText(element)
+    }
+
+    if (isElementNode(element)) {
+      if (element.style.position === 'absolute') {
+        if (element.style.right !== undefined) {
+          element.screenX = screenX + parentWidth - element.style.right - element.width
+        }
+
+        if (element.style.bottom !== undefined) {
+          element.screenY = screenY + parentHeight - element.style.bottom - element.height
+        }
+      }
+  
+      for (let i = 0; i < element.nodes.length; i += 1) {
+        const node = element.nodes[i]
+
+        await this.addElements(node, element.screenX, element.screenY, element.width, element.height)
+      }
+
+      await this.addElement(
+        element
+      )
+    }
+  }
+
+  private addText(element: TextBox, parentColor?: number[]) {
+    if (element.mesh) {
+      let material: MaterialInterface = defaultMaterial
+
+      if (element.fontMaterial) {
+        material = element.fontMaterial
+      }
+    
+      let entry = this.meshes.get(element.mesh)
+
+      if (!entry) {
+        entry = { firstIndex: 0, baseVertex: 0, instance: [] }
+      }
+
+      let  transform = mat3.identity()
+      mat3.translate(transform, vec2.create(element.screenX, element.screenY), transform)
+
+      mat3.multiply(this.clipTransform, transform, transform)
+
+      // Text elements inherit the color of their parent.
+      entry.instance.push({ transform, color: parentColor ?? [1, 1, 1, 1], material })
+
+      this.meshes.set(element.mesh, entry)
+    }
+  }
+
+  private async addElement(element: ElementNode): Promise<void> {
     let material: MaterialInterface = defaultMaterial
 
     if (element.material || element.style.backgroundColor) {
@@ -361,10 +403,10 @@ class SceneGraph2D {
       }
   
       let dimensions = {
-        x,
-        y,
-        width,
-        height,
+        x: element.screenX,
+        y: element.screenY,
+        width: element.width,
+        height: element.height,
       }
       
       // If this element has a click handler then add it to the list of clickable elements.
