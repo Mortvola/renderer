@@ -6,7 +6,6 @@ import { MaterialInterface, PipelineInterface, maxInstances } from "./types";
 import { gpu } from "./Gpu";
 import { isTextBox } from "./Drawables/SceneNodes/TextBox";
 import ElementNode, { isElementNode } from "./Drawables/SceneNodes/ElementNode";
-import SceneNode from "./Drawables/SceneNodes/SceneNode";
 
 const defaultMaterial = await Material.create('Mesh2D', [])
 
@@ -163,6 +162,10 @@ class SceneGraph2D {
     this.needsUpdate = true
   }
 
+  ndcToScreen(x: number, y: number) {
+    return vec2.transformMat3(vec2.create(x, y), mat3.inverse(this.clipTransform))
+  }
+
   addNode(node: SceneNode2d) {
     this.scene2d.nodes.push(node)
 
@@ -287,27 +290,30 @@ class SceneGraph2D {
         
         let [childWidth, childHeight] = await this.layoutELements(node, childLeft, childTop, width, height, element.style.color)
 
-        if (element.style?.flexDirection === 'column') {
-          childrenWidth = Math.max(childrenWidth, childWidth);
+        // Absolutely positioned children do not affect the layout of other siblings or of the parent.
+        if (isTextBox(node) || (isElementNode(node) && node.style.position !== 'absolute')) {
+          if (element.style?.flexDirection === 'column') {
+            childrenWidth = Math.max(childrenWidth, childWidth);
 
-          if (i < element.nodes.length - 1) {
-            childHeight += (element.style?.rowGap ?? 0)
+            if (i < element.nodes.length - 1) {
+              childHeight += (element.style?.rowGap ?? 0)
+            }
+
+            childrenHeight += childHeight
+    
+            childTop += childHeight;
           }
+          else {
+            if (i < element.nodes.length - 1) {
+              childWidth += (element.style?.columnGap ?? 0)
+            }
 
-          childrenHeight += childHeight
-  
-          childTop += childHeight;
-        }
-        else {
-          if (i < element.nodes.length - 1) {
-            childWidth += (element.style?.columnGap ?? 0)
+            childrenWidth += childWidth;
+            
+            childrenHeight = Math.max(childrenHeight, childHeight);
+    
+            childLeft += childWidth;
           }
-
-          childrenWidth += childWidth;
-          
-          childrenHeight = Math.max(childrenHeight, childHeight);
-  
-          childLeft += childWidth;
         }
       }
 
