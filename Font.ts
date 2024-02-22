@@ -123,7 +123,7 @@ class Font {
         cursor += character.xadvance * scale
 
         width = Math.max(width, cursor)
-        height = Math.max(height, line * this.lineHeight * scale)
+        height = Math.max(height, (line + 1) * this.lineHeight * scale)
       }
     }
 
