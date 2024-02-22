@@ -242,8 +242,8 @@ class SceneGraph2D {
     }
 
     if (isElementNode(element)) {
-      let left = (x ?? 0) + (element.style.margin?.left ?? 0);
-      let top = (y ?? 0) + (element.style.margin?.top ?? 0);
+      let left = (x ?? 0) + (element.style.margin?.left ?? 0) + (element.style.border?.width ?? 0);
+      let top = (y ?? 0) + (element.style.margin?.top ?? 0) + (element.style.border?.width ?? 0);
 
       if (element.style.position === 'absolute') {
         left = element.style.x ?? 0;
@@ -263,20 +263,32 @@ class SceneGraph2D {
 
       let childrenWidth = 0;
       let childrenHeight = 0;
-      let childLeft = left + (element.style.border?.width ?? 0) + (element.style.padding?.left ?? 0);
-      let childTop = top + (element.style.border?.width ?? 0) + (element.style.padding?.top ?? 0);
+      let childLeft = left + (element.style.padding?.left ?? 0);
+      let childTop = top + (element.style.padding?.top ?? 0);
 
-      for (const node of element.nodes) {
-        const [childWidth, childHeight] = await this.layoutELements(node, childLeft, childTop, width, height, element.style.color)
+      for (let i = 0; i < element.nodes.length; i += 1) {
+        const node = element.nodes[i]
+        
+        let [childWidth, childHeight] = await this.layoutELements(node, childLeft, childTop, width, height, element.style.color)
 
         if (element.style?.flexDirection === 'column') {
           childrenWidth = Math.max(childrenWidth, childWidth);
+
+          if (i < element.nodes.length - 1) {
+            childHeight += (element.style?.rowGap ?? 0)
+          }
+
           childrenHeight += childHeight
   
           childTop += childHeight;
         }
         else {
+          if (i < element.nodes.length - 1) {
+            childWidth += (element.style?.columnGap ?? 0)
+          }
+
           childrenWidth += childWidth;
+          
           childrenHeight = Math.max(childrenHeight, childHeight);
   
           childLeft += childWidth;

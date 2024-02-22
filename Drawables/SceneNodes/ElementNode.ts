@@ -10,6 +10,10 @@ export type Style = {
 
   flexDirection?: 'row' | 'column'
 
+  columnGap?: number;
+
+  rowGap?: number;
+
   width?: string | number;
 
   height?: string | number;
