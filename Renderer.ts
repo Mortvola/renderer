@@ -356,51 +356,34 @@ class Renderer implements RendererInterface {
     
     gpu.device.queue.writeBuffer(this.frameBindGroup.buffer[5], 0, timeBuffer);
 
-    const commandEncoder = gpu.device.createCommandEncoder();
-
-    // const canvasView = this.context.getCurrentTexture().createView();
-    const sceneView = this.bloomPass?.screenTextureView
-    const bloomView = this.bloomPass?.bloomTextureView
-    
-    this.mainRenderPass.render(sceneView!, bloomView!, this.depthTextureView!, commandEncoder, this.frameBindGroup.bindGroup);
-    this.transparentPass.render(sceneView!, bloomView!, this.depthTextureView!, commandEncoder, this.frameBindGroup.bindGroup);
-    
     await this.scene2d.updateLayout()
 
-    this.renderPass2D.render(sceneView!, bloomView!, this.depthTextureView!, commandEncoder, this.frameBindGroup.bindGroup, this.scene2d);
+    this.submitRenderPasses()
+  }
 
-    this.transparentRenderPass2D.render(sceneView!, bloomView!, this.depthTextureView!, commandEncoder, this.frameBindGroup.bindGroup, this.scene2d);
+  // Note: do not place any awaits in the method as it can cause microtasks to execute
+  // which can impact the rendering process.
+  submitRenderPasses() {
+    if (this.context && this.frameBindGroup) {
+      const commandEncoder = gpu.device.createCommandEncoder();
 
-    if (this.bloomPass) {
-      this.bloomPass.render(this.context.getCurrentTexture().createView(), commandEncoder);      
+      const sceneView = this.bloomPass?.screenTextureView
+      const bloomView = this.bloomPass?.bloomTextureView
+
+      this.mainRenderPass.render(sceneView!, bloomView!, this.depthTextureView!, commandEncoder, this.frameBindGroup.bindGroup);
+      this.transparentPass.render(sceneView!, bloomView!, this.depthTextureView!, commandEncoder, this.frameBindGroup.bindGroup);
+
+      const canvasView = this.context.getCurrentTexture().createView()
+
+      if (this.bloomPass) {
+        this.bloomPass.render(canvasView, commandEncoder);      
+      }
+
+      this.renderPass2D.render(canvasView, this.depthTextureView!, commandEncoder, this.frameBindGroup.bindGroup, this.scene2d);
+      this.transparentRenderPass2D.render(canvasView, this.depthTextureView!, commandEncoder, this.frameBindGroup.bindGroup, this.scene2d);
+
+      gpu.device.queue.submit([commandEncoder.finish()]);
     }
-
-    // if (this.selected.selection.length > 0) {
-    //   // Transform camera position to world space.
-    //   const origin = vec4.transformMat4(vec4.create(0, 0, 0, 1), this.camera.viewTransform);
-    //   const centroid = this.selected.getCentroid();
-
-    //   // We want to make the drag handles appear to be the same distance away
-    //   // from the camera no matter how far the centroid is from the camera.
-    //   const apparentDistance = 25;
-    //   let actualDistance = vec3.distance(origin, centroid);
-    //   const scale = actualDistance / apparentDistance;
-
-    //   const mat = mat4.translate(mat4.identity(), centroid);
-    //   mat4.scale(mat, vec3.create(scale, scale, scale), mat)
-
-    //   if (this.transformer.spaceOrientation === 'Local') {
-    //     mat4.multiply(mat, this.selected.selection[0].node.getRotation(), mat);
-    //   }
-
-    //   this.transformer.updateTransforms(mat)
-
-    //   this.dragHandlesPass.pipelines = [];
-
-    //   this.dragHandlesPass.render(view, this.depthTextureView!, commandEncoder);
-    // }
-
-    gpu.device.queue.submit([commandEncoder.finish()]);
   }
 
   updateDirection(direction: Vec4) {

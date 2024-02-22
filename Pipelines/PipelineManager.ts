@@ -219,7 +219,7 @@ class PipelineManager implements PipelineManagerInterface {
         })
       }
 
-      if (bloom) {
+      if (bloom && drawableType !== 'Mesh2D') {
         targets.push({
           format: outputFormat,
         })

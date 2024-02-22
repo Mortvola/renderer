@@ -1,28 +1,17 @@
-import { bloom } from "../RenderSetings";
 import SceneGraph2D from "../SceneGraph2d";
 import { RenderPass2DInterface } from "../types";
 
 class RenderPass2D implements RenderPass2DInterface {
   getDescriptor(
     view: GPUTextureView,
-    bright: GPUTextureView,
     depthView: GPUTextureView | null,
   ): GPURenderPassDescriptor {
     const colorAttachments: GPURenderPassColorAttachment[] = [{
       view,
       clearValue: { r: 0.0, g: 0.0, b: 0.0, a: 1.0 },
-      loadOp: "load" as GPULoadOp,
-      storeOp: "store" as GPUStoreOp,
+      loadOp: "load",
+      storeOp: "store",
     }]
-
-    if (bloom) {
-      colorAttachments.push({
-        view: bright,
-        clearValue: { r: 0.0, g: 0.0, b: 0.0, a: 1.0 },
-        loadOp: "load" as GPULoadOp,
-        storeOp: "store" as GPUStoreOp,
-      })
-    }
 
     const descriptor: GPURenderPassDescriptor = {
       label: '2D render pass',
@@ -43,14 +32,13 @@ class RenderPass2D implements RenderPass2DInterface {
 
   render(
     view: GPUTextureView,
-    bright: GPUTextureView,
     depthView: GPUTextureView | null,
     commandEncoder: GPUCommandEncoder,
     frameBindGroup: GPUBindGroup,
     scene2d: SceneGraph2D,
   ) {
     if (scene2d.indexBuffer) {
-      const passEncoder = commandEncoder.beginRenderPass(this.getDescriptor(view, bright, depthView));
+      const passEncoder = commandEncoder.beginRenderPass(this.getDescriptor(view, depthView));
 
       passEncoder.setBindGroup(0, frameBindGroup);
 

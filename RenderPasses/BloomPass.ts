@@ -121,22 +121,6 @@ class BloomPass {
     return gpu.device.createRenderPipeline(pipelineDescriptor);
   }
 
-  // getDescriptor(view: GPUTextureView): GPURenderPassDescriptor {
-  //   const descriptor: GPURenderPassDescriptor = {
-  //     label: 'main render pass',
-  //     colorAttachments: [
-  //       {
-  //         view,
-  //         clearValue: { r: 0.0, g: 0.0, b: 0.0, a: 1.0 },
-  //         loadOp: "clear" as GPULoadOp,
-  //         storeOp: "store" as GPUStoreOp,
-  //       },
-  //     ],
-  //   };
-
-  //   return descriptor;
-  // }
-
   render(view: GPUTextureView, commandEncoder: GPUCommandEncoder) {
     this.blurPass.render(this.bloomTextureView, this.bloomBindGroup, commandEncoder)
     this.blurPass.render(this.bloomTextureView, this.bloomBindGroup, commandEncoder)
