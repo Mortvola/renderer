@@ -8,6 +8,8 @@ export type Style = {
 
   y?: number;
 
+  flexDirection?: 'row' | 'column'
+
   width?: string | number;
 
   height?: string | number;

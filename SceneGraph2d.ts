@@ -157,7 +157,7 @@ class SceneGraph2D {
     this.clipTransform = mat3.identity()
     
     // mat3.translate(this.clipTransform, vec2.create(-1, 1), this.clipTransform)
-    mat3.scale(this.clipTransform, vec2.create(1 / this.width * 2 * this.scaleX, 1 / this.height * 2 * -this.scaleY), this.clipTransform)
+    mat3.scale(this.clipTransform, vec2.create(1 / this.width * this.scaleX, 1 / this.height * -this.scaleY), this.clipTransform)
 
     this.needsUpdate = true
   }
@@ -269,10 +269,18 @@ class SceneGraph2D {
       for (const node of element.nodes) {
         const [childWidth, childHeight] = await this.layoutELements(node, childLeft, childTop, width, height, element.style.color)
 
-        childrenWidth += childWidth;
-        childrenHeight = Math.max(childrenHeight, childHeight);
-
-        childLeft += childWidth;
+        if (element.style?.flexDirection === 'column') {
+          childrenWidth = Math.max(childrenWidth, childWidth);
+          childrenHeight += childHeight
+  
+          childTop += childHeight;
+        }
+        else {
+          childrenWidth += childWidth;
+          childrenHeight = Math.max(childrenHeight, childHeight);
+  
+          childLeft += childWidth;
+        }
       }
 
       // If a width or height specified in the style then use the
@@ -330,14 +338,6 @@ class SceneGraph2D {
         this.clickable.push(element)
       }
 
-      // Adjust dimensions if there is a border.
-      if (element.style.border) {
-        dimensions.x += element.style.border.width
-        dimensions.y += element.style.border.width
-        dimensions.width -= element.style.border.width * 2
-        dimensions.height -= element.style.border.width * 2
-      }
-
       let transform = mat3.identity()
       mat3.translate(transform, vec2.create(dimensions.x, dimensions.y), transform)
       mat3.scale(transform, vec2.create(dimensions.width, dimensions.height), transform)
@@ -363,12 +363,11 @@ class SceneGraph2D {
       entry.instance.push({ transform, color: element.style.backgroundColor ?? [1, 1, 1, 1], material })
 
       if (element.style.border) {
-        let dimensions = {
-          x,
-          y,
-          width,
-          height,
-        }
+        // Adjust dimensions if there is a border.
+        dimensions.x -= element.style.border.width
+        dimensions.y -= element.style.border.width
+        dimensions.width += element.style.border.width * 2
+        dimensions.height += element.style.border.width * 2
   
         const transform = mat3.identity()
         mat3.translate(transform, vec2.create(dimensions.x, dimensions.y), transform)
@@ -496,7 +495,7 @@ class SceneGraph2D {
 
       let offset = 0;
       for (const [m, i] of this.meshes) {
-        i.baseVertex = offset / 2
+        i.baseVertex = offset / 2 // There are two values per vertex
         mapping.set(m.vertices, offset);
         offset += m.vertices.length
       }
