@@ -268,47 +268,112 @@ class SceneGraph2D {
         height = this.getElementDimension(element.style.height, this.height)
       }
 
+      if (element.style.position === 'absolute') {
+        if (width === undefined
+          && element.style.right !== undefined
+          && element.style.left !== undefined
+        ) {
+          // Left and right are defined but not width. Compute width.
+          left = x + element.style.left
+          width = x + (parentWidth ?? 0) - element.style.right - left
+        }
+        else if (width !== undefined && element.style.left === undefined && element.style.right !== undefined) {
+          left = x + (parentWidth ?? 0) - width
+        }
+
+        if (height === undefined
+          && element.style.top !== undefined
+          && element.style.bottom !== undefined
+        ) {
+          // Left and right are defined but not width. Compute width.
+          top = y + element.style.top
+          height = y + (parentHeight ?? 0) - element.style.top - top
+        }
+        else if (height !== undefined && element.style.top === undefined && element.style.bottom !== undefined) {
+          top = y + (parentHeight ?? 0) - height
+        }
+      }
+
       let childrenWidth = 0;
       let childrenHeight = 0;
       let childLeft = (element.style.padding?.left ?? 0);
       let childTop = (element.style.padding?.top ?? 0);
 
+      const absoluteElements: ElementNode[] = [];
+
       for (let i = 0; i < element.nodes.length; i += 1) {
         const node = element.nodes[i]
         
-        let [childWidth, childHeight] = await this.layoutELements(node, childLeft, childTop, width, height, element.style.color)
+        if (isElementNode(node) && node.style.position === 'absolute') {
+          // Absolutely positioned children do not affect the layout of other siblings or of the parent.
+          // After all other children are positioned then process the absolute elements
+          absoluteElements.push(node)
+        }
+        else {
+          let [childWidth, childHeight] = await this.layoutELements(node, childLeft, childTop, width, height, element.style.color)
 
-        // Absolutely positioned children do not affect the layout of other siblings or of the parent.
-        if (isTextBox(node) || (isElementNode(node) && node.style.position !== 'absolute')) {
-          if (element.style?.flexDirection === 'column') {
-            childrenWidth = Math.max(childrenWidth, childWidth);
+          if (isTextBox(node) || isElementNode(node)) {
+            if (element.style?.flexDirection === 'column') {
+              childrenWidth = Math.max(childrenWidth, childWidth);
 
-            if (i < element.nodes.length - 1) {
-              childHeight += (element.style?.rowGap ?? 0)
+              if (i < element.nodes.length - 1) {
+                childHeight += (element.style?.rowGap ?? 0)
+              }
+
+              childrenHeight += childHeight
+      
+              childTop += childHeight;
             }
+            else {
+              if (i < element.nodes.length - 1) {
+                childWidth += (element.style?.columnGap ?? 0)
+              }
 
-            childrenHeight += childHeight
-    
-            childTop += childHeight;
-          }
-          else {
-            if (i < element.nodes.length - 1) {
-              childWidth += (element.style?.columnGap ?? 0)
+              childrenWidth += childWidth;
+              
+              childrenHeight = Math.max(childrenHeight, childHeight);
+      
+              childLeft += childWidth;
             }
-
-            childrenWidth += childWidth;
-            
-            childrenHeight = Math.max(childrenHeight, childHeight);
-    
-            childLeft += childWidth;
           }
         }
       }
 
-      // If a width or height specified in the style then use the
+      // If a width or height is not specified in the style then use the
       // width and height of the children.
       width ??= childrenWidth
       height ??= childrenHeight
+
+      if (element.style.justifyContent === 'center') {
+        const offset = (width - childrenWidth) / 2
+
+        for (let i = 0; i < element.nodes.length; i += 1) {
+          const node = element.nodes[i]
+
+          if (isElementNode(node) && node.style.position !== 'absolute') {
+            node.x += offset
+          }
+        }
+      }
+
+      if (element.style.position === 'absolute') {
+        if (width !== undefined && element.style.left === undefined && element.style.right !== undefined) {
+          left = x + (parentWidth ?? 0) - width
+        }
+
+        if (height !== undefined && element.style.top === undefined && element.style.bottom !== undefined) {
+          top = y + (parentHeight ?? 0) - height
+        }
+      }
+
+      childLeft = 0;
+      childTop = 0;
+
+      for (let i = 0; i < absoluteElements.length; i += 1) {
+        const node = element.nodes[i]
+
+        await this.layoutELements(node, childLeft, childTop, width, height, element.style.color)
+      }
 
       // Add any padding to the width and height
       width += (element.style.padding?.left ?? 0) + (element.style.padding?.right ?? 0)
@@ -345,17 +410,7 @@ class SceneGraph2D {
       this.addText(element)
     }
 
-    if (isElementNode(element)) {
-      if (element.style.position === 'absolute') {
-        if (element.style.right !== undefined) {
-          element.screenX = screenX + parentWidth - element.style.right - element.width
-        }
-
-        if (element.style.bottom !== undefined) {
-          element.screenY = screenY + parentHeight - element.style.bottom - element.height
-        }
-      }
-  
+    if (isElementNode(element)) {  
       for (let i = 0; i < element.nodes.length; i += 1) {
         const node = element.nodes[i]
 

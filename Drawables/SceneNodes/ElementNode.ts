@@ -14,6 +14,8 @@ export type Style = {
 
   flexDirection?: 'row' | 'column'
 
+  justifyContent?: 'center'
+  
   columnGap?: number;
 
   rowGap?: number;
