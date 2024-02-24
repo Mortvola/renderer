@@ -190,17 +190,17 @@ class SceneGraph2D {
     this.needsUpdate = true;
   }
 
-  private getElementDimension(dimension: number | string, canvasDimension: number) {
+  private getElementDimension(dimension: number | string, parentDimension: number | undefined) {
     let dim = 0;
 
     if (typeof dimension === 'number') {
       dim = dimension
     }
-    else {
-      const result = /([0-9]+)%/.exec(dimension)
+    else if (parentDimension !== undefined) {
+      const result = /(-?\d+)%/.exec(dimension)
 
       if (result) {
-        dim = parseFloat(result[1]) * canvasDimension * 4
+        dim = parseFloat(result[1]) / 100.0 * parentDimension
       }
     }
 
@@ -255,40 +255,31 @@ class SceneGraph2D {
       let width: number | undefined = undefined
       let height: number | undefined = undefined
 
-      if (element.style.width) {
-        width = this.getElementDimension(element.style.width, this.width)
+      if (element.style.width && typeof element.style.width === 'number') {
+        width = element.style.width
       }
 
-      if (element.style.height) {
-        height = this.getElementDimension(element.style.height, this.height)
+      if (element.style.height && typeof element.style.height === 'number') {
+        height = element.style.height
       }
 
       if (element.style.position === 'absolute') {
-        left = element.style.left ?? left;
-        top = element.style.top ?? top;
-
         if (width === undefined
-          && element.style.right !== undefined
-          && element.style.left !== undefined
+          && element.style.right !== undefined && typeof element.style.right === 'number'
+          && element.style.left !== undefined && typeof element.style.left === 'number'
         ) {
           // Left and right are defined but not width. Compute width.
           left = x + element.style.left
           width = x + (parentWidth ?? 0) - element.style.right - left
         }
-        else if (width !== undefined && element.style.left === undefined && element.style.right !== undefined) {
-          left = x + (parentWidth ?? 0) - width
-        }
 
         if (height === undefined
-          && element.style.top !== undefined
-          && element.style.bottom !== undefined
+          && element.style.top !== undefined && typeof element.style.top === 'number'
+          && element.style.bottom !== undefined && typeof element.style.bottom === 'number'
         ) {
           // Left and right are defined but not width. Compute width.
           top = y + element.style.top
           height = y + (parentHeight ?? 0) - element.style.top - top
-        }
-        else if (height !== undefined && element.style.top === undefined && element.style.bottom !== undefined) {
-          top = y + (parentHeight ?? 0) - height
         }
       }
 
@@ -356,11 +347,17 @@ class SceneGraph2D {
 
       if (element.style.position === 'absolute') {
         if (width !== undefined && element.style.left === undefined && element.style.right !== undefined) {
-          left = x + (parentWidth ?? 0) - width
+          left = x + (parentWidth ?? 0) - this.getElementDimension(element.style.right, parentWidth) - width
+        }
+        else if (element.style.left !== undefined) {
+          left = this.getElementDimension(element.style.left, parentWidth) ?? left;
         }
 
         if (height !== undefined && element.style.top === undefined && element.style.bottom !== undefined) {
-          top = y + (parentHeight ?? 0) - height
+          top = y + (parentHeight ?? 0) - this.getElementDimension(element.style.bottom, parentHeight) - height
+        }
+        else if (element.style.top !== undefined) {
+          top = this.getElementDimension(element.style.top, parentHeight) ?? top;
         }
       }
 
@@ -373,6 +370,36 @@ class SceneGraph2D {
       // Add any padding to the width and height
       width += (element.style.padding?.left ?? 0) + (element.style.padding?.right ?? 0)
       height += (element.style.padding?.top ?? 0) + (element.style.padding?.bottom ?? 0)
+
+      if (element.style.transform) {
+        const result = /translate\(\s*(-?\d+%?),\s*(-?\d+%?)\s*\)/.exec(element.style.transform)
+
+        if (result) {
+          let result2 = /(-?\d+)(%?)/.exec(result[1])
+
+          if (result2) {
+            const value = parseFloat(result2[1])
+            if (result2[2] === '%') {
+              left += value / 100.0 * width
+            }
+            else {
+              left += value
+            }
+          }
+
+          result2 = /(-?\d+)(%?)/.exec(result[2])
+
+          if (result2) {
+            const value = parseFloat(result2[1])
+            if (result2[2] === '%') {
+              top += value / 100.0 * width
+            }
+            else {
+              top += value
+            }
+          }
+        }  
+      }
 
       element.y = top;
       element.x = left;
