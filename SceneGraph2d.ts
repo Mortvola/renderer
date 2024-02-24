@@ -252,11 +252,6 @@ class SceneGraph2D {
       let left = x + (element.style.margin?.left ?? 0) + (element.style.border?.width ?? 0);
       let top = y + (element.style.margin?.top ?? 0) + (element.style.border?.width ?? 0);
 
-      if (element.style.position === 'absolute') {
-        left = element.style.left ?? left;
-        top = element.style.top ?? top;
-      }
-
       let width: number | undefined = undefined
       let height: number | undefined = undefined
 
@@ -269,6 +264,9 @@ class SceneGraph2D {
       }
 
       if (element.style.position === 'absolute') {
+        left = element.style.left ?? left;
+        top = element.style.top ?? top;
+
         if (width === undefined
           && element.style.right !== undefined
           && element.style.left !== undefined
@@ -366,13 +364,10 @@ class SceneGraph2D {
         }
       }
 
-      childLeft = 0;
-      childTop = 0;
-
       for (let i = 0; i < absoluteElements.length; i += 1) {
         const node = element.nodes[i]
 
-        await this.layoutELements(node, childLeft, childTop, width, height, element.style.color)
+        await this.layoutELements(node, 0, 0, width, height, element.style.color)
       }
 
       // Add any padding to the width and height
