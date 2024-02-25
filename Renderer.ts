@@ -83,6 +83,8 @@ class Renderer implements RendererInterface {
 
   particleSystems: ParticleSystemInterface[] = [];
 
+  timeBuffer = new Float32Array(1)
+
   constructor(frameBindGroupLayout: GPUBindGroupLayout, cartesianAxes: DrawableNode, test?: SceneNodeInterface) {
     this.createCameraBindGroups(frameBindGroupLayout);
 
@@ -351,10 +353,9 @@ class Renderer implements RendererInterface {
 
     gpu.device.queue.writeBuffer(this.frameBindGroup.buffer[4], 0, lightsStructure.arrayBuffer);
 
-    const timeBuffer = new Float32Array(1);
-    timeBuffer[0] = timestamp / 1000.0;
+    this.timeBuffer[0] = timestamp / 1000.0;
     
-    gpu.device.queue.writeBuffer(this.frameBindGroup.buffer[5], 0, timeBuffer);
+    gpu.device.queue.writeBuffer(this.frameBindGroup.buffer[5], 0, this.timeBuffer);
 
     await this.scene2d.updateLayout()
 
