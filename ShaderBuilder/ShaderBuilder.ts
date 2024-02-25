@@ -188,7 +188,7 @@ export const buildStageGraph = (graphDescr: GraphStageDescriptor, properties: Pr
       case 'value': {
         const vnode = nodeDescr as ValueDescriptor;
 
-        if (vnode.dataType === 'vec2f') {
+        if (['vec2f', 'vec3f', 'vec4f'].includes(vnode.dataType)) {
           node = new Vector(new Value(vnode.dataType, vnode.value), vnode.id)
         }
         else {
