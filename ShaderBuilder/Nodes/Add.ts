@@ -1,7 +1,7 @@
 import OperationNode from "../OperationNode";
 import InputPort from "../Ports/InputPort";
 import OutputPort from "../Ports/OutputPort";
-import { DataType } from "../Types";
+import { DataType, convertType } from "../Types";
 
 class Add extends OperationNode {
   constructor(id?: number) {
@@ -13,6 +13,25 @@ class Add extends OperationNode {
     ];
 
     this.outputPort = [new OutputPort(this, 'vec2f', 'result')]
+  }
+
+  getDataType(): DataType {
+    const typeA = this.inputPorts[0].getDataType()
+    const typeB = this.inputPorts[1].getDataType()
+
+    if (typeA === 'float') {
+      return typeB
+    }
+
+    if (typeB === 'float') {
+      return typeA
+    }
+
+    if (convertType(typeA) === convertType(typeB)) {
+      return typeA;
+    }
+
+    return 'vec2f'
   }
 
   getExpression(): [string, DataType] {

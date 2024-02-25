@@ -44,6 +44,9 @@ import Max from "./Nodes/Max";
 import Min from "./Nodes/Min";
 import FWidth from "./Nodes/FWidth";
 import Divide from "./Nodes/Divide";
+import TextureSize from "./Nodes/TextureSize";
+import Inverse from "./Nodes/Inverse";
+import Distance from "./Nodes/Distance";
 
 export const buildStageGraph = (graphDescr: GraphStageDescriptor, properties: Property[]): StageGraph => {
   let nodes: GraphNodeInterface[] = [];
@@ -86,6 +89,10 @@ export const buildStageGraph = (graphDescr: GraphStageDescriptor, properties: Pr
         node = new Output(nodeDescr.id);
         break;
 
+      case 'Distance':
+        node = new Distance(nodeDescr.id);
+        break;
+  
       case 'Divide':
         node = new Divide(nodeDescr.id);
         break;
@@ -108,6 +115,10 @@ export const buildStageGraph = (graphDescr: GraphStageDescriptor, properties: Pr
 
       case 'FWidth':
         node = new FWidth(nodeDescr.id);
+        break;
+
+      case 'Inverse':
+        node = new Inverse(nodeDescr.id);
         break;
   
       case 'Max':
@@ -165,7 +176,11 @@ export const buildStageGraph = (graphDescr: GraphStageDescriptor, properties: Pr
       case 'Subtract':
         node = new Subtract(nodeDescr.id);
         break;
-      
+        
+      case 'TextureSize':
+        node = new TextureSize(nodeDescr.id);
+        break;
+
       case 'VertexColor':
         node = new VertexColor(nodeDescr.id);
         break;
