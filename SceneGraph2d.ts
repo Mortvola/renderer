@@ -334,13 +334,26 @@ class SceneGraph2D {
       height ??= childrenHeight
 
       if (element.style.justifyContent === 'center') {
-        const offset = (width - childrenWidth) / 2
+        if (element.style.flexDirection === 'row') {
+          const offset = (width - childrenWidth) / 2
 
-        for (let i = 0; i < element.nodes.length; i += 1) {
-          const node = element.nodes[i]
+          for (let i = 0; i < element.nodes.length; i += 1) {
+            const node = element.nodes[i]
 
-          if (isElementNode(node) && node.style.position !== 'absolute') {
-            node.x += offset
+            if (isElementNode(node) && node.style.position !== 'absolute') {
+              node.x += offset
+            }
+          }
+        }
+        else {
+          const offset = (height - childrenHeight) / 2
+
+          for (let i = 0; i < element.nodes.length; i += 1) {
+            const node = element.nodes[i]
+
+            if (isElementNode(node) && node.style.position !== 'absolute') {
+              node.y += offset
+            }
           }
         }
       }
