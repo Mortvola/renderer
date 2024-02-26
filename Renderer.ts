@@ -6,12 +6,12 @@ import {
 } from 'webgpu-utils';
 import Camera from './Camera';
 import { degToRad } from './Math';
-import ContainerNode from './Drawables/SceneNodes/ContainerNode';
+import ContainerNode, { isContainerNode } from './Drawables/SceneNodes/ContainerNode';
 import RenderPass from './RenderPasses/RenderPass';
 import Light, { isLight } from './Drawables/Light';
 import CartesianAxes from './Drawables/CartesianAxes';
 import DrawableNode from './Drawables/SceneNodes/DrawableNode';
-import { SceneNodeInterface, RendererInterface, ParticleSystemInterface } from './types';
+import { SceneNodeInterface, RendererInterface, ParticleSystemInterface, ContainerNodeInterface, DrawableNodeInterface } from './types';
 import { lineMaterial } from './Materials/Line';
 import { lights } from "./shaders/lights";
 import { gpu } from './Gpu';
@@ -23,6 +23,8 @@ import { outputFormat } from './RenderSetings';
 import RenderPass2D from './RenderPasses/RenderPass2D';
 import SceneGraph2D from './SceneGraph2d';
 import TransparentRenderPass2D from './RenderPasses/TransparentRenderPass2D';
+import OutlinePass from './RenderPasses/OutlinePass';
+import { isDrawableNode } from './Drawables/SceneNodes/utils';
 
 const requestPostAnimationFrame = (task: (timestamp: number) => void) => {
   requestAnimationFrame((timestamp: number) => {
@@ -78,6 +80,10 @@ class Renderer implements RendererInterface {
   transparentRenderPass2D = new TransparentRenderPass2D();
 
   bloomPass: BloomPass | null = null;
+
+  outlinePass: OutlinePass | null = null;
+
+  outlineMesh: DrawableNodeInterface | null = null;
 
   lights: Light[] = [];
 
@@ -295,8 +301,12 @@ class Renderer implements RendererInterface {
 
       this.depthTextureView = depthTexture.createView();
 
-      this.bloomPass = new BloomPass(this.context);
-            
+      const scratchTextureView = this.createScratchTexture(this.context).createView();
+
+      this.bloomPass = new BloomPass(this.context, scratchTextureView);
+      
+      this.outlinePass = new OutlinePass(scratchTextureView)
+
       this.aspectRatio[0] = this.context.canvas.width / this.context.canvas.height;
 
       this.camera.perspectiveTransform = mat4.perspective(
@@ -362,6 +372,16 @@ class Renderer implements RendererInterface {
     this.submitRenderPasses()
   }
 
+  createScratchTexture(context: GPUCanvasContext) {
+    return gpu.device.createTexture({
+      format: outputFormat,
+      size: { width: context.canvas.width, height: context.canvas.height },
+      usage: GPUTextureUsage.TEXTURE_BINDING |
+            GPUTextureUsage.COPY_DST |
+            GPUTextureUsage.RENDER_ATTACHMENT,
+    });
+  }
+
   // Note: do not place any awaits in the method as it can cause microtasks to execute
   // which can impact the rendering process.
   submitRenderPasses() {
@@ -380,11 +400,38 @@ class Renderer implements RendererInterface {
         this.bloomPass.render(canvasView, commandEncoder);      
       }
 
+      if (this.outlinePass && this.outlineMesh) {
+        this.outlinePass.render(canvasView, this.frameBindGroup.bindGroup, this.outlineMesh, commandEncoder)
+      }
+
       this.renderPass2D.render(canvasView, this.depthTextureView!, commandEncoder, this.frameBindGroup.bindGroup, this.scene2d);
       this.transparentRenderPass2D.render(canvasView, this.depthTextureView!, commandEncoder, this.frameBindGroup.bindGroup, this.scene2d);
 
       gpu.device.queue.submit([commandEncoder.finish()]);
     }
+  }
+
+  setOutlineMesh(sceneNode: ContainerNodeInterface | null): boolean {
+    if (sceneNode === null) {
+      this.outlineMesh = null
+    }
+    else {
+      for (const node of sceneNode.nodes) {
+        if (isDrawableNode(node)) {
+          this.outlineMesh = node
+          return true;
+        }
+        else if (isContainerNode(node)) {
+          const result = this.setOutlineMesh(node);
+  
+          if (result) {
+            return true;
+          }
+        }
+      }  
+    }
+
+    return false;
   }
 
   updateDirection(direction: Vec4) {

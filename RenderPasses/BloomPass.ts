@@ -18,8 +18,8 @@ class BloomPass {
 
   blurPass: BlurPass
 
-  constructor(context: GPUCanvasContext) {
-    this.blurPass = new BlurPass(context)
+  constructor(context: GPUCanvasContext, scratchTextureView: GPUTextureView) {
+    this.blurPass = new BlurPass(scratchTextureView)
 
     this.screenTextureView = this.createTexture(context).createView()
     this.bloomTextureView = this.createTexture(context).createView()
