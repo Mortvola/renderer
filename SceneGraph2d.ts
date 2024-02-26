@@ -177,13 +177,21 @@ class SceneGraph2D {
     this.needsUpdate = true
   }
 
-  replaceNode(node: SceneNode2d | null, newNode: SceneNode2d) {
+  replaceNode(node: SceneNode2d | null, newNode: SceneNode2d | null) {
     const index = this.scene2d.nodes.findIndex((n) => n === node)
 
     if (index !== -1) {
-      this.scene2d.nodes[index] = newNode
+      if (newNode === null) {
+        this.scene2d.nodes = [
+          ...this.scene2d.nodes.slice(0, index),
+          ...this.scene2d.nodes.slice(index + 1),
+        ]
+      }
+      else {
+        this.scene2d.nodes[index] = newNode
+      }
     }
-    else {
+    else if (newNode) {
       this.scene2d.nodes.push(newNode)
     }
 
