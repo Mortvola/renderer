@@ -69,37 +69,31 @@ class Font {
     let height = 0;
     let line = 0;
     let cursor = 0;
-    let wordBreak = false
+    let wordBreak: number | null = null
 
     const scale = 16 / this.fontSize;
 
-    for (const char of text) {
-      const character = this.chars.get(char)
+    let characters: Character[] = []
 
-      if (character) {
-        if (character.char === ' ') {
-          wordBreak = true
-          cursor += character.xadvance * scale
-          continue
-        }
+    const outputCharacters = (
+      characters: Character[],
+      numChars: number,
+      width: number,
+      height: number,
+      line: number
+    ): [number, number] => {
+      let cursor = 0;
 
-        const numVertices = vertices.length / 2;
+      for (let i = 0; i < numChars; i += 1) {
+        const character = characters[i]
 
         let left = cursor + character.xoffset * scale
         let right = left + character.width * scale
 
-        if (maxWidth && right >= maxWidth && wordBreak) {
-          line += 1
-          cursor = 0
-
-          left = cursor + character.xoffset * scale
-          right = left + character.width * scale  
-
-          wordBreak = false
-        }
-
         const top = line * this.lineHeight * scale + character.yoffset * scale
         const bottom = top + character.height * scale
+
+        const numVertices = vertices.length / 2;
 
         vertices.push(left, top)
         vertices.push(left, bottom)
@@ -125,6 +119,49 @@ class Font {
         width = Math.max(width, cursor)
         height = Math.max(height, (line + 1) * this.lineHeight * scale)
       }
+
+      return [width, height]
+    }
+
+    for (let i = 0; i < text.length; i += 1) {
+      const character = this.chars.get(text[i])
+
+      if (character) {
+        if (character.char === ' ') {
+          wordBreak = characters.length
+          cursor += character.xadvance * scale
+
+          characters.push(character);
+
+          continue
+        }
+
+        let left = cursor + character.xoffset * scale
+        let right = left + character.width * scale
+
+        if (maxWidth && right >= maxWidth && wordBreak !== null) {
+          [width, height] = outputCharacters(characters, wordBreak, width, height, line)
+
+          i -= (characters.length - wordBreak)
+
+          characters = []
+
+          line += 1
+          cursor = 0
+
+          wordBreak = null
+
+          continue;
+        }
+
+        cursor += character.xadvance * scale
+
+        characters.push(character)
+      }
+    }
+
+    if (characters.length > 0) {
+      [width, height] = outputCharacters(characters, characters.length, width, height, line)
     }
 
     return new Mesh2D(vertices, texcoords, indexes, width, height)
