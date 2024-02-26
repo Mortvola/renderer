@@ -13,14 +13,23 @@ class Display extends OperationNode {
   }
 
   getExpression(): [string, DataType] {
+    const [alpha] = this.inputPorts[1].getValue()
+
     if (this.inputPorts[1].edge) {
       const [varA] = this.inputPorts[0].getValue()
-      const [varB] = this.inputPorts[1].getValue()
 
-      return [`vec4f((${varA}).rgb, ${varB})`, 'vec4f'];
+      return [`vec4f((${varA}).rgb, ${alpha})`, 'vec4f'];
     }
 
-    const [varA] = this.inputPorts[0].getValue();
+    const [varA, dataType] = this.inputPorts[0].getValue();
+
+    if (dataType === 'vec2f') {
+      return [`vec4f(${varA}, 0, ${alpha})`, 'vec4f'];
+    }
+
+    if (dataType === 'vec3f') {
+      return [`vec4f(${varA}, ${alpha})`, 'vec4f'];
+    }
 
     return [`${varA}`, 'vec4f'];
   }
