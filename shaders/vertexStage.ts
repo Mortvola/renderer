@@ -30,8 +30,8 @@ export const getVertexStage = (drawableType: DrawableType, lit: boolean): string
       
         ${lit
           ? `
-          output.fragPos = viewMatrix * modelMatrix[0] * vert.position;
-          output.normal = viewMatrix * modelMatrix[0] * vert.normal;          
+          output.fragPos = viewMatrix * modelMatrix[instanceIndex] * vert.position;
+          output.normal = viewMatrix * modelMatrix[instanceIndex] * vert.normal;          
           `
           : ''
         }
@@ -142,7 +142,7 @@ export const getVertexStage = (drawableType: DrawableType, lit: boolean): string
           y = (radius) * sin(radians + radiansPerSegment);
         }
 
-        output.position = projectionMatrix * viewMatrix * modelMatrix[0] * vec4f(x, y, 0, 1);
+        output.position = projectionMatrix * viewMatrix * modelMatrix[instanceIndex] * vec4f(x, y, 0, 1);
 
         output.color = instanceColor[instanceIndex];
 
