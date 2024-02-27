@@ -366,6 +366,16 @@ class SceneGraph2D {
         }
       }
 
+      for (let i = 0; i < absoluteElements.length; i += 1) {
+        const node = element.nodes[i]
+
+        await this.layoutELements(node, 0, 0, width, height, element.style.color)
+      }
+
+      // Add any padding to the width and height
+      width += (element.style.padding?.left ?? 0) + (element.style.padding?.right ?? 0)
+      height += (element.style.padding?.top ?? 0) + (element.style.padding?.bottom ?? 0)
+
       if (element.style.position === 'absolute') {
         if (width !== undefined && element.style.left === undefined && element.style.right !== undefined) {
           left = x + (parentWidth ?? 0) - this.getElementDimension(element.style.right, parentWidth) - width
@@ -381,16 +391,6 @@ class SceneGraph2D {
           top = this.getElementDimension(element.style.top, parentHeight) ?? top;
         }
       }
-
-      for (let i = 0; i < absoluteElements.length; i += 1) {
-        const node = element.nodes[i]
-
-        await this.layoutELements(node, 0, 0, width, height, element.style.color)
-      }
-
-      // Add any padding to the width and height
-      width += (element.style.padding?.left ?? 0) + (element.style.padding?.right ?? 0)
-      height += (element.style.padding?.top ?? 0) + (element.style.padding?.bottom ?? 0)
 
       if (element.style.transform) {
         const result = /translate\(\s*(-?\d+%?),\s*(-?\d+%?)\s*\)/.exec(element.style.transform)
