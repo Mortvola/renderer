@@ -6,7 +6,7 @@ import { MaterialInterface, PipelineInterface, maxInstances } from "./types";
 import { gpu } from "./Gpu";
 import TextBox, { isTextBox } from "./Drawables/SceneNodes/TextBox";
 import ElementNode, { isElementNode } from "./Drawables/SceneNodes/ElementNode";
-import { createElement } from "../UserInterface/CreateElement";
+import UI from "../UserInterface/CreateElement";
 
 const defaultMaterial = await Material.create('Mesh2D', [])
 
@@ -37,8 +37,7 @@ type PipelineEntry = {
 }
 
 class SceneGraph2D {
-
-  scene2d = createElement('', {})
+  scene2d: ElementNode
 
   private width: number = 0;
 
@@ -87,6 +86,8 @@ class SceneGraph2D {
   clickable: ElementNode[] = []
 
   constructor() {
+    this.scene2d = UI.render(UI.createElement('', {}), this)!
+    
     this.elementMesh = SceneGraph2D.allocateBaseElement()
 
     this.transformsBuffer = gpu.device.createBuffer({
