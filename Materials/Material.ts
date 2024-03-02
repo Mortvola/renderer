@@ -26,6 +26,8 @@ class Material implements MaterialInterface {
 
   fragBindings: MaterialBindings | null = null;
 
+  lit: boolean;
+
   transparent: boolean;
 
   private constructor(
@@ -42,6 +44,7 @@ class Material implements MaterialInterface {
     this.color[2] = shaderDescriptor?.color ? shaderDescriptor.color[2] : 0.5;
     this.color[3] = shaderDescriptor?.color ? shaderDescriptor.color[3] : 1;
     
+    this.lit = shaderDescriptor?.lit ?? false;
     this.transparent = shaderDescriptor?.transparent ?? false;
 
     if (pipeline.vertexStageBindings) {

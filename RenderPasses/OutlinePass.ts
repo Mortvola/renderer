@@ -3,7 +3,7 @@ import Mesh from "../Drawables/Mesh";
 import { gpu } from "../Gpu";
 import { outputFormat } from "../RenderSetings";
 import { outlineShader } from "../shaders/outline";
-import { outlineApllyShader } from "../shaders/outlineApply";
+import { outlineApplyShader } from "../shaders/outlineApply";
 import { DrawableNodeInterface } from "../types";
 
 const label = 'outline pass';
@@ -62,7 +62,7 @@ class OutlinePass {
 
     const outlineApplyModule = gpu.device.createShaderModule({
       label: 'Apply Outline Pass',
-      code: outlineApllyShader,
+      code: outlineApplyShader,
     })
 
     this.applyOutlinePipeline = this.createApplyPipeline(outlineApplyModule, bindGroupLayout);

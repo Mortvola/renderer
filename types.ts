@@ -25,9 +25,11 @@ export interface RenderPass2DInterface {
 export interface RendererInterface {
   scene: ContainerNodeInterface;
 
-  mainRenderPass: RenderPassInterface;
+  deferredRenderPass: RenderPassInterface | null;
 
-  transparentPass: RenderPassInterface;
+  transparentPass: RenderPassInterface | null;
+
+  unlitRenderPass: RenderPassInterface | null;
 
   addParticleSystem(particleSystem: ParticleSystemInterface): void;
 }
@@ -57,6 +59,8 @@ export interface MaterialInterface {
 
   color: Float32Array;
 
+  lit: boolean;
+  
   transparent: boolean;
 
   setBindGroups(passEncoder: GPURenderPassEncoder): void;

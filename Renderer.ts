@@ -7,7 +7,7 @@ import {
 import Camera from './Camera';
 import { degToRad } from './Math';
 import ContainerNode, { isContainerNode } from './Drawables/SceneNodes/ContainerNode';
-import RenderPass from './RenderPasses/RenderPass';
+import DeferredRenderPass from './RenderPasses/DeferredRenderPass';
 import Light, { isLight } from './Drawables/Light';
 import CartesianAxes from './Drawables/CartesianAxes';
 import DrawableNode from './Drawables/SceneNodes/DrawableNode';
@@ -17,8 +17,8 @@ import { lights } from "./shaders/lights";
 import { gpu } from './Gpu';
 import { bindGroups } from './BindGroups';
 import { pipelineManager } from './Pipelines/PipelineManager';
-import TransparentRenderPass from './RenderPasses/TransparentRenderPass';
-import BloomPass from './RenderPasses/BloomPass';
+import ForwardRenderPass from './RenderPasses/ForwardRenderPass';
+import BloomPass, { createTexture } from './RenderPasses/BloomPass';
 import { outputFormat } from './RenderSetings';
 import RenderPass2D from './RenderPasses/RenderPass2D';
 import SceneGraph2D from './SceneGraph2d';
@@ -63,6 +63,14 @@ class Renderer implements RendererInterface {
 
   context: GPUCanvasContext | null = null;
 
+  albedoTextureView: GPUTextureView | null = null;
+
+  positionTextureView: GPUTextureView | null = null;
+
+  scratchTextureView: GPUTextureView | null = null;
+
+  screenTextureView: GPUTextureView | null = null;
+
   depthTextureView: GPUTextureView | null = null;
 
   renderedDimensions: [number, number] = [0, 0];
@@ -71,9 +79,11 @@ class Renderer implements RendererInterface {
 
   scene2d = new SceneGraph2D();
 
-  mainRenderPass = new RenderPass();
+  deferredRenderPass: DeferredRenderPass | null = null;
 
-  transparentPass = new TransparentRenderPass();
+  unlitRenderPass: ForwardRenderPass | null = new ForwardRenderPass();
+
+  transparentPass: ForwardRenderPass | null = new ForwardRenderPass();
 
   renderPass2D = new RenderPass2D();
 
@@ -301,11 +311,17 @@ class Renderer implements RendererInterface {
 
       this.depthTextureView = depthTexture.createView();
 
-      const scratchTextureView = this.createScratchTexture(this.context).createView();
+      this.albedoTextureView = createTexture(this.context).createView()
+      this.positionTextureView = createTexture(this.context).createView();
+      this.scratchTextureView = createTexture(this.context).createView();
 
-      this.bloomPass = new BloomPass(this.context, scratchTextureView);
+      this.deferredRenderPass = new DeferredRenderPass(this.albedoTextureView, this.positionTextureView, this.scratchTextureView);
+
+      this.screenTextureView = createTexture(this.context).createView();
+
+      this.bloomPass = new BloomPass(this.context, this.screenTextureView, this.scratchTextureView);
       
-      this.outlinePass = new OutlinePass(scratchTextureView)
+      this.outlinePass = new OutlinePass(this.scratchTextureView)
 
       this.aspectRatio[0] = this.context.canvas.width / this.context.canvas.height;
 
@@ -372,29 +388,26 @@ class Renderer implements RendererInterface {
     this.submitRenderPasses()
   }
 
-  createScratchTexture(context: GPUCanvasContext) {
-    return gpu.device.createTexture({
-      format: outputFormat,
-      size: { width: context.canvas.width, height: context.canvas.height },
-      usage: GPUTextureUsage.TEXTURE_BINDING |
-            GPUTextureUsage.COPY_DST |
-            GPUTextureUsage.RENDER_ATTACHMENT,
-    });
-  }
-
   // Note: do not place any awaits in the method as it can cause microtasks to execute
   // which can impact the rendering process.
   submitRenderPasses() {
     if (this.context && this.frameBindGroup) {
       const commandEncoder = gpu.device.createCommandEncoder();
 
-      const sceneView = this.bloomPass?.screenTextureView
+      const canvasView = this.context.getCurrentTexture().createView()
+
+      this.deferredRenderPass!.render(
+        this.screenTextureView!,
+        this.depthTextureView!,
+        commandEncoder,
+        this.frameBindGroup.bindGroup,
+      );
+
       const bloomView = this.bloomPass?.bloomTextureView
 
-      this.mainRenderPass.render(sceneView!, bloomView!, this.depthTextureView!, commandEncoder, this.frameBindGroup.bindGroup);
-      this.transparentPass.render(sceneView!, bloomView!, this.depthTextureView!, commandEncoder, this.frameBindGroup.bindGroup);
+      this.unlitRenderPass!.render(this.screenTextureView!, bloomView!, this.depthTextureView!, commandEncoder, this.frameBindGroup.bindGroup)
 
-      const canvasView = this.context.getCurrentTexture().createView()
+      this.transparentPass!.render(this.screenTextureView!, bloomView!, this.depthTextureView!, commandEncoder, this.frameBindGroup.bindGroup)
 
       if (this.bloomPass) {
         this.bloomPass.render(canvasView, commandEncoder);      
@@ -404,8 +417,8 @@ class Renderer implements RendererInterface {
         this.outlinePass.render(canvasView, this.frameBindGroup.bindGroup, this.outlineMesh, commandEncoder)
       }
 
-      this.renderPass2D.render(canvasView, this.depthTextureView!, commandEncoder, this.frameBindGroup.bindGroup, this.scene2d);
-      this.transparentRenderPass2D.render(canvasView, this.depthTextureView!, commandEncoder, this.frameBindGroup.bindGroup, this.scene2d);
+      // this.renderPass2D.render(canvasView, this.depthTextureView!, commandEncoder, this.frameBindGroup.bindGroup, this.scene2d);
+      // this.transparentRenderPass2D.render(canvasView, this.depthTextureView!, commandEncoder, this.frameBindGroup.bindGroup, this.scene2d);
 
       gpu.device.queue.submit([commandEncoder.finish()]);
     }

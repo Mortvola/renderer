@@ -214,12 +214,25 @@ class PipelineManager implements PipelineManagerInterface {
         });  
       }
       else {
-        targets.push({
-          format: outputFormat,
-        })
+        targets.push(
+          {
+            format: outputFormat,
+          },
+        )
+
+        if (shaderDescriptor?.lit) {
+          targets.push(
+            {
+              format: outputFormat,
+            },
+            {
+              format: outputFormat,
+            },
+          )
+        }
       }
 
-      if (bloom && drawableType !== 'Mesh2D') {
+      if (!shaderDescriptor?.lit && bloom && drawableType !== 'Mesh2D') {
         targets.push({
           format: outputFormat,
         })
@@ -273,7 +286,7 @@ class PipelineManager implements PipelineManagerInterface {
       });
 
       const pipelineDescriptor: GPURenderPipelineDescriptor = {
-        label: `${drawableType} pipeline`,
+        label: `${drawableType}${shaderDescriptor?.transparent ? ' transparent' : ''}${bloom ? ' bloom' : ''} pipeline`,
         vertex: {
           module: shaderModule,
           entryPoint: "vs",

@@ -383,7 +383,7 @@ export const generateShaderCode = (
   vertProperties: PropertyInterface[],
   lit: boolean,
 ): [string, Property[], Property[]] => {
-  let body = '';
+  let fragmentBody = '';
 
   let vertBindings = '';
   let fragBindings = '';
@@ -412,9 +412,9 @@ export const generateShaderCode = (
   }
 
   if (graph && graph.fragment) {
-    [body, fragProperties] = generateStageShaderCode(graph.fragment);
+    [fragmentBody, fragProperties] = generateStageShaderCode(graph.fragment);
 
-    console.log(body);
+    console.log(fragmentBody);
   }
 
   for (let i = 0; i < fragProperties.length; i += 1) {
@@ -468,7 +468,7 @@ export const generateShaderCode = (
 
     ${voronoiFunction}
 
-    ${getFragmentStage(body, bloom)}
+    ${getFragmentStage(fragmentBody, lit, bloom)}
     `,
     vertProperties,
     fragProperties,

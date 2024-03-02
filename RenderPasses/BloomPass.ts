@@ -3,6 +3,16 @@ import { outputFormat } from "../RenderSetings";
 import { bloomShader } from "../shaders/bloom";
 import BlurPass from "./BlurPass";
 
+export const createTexture = (context: GPUCanvasContext) => {
+  return gpu.device.createTexture({
+    format: outputFormat,
+    size: { width: context.canvas.width, height: context.canvas.height },
+    usage: GPUTextureUsage.TEXTURE_BINDING |
+          GPUTextureUsage.COPY_DST |
+          GPUTextureUsage.RENDER_ATTACHMENT,
+  });
+}
+
 const label = 'post process';
 
 class BloomPass {
@@ -18,11 +28,11 @@ class BloomPass {
 
   blurPass: BlurPass
 
-  constructor(context: GPUCanvasContext, scratchTextureView: GPUTextureView) {
+  constructor(context: GPUCanvasContext, screenTexture: GPUTextureView, scratchTextureView: GPUTextureView) {
     this.blurPass = new BlurPass(scratchTextureView)
 
-    this.screenTextureView = this.createTexture(context).createView()
-    this.bloomTextureView = this.createTexture(context).createView()
+    this.screenTextureView = screenTexture
+    this.bloomTextureView = createTexture(context).createView()
 
     const bindGroupLayout = gpu.device.createBindGroupLayout({
       label,
@@ -76,16 +86,6 @@ class BloomPass {
     })
 
     this.pipeline = this.createPipeline(shaderModule, bindGroupLayout, true);
-  }
-
-  createTexture(context: GPUCanvasContext) {
-    return gpu.device.createTexture({
-      format: outputFormat,
-      size: { width: context.canvas.width, height: context.canvas.height },
-      usage: GPUTextureUsage.TEXTURE_BINDING |
-            GPUTextureUsage.COPY_DST |
-            GPUTextureUsage.RENDER_ATTACHMENT,
-    });
   }
 
   createPipeline(shaderModule: GPUShaderModule, bindGroupLayout: GPUBindGroupLayout, horizontal: boolean) {
