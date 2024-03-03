@@ -18,9 +18,16 @@ ${phongFunction}
 fn fs(vertexOut: VertexOut) -> @location(0) vec4f
 {
   var albedo = textureSample(albedoTexture, textureSampler, vertexOut.texcoord).rgb;
-  var position = textureSample(positionTexture, textureSampler, vertexOut.texcoord);
-  var normal = textureSample(normalTexture, textureSampler, vertexOut.texcoord);
+  var position = textureSample(positionTexture, textureSampler, vertexOut.texcoord).xyz;
+  var normal = textureSample(normalTexture, textureSampler, vertexOut.texcoord).xyz;
 
-  return vec4(blinnPhong(position, normal, albedo).rgb, 1.0);
+  var ambientColor = vec3f(1.0, 1.0, 1.0);
+  var ambientStrength = f32(0.1);
+  var lightColor = pointLights.directionalColor.rgb;
+  var lightDirection = pointLights.directional.xyz;
+
+  var lighting = blinnPhong(position, normal, albedo, lightColor, lightDirection);
+
+  return vec4(ambientStrength * ambientColor * albedo + lighting, 1.0);
 }
 `
