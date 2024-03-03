@@ -1,5 +1,5 @@
 /* eslint-disable no-restricted-syntax */
-import { Vec4, mat4, vec4 } from 'wgpu-matrix';
+import { Vec4, mat4, quat, vec4 } from 'wgpu-matrix';
 import {
   makeShaderDataDefinitions,
   makeStructuredView,
@@ -25,6 +25,8 @@ import SceneGraph2D from './SceneGraph2d';
 import TransparentRenderPass2D from './RenderPasses/TransparentRenderPass2D';
 import OutlinePass from './RenderPasses/OutlinePass';
 import { isDrawableNode } from './Drawables/SceneNodes/utils';
+import Mesh from './Drawables/Mesh';
+import { plane } from './Drawables/Shapes/plane';
 
 const requestPostAnimationFrame = (task: (timestamp: number) => void) => {
   requestAnimationFrame((timestamp: number) => {
@@ -101,14 +103,14 @@ class Renderer implements RendererInterface {
 
   timeBuffer = new Float32Array(1)
 
-  constructor(frameBindGroupLayout: GPUBindGroupLayout, cartesianAxes: DrawableNode, test?: SceneNodeInterface) {
+  constructor(frameBindGroupLayout: GPUBindGroupLayout, cartesianAxes: DrawableNode, floor?: SceneNodeInterface) {
     this.createCameraBindGroups(frameBindGroupLayout);
 
     this.aspectRatio[0] = 1.0;
-    this.scene.addNode(cartesianAxes);
+    // this.scene.addNode(cartesianAxes);
 
-    if (test) {
-      this.scene.addNode(test);
+    if (floor) {
+      this.scene.addNode(floor);
     }
 
     this.updateTransforms();
@@ -120,7 +122,11 @@ class Renderer implements RendererInterface {
 
     const cartesianAxes = await DrawableNode.create(new CartesianAxes(), { shaderDescriptor: lineMaterial })
     
-    return new Renderer(bindGroups.getBindGroupLayout0(), cartesianAxes);
+    const quad = await Mesh.create(plane(50, 50, [1, 1, 1, 1]))
+    const floor = await DrawableNode.create(quad, { shaderDescriptor: { lit: true }})
+    floor.postTransforms.push(mat4.fromQuat(quat.fromEuler(degToRad(270), 0, 0, "xyz")))
+
+    return new Renderer(bindGroups.getBindGroupLayout0(), cartesianAxes, floor);
   }
 
   async setCanvas(canvas: HTMLCanvasElement) {
@@ -296,8 +302,6 @@ class Renderer implements RendererInterface {
     // this.cursor.translate[0] = this.camera.position[0];
     // this.cursor.translate[2] = this.camera.position[2];
 
-    this.updateTransforms();
-
     if (this.context.canvas.width !== this.renderedDimensions[0]
       || this.context.canvas.height !== this.renderedDimensions[1]
     ) {
@@ -344,6 +348,8 @@ class Renderer implements RendererInterface {
 
       this.renderedDimensions = [this.context.canvas.width, this.context.canvas.height];
     }
+
+    this.updateTransforms();
 
     if (this.camera.projection === 'Perspective') {
       gpu.device.queue.writeBuffer(this.frameBindGroup.buffer[0], 0, this.camera.perspectiveTransform as Float32Array);

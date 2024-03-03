@@ -3,7 +3,7 @@ import { ShaderDescriptor } from "../shaders/ShaderDescriptor";
 import { bloom } from "../RenderSetings";
 import { common } from "../shaders/common";
 import { getFragmentStage } from "../shaders/fragmentStage";
-import { phongFunction } from "../shaders/phongFunction";
+import { phongFunction } from "../shaders/blinnPhongFunction";
 import { twirlFunction } from '../shaders/twirlFunction';
 import { getVertexStage } from "../shaders/vertexStage";
 import { voronoiFunction } from "../shaders/voronoiFunction";
@@ -478,31 +478,31 @@ export const generateShaderCode = (
 export const generateCode = (
   drawableType: DrawableType,
   vertexProperties: PropertyInterface[],
-  materialDescriptor?: ShaderDescriptor,
+  shaderDescriptor?: ShaderDescriptor,
 ): [string, Property[], Property[]] => {
   let props: Property[] = [];
 
-  if (materialDescriptor?.properties) {
-    props = props.concat(materialDescriptor.properties.map((p) => (
+  if (shaderDescriptor?.properties) {
+    props = props.concat(shaderDescriptor.properties.map((p) => (
       new Property(p.name, p.dataType, p.value)
     )))
   }
 
   let graph: ShaderGraph | null = null;
 
-  if (materialDescriptor?.graph) {
-    graph = buildGraph(materialDescriptor.graph!, props);
+  if (shaderDescriptor?.graph) {
+    graph = buildGraph(shaderDescriptor.graph!, props);
   }
 
-  return generateShaderCode(graph, drawableType, vertexProperties, materialDescriptor?.lit ?? false);
+  return generateShaderCode(graph, drawableType, vertexProperties, shaderDescriptor?.lit ?? false);
 }
 
 export const generateShaderModule = (
   drawableType: DrawableType,
   vertexProperties: PropertyInterface[],
-  materialDescriptor?: ShaderDescriptor,
+  shaderDescriptor?: ShaderDescriptor,
 ): [GPUShaderModule, Property[], Property[], string] => {
-  const [code, vertProperties, fragProperties] = generateCode(drawableType, vertexProperties, materialDescriptor);
+  const [code, vertProperties, fragProperties] = generateCode(drawableType, vertexProperties, shaderDescriptor);
   
   let shaderModule: GPUShaderModule
   try {

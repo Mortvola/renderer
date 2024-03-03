@@ -110,7 +110,7 @@ class PipelineManager implements PipelineManagerInterface {
 
     let pipeline: PipelineInterface;
 
-    if (shaderDescriptor && !shaderDescriptor.graph) {
+    if (shaderDescriptor && !shaderDescriptor.graph && shaderDescriptor.type) {
       const entry = this.pipelines.find((pipeline) => pipeline.type === shaderDescriptor!.type);
 
       if (!entry) {
