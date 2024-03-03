@@ -1,6 +1,6 @@
 import { common } from "./common";
 import { fullscreenVertexStage } from "./fullscreenVertexStage";
-import { phongFunction } from "./phongFunction";
+import { phongFunction } from "./blinnPhongFunction";
 
 export const deferredCombine = /*wgsl*/`
 ${common}
@@ -17,10 +17,10 @@ ${phongFunction}
 @fragment
 fn fs(vertexOut: VertexOut) -> @location(0) vec4f
 {
-  var albedo = textureSample(albedoTexture, textureSampler, vertexOut.texcoord);
+  var albedo = textureSample(albedoTexture, textureSampler, vertexOut.texcoord).rgb;
   var position = textureSample(positionTexture, textureSampler, vertexOut.texcoord);
   var normal = textureSample(normalTexture, textureSampler, vertexOut.texcoord);
 
-  return vec4(phong(position, normal, albedo).rgb, 1.0);
+  return vec4(blinnPhong(position, normal, albedo).rgb, 1.0);
 }
 `
