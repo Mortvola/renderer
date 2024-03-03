@@ -1,27 +1,32 @@
 export const phongFunction = /*wgsl*/`
+struct Lighting {
+  diffuse: vec3f,
+  specular: vec3f,
+}
+
 fn blinnPhong(
-  fragPos: vec3f,
-  normal: vec3f,
-  color: vec3f,
+  viewDirection: vec3f, // assumed to be normalied
+  normal: vec3f, // assumed to be normalized
+  lightDirection: vec3f,  // assumed to be normalized
   lightColor: vec3f,
-  lightDirection: vec3f,
-) -> vec3f
+  attenuation: f32,
+) -> Lighting
 {
+  var output: Lighting;
+
   var specularStrength = 0.5;
-  var shininess = 64.0;
+  var shininess = 2.0;
 
-  var normal2 = normalize(normal);
-  var viewDir = normalize(-fragPos);
+  var NdotL = dot(normal, lightDirection);
+  output.diffuse = max(NdotL, 0) * lightColor * attenuation;
 
-  // var lightColor = pointLights.lights[0].color;
-  // var lightColor = pointLights.directionalColor.rgb;
-  // var lightDir = normalize(pointLights.lights[0].position - fragPos);
-  var lightDir = normalize(lightDirection);
-  var halfwayDir = normalize(viewDir + lightDir);
+  output.specular = vec3f(0);
+  if (NdotL >= -0.1) {
+    var halfwayDir = normalize(viewDirection + lightDirection);
+    var NdotH = dot(normal, halfwayDir);
+    output.specular = specularStrength * pow(max(NdotH, 0), shininess) * lightColor * attenuation;
+  }
 
-  var diffuse = max(dot(normal2, lightDir), 0.0);
-  var specular = specularStrength * pow(max(dot(normal2, halfwayDir), 0.0), shininess);
-
-  return (diffuse + specular) * lightColor * color;
+  return output;
 }
 `

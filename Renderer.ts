@@ -113,6 +113,27 @@ class Renderer implements RendererInterface {
       this.scene.addNode(floor);
     }
 
+    let light = new Light()
+    light.translate[0] = 0;
+    light.translate[1] = 3;
+    light.translate[2] = 0;
+    
+    this.lights.push(light)
+
+    light = new Light()
+    light.translate[0] = 15;
+    light.translate[1] = 4;
+    light.translate[2] = -15;
+
+    this.lights.push(light)
+
+    light = new Light()
+    light.translate[0] = -15;
+    light.translate[1] = 5;
+    light.translate[2] = -15;
+
+    this.lights.push(light)
+
     this.updateTransforms();
   }
 
@@ -283,11 +304,11 @@ class Renderer implements RendererInterface {
   updateTransforms() {
     this.scene.updateTransforms(undefined, this);
 
-    for (const node of this.scene.nodes) {
-      if (isLight(node)) {
-        this.lights.push(node);
-      }
-    };
+    // for (const node of this.scene.nodes) {
+    //   if (isLight(node)) {
+    //     this.lights.push(node);
+    //   }
+    // };
   }
 
   async drawScene(timestamp: number) {
@@ -368,18 +389,24 @@ class Renderer implements RendererInterface {
 
     // Update the light information
     lightsStructure.set({
-      directional: vec4.transformMat4(
-        vec4.create(1, 1, 1, 0),
-        inverseViewtransform,
-      ),
-      directionalColor: vec4.create(1, 1, 1, 1),
-      count: this.lights.length,
-      lights: this.lights.map((light) => ({
+      numDirectional: 0,
+      directional: [{
+        direction: vec4.transformMat4(
+          vec4.create(1, 1, 1, 0),
+          inverseViewtransform,
+        ),
+        color: vec4.create(1, 1, 1, 1),
+      }],
+      numPointLights: this.lights.length,
+      pointLights: this.lights.map((light) => ({
         position: vec4.transformMat4(
           vec4.create(light.translate[0], light.translate[1], light.translate[2], 1),
           inverseViewtransform,
         ),
         color: light.lightColor,
+        attConstant: 1.0,
+        attLinear: 0.09,
+        attQuadratic: 0.032,
       })),
     });
 
