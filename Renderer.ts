@@ -6,9 +6,9 @@ import {
 } from 'webgpu-utils';
 import Camera from './Camera';
 import { degToRad } from './Math';
-import ContainerNode, { isContainerNode } from './Drawables/SceneNodes/ContainerNode';
+import { isContainerNode } from './Drawables/SceneNodes/ContainerNode';
 import DeferredRenderPass from './RenderPasses/DeferredRenderPass';
-import Light, { isLight } from './Drawables/Light';
+import Light from './Drawables/Light';
 import CartesianAxes from './Drawables/CartesianAxes';
 import DrawableNode from './Drawables/SceneNodes/DrawableNode';
 import { SceneNodeInterface, RendererInterface, ParticleSystemInterface, ContainerNodeInterface, DrawableNodeInterface } from './types';
@@ -27,6 +27,9 @@ import OutlinePass from './RenderPasses/OutlinePass';
 import { isDrawableNode } from './Drawables/SceneNodes/utils';
 import Mesh from './Drawables/Mesh';
 import { plane } from './Drawables/Shapes/plane';
+import { circles } from './shaders/circles';
+import RangeCircle from './Drawables/RangeCircle';
+import SceneGraph from './Drawables/SceneNodes/SceneGraph';
 
 const requestPostAnimationFrame = (task: (timestamp: number) => void) => {
   requestAnimationFrame((timestamp: number) => {
@@ -36,8 +39,10 @@ const requestPostAnimationFrame = (task: (timestamp: number) => void) => {
   });
 };
 
-const defs = makeShaderDataDefinitions(lights);
-const lightsStructure = makeStructuredView(defs.structs.Lights);
+const lightDefs = makeShaderDataDefinitions(lights);
+const lightsStructure = makeStructuredView(lightDefs.structs.Lights);
+const circlesDefs = makeShaderDataDefinitions(circles);
+const circlesStructure = makeStructuredView(circlesDefs.structs.Circles);
 
 type BindGroup = {
   bindGroup: GPUBindGroup,
@@ -77,7 +82,7 @@ class Renderer implements RendererInterface {
 
   renderedDimensions: [number, number] = [0, 0];
 
-  scene = new ContainerNode();
+  scene = new SceneGraph();
 
   scene2d = new SceneGraph2D();
 
@@ -98,6 +103,8 @@ class Renderer implements RendererInterface {
   outlineMesh: DrawableNodeInterface | null = null;
 
   lights: Light[] = [];
+
+  circles: RangeCircle[] = [];
 
   particleSystems: ParticleSystemInterface[] = [];
 
@@ -134,7 +141,7 @@ class Renderer implements RendererInterface {
 
     this.lights.push(light)
 
-    this.updateTransforms();
+    this.scene.updateTransforms(this);
   }
 
   static async create() {
@@ -190,6 +197,12 @@ class Renderer implements RendererInterface {
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
     });
 
+    const inverseViewTransformBuffer = gpu.device.createBuffer({
+      label: 'inverse view Matrix',
+      size: matrixBufferSize,
+      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+    });
+
     const cameraPosBuffer = gpu.device.createBuffer({
       label: 'camera position',
       size: 4 * Float32Array.BYTES_PER_ELEMENT,
@@ -208,6 +221,12 @@ class Renderer implements RendererInterface {
       usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
     });
 
+    const circlesBuffer = gpu.device.createBuffer({
+      label: 'circles',
+      size: circlesStructure.arrayBuffer.byteLength,
+      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+    });
+
     const timeBuffer = gpu.device.createBuffer({
       label: 'time',
       size: 1 * Float32Array.BYTES_PER_ELEMENT,
@@ -220,10 +239,12 @@ class Renderer implements RendererInterface {
       entries: [
         { binding: 0, resource: { buffer: projectionTransformBuffer }},
         { binding: 1, resource: { buffer: viewTransformBuffer }},
-        { binding: 2, resource: { buffer: cameraPosBuffer }},
-        { binding: 3, resource: { buffer: aspectRatioBuffer }},
-        { binding: 4, resource: { buffer: lightsBuffer }},
-        { binding: 5, resource: { buffer: timeBuffer }},
+        { binding: 2, resource: { buffer: inverseViewTransformBuffer }},
+        { binding: 3, resource: { buffer: cameraPosBuffer }},
+        { binding: 4, resource: { buffer: aspectRatioBuffer }},
+        { binding: 5, resource: { buffer: lightsBuffer }},
+        { binding: 6, resource: { buffer: circlesBuffer }},
+        { binding: 7, resource: { buffer: timeBuffer }},
       ],
     });
 
@@ -232,9 +253,11 @@ class Renderer implements RendererInterface {
       buffer: [
           projectionTransformBuffer,
           viewTransformBuffer,
+          inverseViewTransformBuffer,
           cameraPosBuffer,
           aspectRatioBuffer,
           lightsBuffer,
+          circlesBuffer,
           timeBuffer,
       ],
     }
@@ -272,7 +295,7 @@ class Renderer implements RendererInterface {
           const elapsedTime = (timestamp - this.previousTimestamp) * 0.001;
 
           for (const particleSystem of this.particleSystems) {
-            particleSystem.update(timestamp, elapsedTime, this.scene)
+            particleSystem.update(timestamp, elapsedTime, this.scene.scene)
           }
 
           this.camera.updatePosition(elapsedTime, timestamp);
@@ -299,16 +322,6 @@ class Renderer implements RendererInterface {
 
   stop(): void {
     this.render = false;
-  }
-
-  updateTransforms() {
-    this.scene.updateTransforms(undefined, this);
-
-    // for (const node of this.scene.nodes) {
-    //   if (isLight(node)) {
-    //     this.lights.push(node);
-    //   }
-    // };
   }
 
   async drawScene(timestamp: number) {
@@ -370,7 +383,7 @@ class Renderer implements RendererInterface {
       this.renderedDimensions = [this.context.canvas.width, this.context.canvas.height];
     }
 
-    this.updateTransforms();
+    this.scene.updateTransforms(this);
 
     if (this.camera.projection === 'Perspective') {
       gpu.device.queue.writeBuffer(this.frameBindGroup.buffer[0], 0, this.camera.perspectiveTransform as Float32Array);
@@ -380,12 +393,13 @@ class Renderer implements RendererInterface {
 
     const inverseViewtransform = mat4.inverse(this.camera.viewTransform);
     gpu.device.queue.writeBuffer(this.frameBindGroup.buffer[1], 0, inverseViewtransform as Float32Array);
+    gpu.device.queue.writeBuffer(this.frameBindGroup.buffer[2], 0, this.camera.viewTransform as Float32Array);
 
     // Write the camera position
 
     const cameraPosition = vec4.transformMat4(vec4.create(0, 0, 0, 1), this.camera.viewTransform);
-    gpu.device.queue.writeBuffer(this.frameBindGroup.buffer[2], 0, cameraPosition as Float32Array);
-    gpu.device.queue.writeBuffer(this.frameBindGroup.buffer[3], 0, this.aspectRatio as Float32Array);
+    gpu.device.queue.writeBuffer(this.frameBindGroup.buffer[3], 0, cameraPosition as Float32Array);
+    gpu.device.queue.writeBuffer(this.frameBindGroup.buffer[4], 0, this.aspectRatio as Float32Array);
 
     // Update the light information
     lightsStructure.set({
@@ -410,11 +424,28 @@ class Renderer implements RendererInterface {
       })),
     });
 
-    gpu.device.queue.writeBuffer(this.frameBindGroup.buffer[4], 0, lightsStructure.arrayBuffer);
+    gpu.device.queue.writeBuffer(this.frameBindGroup.buffer[5], 0, lightsStructure.arrayBuffer);
+
+    const circles = this.scene.getRangeCircles()
+
+    circlesStructure.set({
+      numCircles: circles.length,
+      circles: circles.map((c) => ({
+        position: vec4.transformMat4(
+          vec4.create(0, 0, 0, 1),
+          c.transform,
+        ),
+        color: c.color,
+        radius: c.radius,
+        thickness: c.thickness,
+      })),
+    })
+
+    gpu.device.queue.writeBuffer(this.frameBindGroup.buffer[6], 0, circlesStructure.arrayBuffer);
 
     this.timeBuffer[0] = timestamp / 1000.0;
     
-    gpu.device.queue.writeBuffer(this.frameBindGroup.buffer[5], 0, this.timeBuffer);
+    gpu.device.queue.writeBuffer(this.frameBindGroup.buffer[7], 0, this.timeBuffer);
 
     await this.scene2d.updateLayout()
 
@@ -505,7 +536,7 @@ class Renderer implements RendererInterface {
     const index = this.particleSystems.findIndex((p) => p === particleSystem)
 
     if (index !== -1) {
-      this.particleSystems[index].removePoints(this.scene)
+      this.particleSystems[index].removePoints(this.scene.scene)
 
       this.particleSystems = [
         ...this.particleSystems.slice(0, index),

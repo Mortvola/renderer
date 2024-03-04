@@ -22,8 +22,14 @@ export interface RenderPassInterface {
 export interface RenderPass2DInterface {
 }
 
+export interface SceneGraphInterface {
+  addNode(node: SceneNodeInterface): void;
+
+  removeNode(node: SceneNodeInterface): void;
+}
+
 export interface RendererInterface {
-  scene: ContainerNodeInterface;
+  scene: SceneGraphInterface;
 
   deferredRenderPass: RenderPassInterface | null;
 

@@ -14,13 +14,8 @@ ${phongFunction}
 @group(1) @binding(2) var positionTexture: texture_2d<f32>;
 @group(1) @binding(3) var normalTexture: texture_2d<f32>;
 
-@fragment
-fn fs(vertexOut: VertexOut) -> @location(0) vec4f
+fn lighting(albedo: vec3f, position: vec3f, normal: vec3f) -> vec3f
 {
-  var albedo = textureSample(albedoTexture, textureSampler, vertexOut.texcoord).rgb;
-  var position = textureSample(positionTexture, textureSampler, vertexOut.texcoord).xyz;
-  var normal = normalize(textureSample(normalTexture, textureSampler, vertexOut.texcoord).xyz);
-
   var ambientColor = vec3f(1.0, 1.0, 1.0);
   var ambientStrength = f32(0.25);
 
@@ -57,6 +52,36 @@ fn fs(vertexOut: VertexOut) -> @location(0) vec4f
     lighting.specular += result.specular;
   }
 
-  return vec4((ambientStrength * ambientColor + lighting.diffuse + lighting.specular) * albedo, 1.0);
+  return (ambientStrength * ambientColor + lighting.diffuse + lighting.specular) * albedo;
+}
+
+fn rangeCircles(wp: vec4f, albedo: vec3f) -> vec3f {
+  for (var i: u32 = 0; i < circles.numCircles; i++) {
+    var circle = circles.circles[i];
+    
+    var d = distance(wp.xz, circle.position.xz);
+
+    if (d >= circle.radius && d < circle.radius + circle.thickness) {
+      return circle.color.rgb;
+    }
+  }
+
+  return albedo;
+}
+
+@fragment
+fn fs(vertexOut: VertexOut) -> @location(0) vec4f
+{
+  var albedo = textureSample(albedoTexture, textureSampler, vertexOut.texcoord).rgb;
+  var position = textureSample(positionTexture, textureSampler, vertexOut.texcoord);
+  var normal = normalize(textureSample(normalTexture, textureSampler, vertexOut.texcoord).xyz);
+
+  var wp = inverseViewMatrix * position;
+
+  albedo = lighting(albedo, position.xyz, normal);
+
+  albedo = rangeCircles(wp, albedo);
+
+  return vec4f(albedo, 1.0);
 }
 `

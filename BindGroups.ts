@@ -29,9 +29,9 @@ class BindGroups {
           visibility: GPUShaderStage.VERTEX,
           buffer: {},
         },
-        { // Camera position
+        { // Inverse View matrix
           binding: 2,
-          visibility: GPUShaderStage.VERTEX,
+          visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
           buffer: {},
         },
         { // Camera position
@@ -39,15 +39,27 @@ class BindGroups {
           visibility: GPUShaderStage.VERTEX,
           buffer: {},
         },
-        { // Light data
+        { // Camera position
           binding: 4,
+          visibility: GPUShaderStage.VERTEX,
+          buffer: {},
+        },
+        { // Light data
+          binding: 5,
           visibility: GPUShaderStage.FRAGMENT,
           buffer: {
             type: 'read-only-storage',
           },
-        } as GPUBindGroupLayoutEntry,
-        { // Light data
-          binding: 5,
+        },
+        { // Circle data
+          binding: 6,
+          visibility: GPUShaderStage.FRAGMENT,
+          buffer: {
+            type: 'read-only-storage',
+          },
+        },
+        { // time
+          binding: 7,
           visibility: GPUShaderStage.FRAGMENT,
           buffer: {},
         },
