@@ -20,12 +20,11 @@ fn blinnPhong(
   var NdotL = dot(normal, lightDirection);
   output.diffuse = max(NdotL, 0) * lightColor * attenuation;
 
-  output.specular = vec3f(0);
-  if (NdotL >= -0.1) {
-    var halfwayDir = normalize(viewDirection + lightDirection);
-    var NdotH = dot(normal, halfwayDir);
-    output.specular = specularStrength * pow(max(NdotH, 0), shininess) * lightColor * attenuation;
-  }
+  var halfwayDir = normalize(viewDirection + lightDirection);
+  var NdotH = dot(normal, halfwayDir);
+  // The step call is to eliminate specular (without using branching) if the surface is facing away from the light
+  // (The -0.1 is a fudge factor to reduce fighting).
+  output.specular = step(-0.1, NdotL) * specularStrength * pow(max(NdotH, 0), shininess) * lightColor * attenuation;
 
   return output;
 }
