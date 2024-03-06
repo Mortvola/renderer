@@ -52,7 +52,6 @@ class SceneNode implements SceneNodeInterface {
   }
 
   computeTransform(transform = mat4.identity(), prepend = true) {
-    
     mat4.translate(transform, this.translate, this.transform);
     mat4.multiply(this.transform, this.getRotation(), this.transform);
     mat4.scale(this.transform, this.scale, this.transform);

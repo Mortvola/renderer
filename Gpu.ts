@@ -24,7 +24,6 @@ class Gpu {
       }
 
       const adapter = await this.adpapterPromise
-      this.adpapterPromise = null;
   
       if (adapter) {  
         if (!this.devicePromise) {
@@ -32,7 +31,6 @@ class Gpu {
         }
 
         this.d = await this.devicePromise
-        this.devicePromise = null
       
         return this.d !== undefined;
       }

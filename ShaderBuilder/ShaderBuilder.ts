@@ -3,7 +3,7 @@ import { ShaderDescriptor } from "../shaders/ShaderDescriptor";
 import { bloom } from "../RenderSetings";
 import { common } from "../shaders/common";
 import { getFragmentStage } from "../shaders/fragmentStage";
-import { phongFunction } from "../shaders/phongFunction";
+import { phongFunction } from "../shaders/blinnPhongFunction";
 import { twirlFunction } from '../shaders/twirlFunction';
 import { getVertexStage } from "../shaders/vertexStage";
 import { voronoiFunction } from "../shaders/voronoiFunction";
@@ -36,6 +36,16 @@ import { DataType, GraphEdgeInterface, GraphNodeInterface, PropertyInterface, ge
 import Value from "./Value";
 import ValueNode from "./ValueNode";
 import VertexColor from "./Nodes/VertexColor";
+import { meshInstances } from "../shaders/meshInstances";
+import Step from "./Nodes/Step";
+import Clamp from "./Nodes/Clamp";
+import Max from "./Nodes/Max";
+import Min from "./Nodes/Min";
+import FWidth from "./Nodes/FWidth";
+import Divide from "./Nodes/Divide";
+import TextureSize from "./Nodes/TextureSize";
+import Inverse from "./Nodes/Inverse";
+import Distance from "./Nodes/Distance";
 
 export const buildStageGraph = (graphDescr: GraphStageDescriptor, properties: Property[]): StageGraph => {
   let nodes: GraphNodeInterface[] = [];
@@ -78,6 +88,14 @@ export const buildStageGraph = (graphDescr: GraphStageDescriptor, properties: Pr
         node = new Output(nodeDescr.id);
         break;
 
+      case 'Distance':
+        node = new Distance(nodeDescr.id);
+        break;
+  
+      case 'Divide':
+        node = new Divide(nodeDescr.id);
+        break;
+  
       case 'uv':
         node = new UV(nodeDescr.id)
         break;
@@ -94,6 +112,22 @@ export const buildStageGraph = (graphDescr: GraphStageDescriptor, properties: Pr
         node = new Fraction(nodeDescr.id);
         break;
 
+      case 'FWidth':
+        node = new FWidth(nodeDescr.id);
+        break;
+
+      case 'Inverse':
+        node = new Inverse(nodeDescr.id);
+        break;
+  
+      case 'Max':
+        node = new Max(nodeDescr.id);
+        break;
+
+      case 'Min':
+        node = new Min(nodeDescr.id);
+        break;
+    
       case 'Multiply':
         node = new Multiply(nodeDescr.id);
         break;
@@ -110,6 +144,10 @@ export const buildStageGraph = (graphDescr: GraphStageDescriptor, properties: Pr
         node = new Split(nodeDescr.id);
         break;
   
+      case 'Clamp':
+        node = new Clamp(nodeDescr.id);
+        break;
+
       case 'Combine':
         node = new Combine(nodeDescr.id);
         break;
@@ -130,10 +168,18 @@ export const buildStageGraph = (graphDescr: GraphStageDescriptor, properties: Pr
         node = new Lerp(nodeDescr.id);
         break;
 
+      case 'Step':
+        node = new Step(nodeDescr.id);
+        break;
+  
       case 'Subtract':
         node = new Subtract(nodeDescr.id);
         break;
-      
+        
+      case 'TextureSize':
+        node = new TextureSize(nodeDescr.id);
+        break;
+
       case 'VertexColor':
         node = new VertexColor(nodeDescr.id);
         break;
@@ -141,7 +187,7 @@ export const buildStageGraph = (graphDescr: GraphStageDescriptor, properties: Pr
       case 'value': {
         const vnode = nodeDescr as ValueDescriptor;
 
-        if (vnode.dataType === 'vec2f') {
+        if (['vec2f', 'vec3f', 'vec4f'].includes(vnode.dataType)) {
           node = new Vector(new Value(vnode.dataType, vnode.value), vnode.id)
         }
         else {
@@ -337,7 +383,7 @@ export const generateShaderCode = (
   vertProperties: PropertyInterface[],
   lit: boolean,
 ): [string, Property[], Property[]] => {
-  let body = '';
+  let fragmentBody = '';
 
   let vertBindings = '';
   let fragBindings = '';
@@ -366,9 +412,9 @@ export const generateShaderCode = (
   }
 
   if (graph && graph.fragment) {
-    [body, fragProperties] = generateStageShaderCode(graph.fragment);
+    [fragmentBody, fragProperties] = generateStageShaderCode(graph.fragment);
 
-    console.log(body);
+    console.log(fragmentBody);
   }
 
   for (let i = 0; i < fragProperties.length; i += 1) {
@@ -400,6 +446,12 @@ export const generateShaderCode = (
     `    
     ${common}
 
+    ${
+      drawableType === '2D' || drawableType === 'Mesh2D'
+        ? ''
+        : meshInstances
+    }
+
     ${vertUniforms}
 
     ${vertBindings}
@@ -416,7 +468,7 @@ export const generateShaderCode = (
 
     ${voronoiFunction}
 
-    ${getFragmentStage(body, bloom)}
+    ${getFragmentStage(fragmentBody, lit, bloom)}
     `,
     vertProperties,
     fragProperties,
@@ -426,31 +478,31 @@ export const generateShaderCode = (
 export const generateCode = (
   drawableType: DrawableType,
   vertexProperties: PropertyInterface[],
-  materialDescriptor?: ShaderDescriptor,
+  shaderDescriptor?: ShaderDescriptor,
 ): [string, Property[], Property[]] => {
   let props: Property[] = [];
 
-  if (materialDescriptor?.properties) {
-    props = props.concat(materialDescriptor.properties.map((p) => (
+  if (shaderDescriptor?.properties) {
+    props = props.concat(shaderDescriptor.properties.map((p) => (
       new Property(p.name, p.dataType, p.value)
     )))
   }
 
   let graph: ShaderGraph | null = null;
 
-  if (materialDescriptor?.graph) {
-    graph = buildGraph(materialDescriptor.graph!, props);
+  if (shaderDescriptor?.graph) {
+    graph = buildGraph(shaderDescriptor.graph!, props);
   }
 
-  return generateShaderCode(graph, drawableType, vertexProperties, materialDescriptor?.lit ?? false);
+  return generateShaderCode(graph, drawableType, vertexProperties, shaderDescriptor?.lit ?? false);
 }
 
 export const generateShaderModule = (
   drawableType: DrawableType,
   vertexProperties: PropertyInterface[],
-  materialDescriptor?: ShaderDescriptor,
+  shaderDescriptor?: ShaderDescriptor,
 ): [GPUShaderModule, Property[], Property[], string] => {
-  const [code, vertProperties, fragProperties] = generateCode(drawableType, vertexProperties, materialDescriptor);
+  const [code, vertProperties, fragProperties] = generateCode(drawableType, vertexProperties, shaderDescriptor);
   
   let shaderModule: GPUShaderModule
   try {

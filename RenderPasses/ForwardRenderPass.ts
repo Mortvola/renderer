@@ -1,9 +1,12 @@
-import RenderPass from "./RenderPass";
-import { RenderPassInterface } from "../types";
 import { bloom } from "../RenderSetings";
+import RenderPass from "./RenderPass";
 
-class TransparentRenderPass extends RenderPass implements RenderPassInterface {
-  getDescriptor(view: GPUTextureView, bright: GPUTextureView, depthView: GPUTextureView | null): GPURenderPassDescriptor {
+class ForwardRenderPass extends RenderPass {
+  getDescriptor(
+    view: GPUTextureView,
+    bright: GPUTextureView,
+    depthView: GPUTextureView | null,
+  ): GPURenderPassDescriptor {
     const colorAttachments: GPURenderPassColorAttachment[] = [
       {
         view,
@@ -23,7 +26,7 @@ class TransparentRenderPass extends RenderPass implements RenderPassInterface {
     }
 
     const descriptor: GPURenderPassDescriptor = {
-      label: 'transparent render pass',
+      label: 'forward render pass',
       colorAttachments,
     };
 
@@ -38,6 +41,22 @@ class TransparentRenderPass extends RenderPass implements RenderPassInterface {
 
     return descriptor;
   }
+
+  render(
+    view: GPUTextureView,
+    bright: GPUTextureView,
+    depthView: GPUTextureView | null,
+    commandEncoder: GPUCommandEncoder,
+    frameBindGroup: GPUBindGroup,
+  ) {
+    const passEncoder = commandEncoder.beginRenderPass(this.getDescriptor(view, bright, depthView!));
+
+    passEncoder.setBindGroup(0, frameBindGroup);
+
+    this.runPipelines(passEncoder)
+
+    passEncoder.end();
+  }
 }
 
-export default TransparentRenderPass;
+export default ForwardRenderPass;

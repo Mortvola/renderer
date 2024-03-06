@@ -15,6 +15,8 @@ class DrawableNode extends SceneNode implements DrawableNodeInterface {
 
   color = new Float32Array(4);
 
+  instanceIndex = 0;
+
   private constructor(drawable: DrawableInterface, material: MaterialInterface) {
     super();
     this.drawable = drawable;
@@ -49,6 +51,8 @@ class DrawableNode extends SceneNode implements DrawableNodeInterface {
   computeTransform(transform = mat4.identity(), prepend = true): void {
     super.computeTransform(transform, prepend);
 
+    this.instanceIndex = this.drawable.numInstances;
+    
     this.drawable.addInstanceInfo(this.transform, this.color);
   }
 
