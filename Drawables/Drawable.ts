@@ -59,7 +59,7 @@ class Drawable implements DrawableInterface {
     });
   }
 
-  render(passEncoder: GPURenderPassEncoder): void {
+  render(passEncoder: GPURenderPassEncoder, numInstances: number): void {
     throw new Error('render not implemented')
   }
 

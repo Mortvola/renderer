@@ -2,8 +2,11 @@ import { Vec4, mat4, vec4 } from "wgpu-matrix";
 import DrawableInterface from "../DrawableInterface";
 import SceneNode from "./SceneNode";
 import { DrawableNodeInterface, MaterialInterface } from "../../types";
+import Material from "../../Materials/Material";
 import { MaterialDescriptor } from "../../Materials/MaterialDescriptor";
 import { materialManager } from "../../Materials/MaterialManager";
+
+const materialsMap: Map<string, Material> = new Map()
 
 class DrawableNode extends SceneNode implements DrawableNodeInterface {
   drawable: DrawableInterface;
@@ -11,8 +14,6 @@ class DrawableNode extends SceneNode implements DrawableNodeInterface {
   material: MaterialInterface;
 
   color = new Float32Array(4);
-
-  instanceIndex = 0;
 
   private constructor(drawable: DrawableInterface, material: MaterialInterface) {
     super();
@@ -48,8 +49,6 @@ class DrawableNode extends SceneNode implements DrawableNodeInterface {
   computeTransform(transform = mat4.identity(), prepend = true): void {
     super.computeTransform(transform, prepend);
 
-    this.instanceIndex = this.drawable.numInstances;
-    
     this.drawable.addInstanceInfo(this.transform, this.color);
   }
 

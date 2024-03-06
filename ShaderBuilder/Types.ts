@@ -5,9 +5,8 @@ export type DataType = 'float' | 'vec2f' | 'vec3f' | 'vec4f' | 'texture2D' | 'sa
 export type NodeType =
   'property' | 'value'
   | 'uv' | 'time'  | 'time'
-  | 'Add' | 'Clamp' | 'Combine' | 'display' | 'Distance' | 'Divide' | 'Fraction' | 'FWidth' | 'Inverse' | 'Lerp' | 'Max' | 'Min' | 'Multiply' | 'Power'
-  | 'SampleTexture' | 'Split' | 'Subtract' | 'Step' | 'TileAndScroll'
-  | 'PhongShading' | 'TextureSize' | 'Twirl' | 'VertexColor' | 'Voronoi';
+  | 'Add' | 'Combine' | 'display' | 'Fraction' | 'Lerp' | 'Multiply' | 'Power' | 'SampleTexture' | 'Split' | 'Subtract' | 'TileAndScroll'
+  | 'PhongShading' | 'Twirl' | 'VertexColor' | 'Voronoi';
 
 export type SamplerDescriptor = {};
 
@@ -135,6 +134,8 @@ export interface PropertyInterface {
   name: string;
 
   value: ValueInterface;
+
+  builtin: boolean;
 }
 
 export const getLength = (dataType: DataType) => {

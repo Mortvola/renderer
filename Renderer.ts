@@ -1,17 +1,17 @@
 /* eslint-disable no-restricted-syntax */
-import { Vec4, mat4, vec4 } from 'wgpu-matrix';
+import { Vec4, mat4, vec2, vec4 } from 'wgpu-matrix';
 import {
   makeShaderDataDefinitions,
   makeStructuredView,
 } from 'webgpu-utils';
 import Camera from './Camera';
 import { degToRad } from './Math';
-import ContainerNode, { isContainerNode } from './Drawables/SceneNodes/ContainerNode';
+import ContainerNode from './Drawables/SceneNodes/ContainerNode';
 import RenderPass from './RenderPasses/RenderPass';
 import Light, { isLight } from './Drawables/Light';
 import CartesianAxes from './Drawables/CartesianAxes';
 import DrawableNode from './Drawables/SceneNodes/DrawableNode';
-import { SceneNodeInterface, RendererInterface, ParticleSystemInterface, ContainerNodeInterface, DrawableNodeInterface } from './types';
+import { SceneNodeInterface, RendererInterface, ParticleSystemInterface } from './types';
 import { lineMaterial } from './Materials/Line';
 import { lights } from "./shaders/lights";
 import { gpu } from './Gpu';
@@ -20,11 +20,6 @@ import { pipelineManager } from './Pipelines/PipelineManager';
 import TransparentRenderPass from './RenderPasses/TransparentRenderPass';
 import BloomPass from './RenderPasses/BloomPass';
 import { outputFormat } from './RenderSetings';
-import RenderPass2D from './RenderPasses/RenderPass2D';
-import SceneGraph2D from './SceneGraph2d';
-import TransparentRenderPass2D from './RenderPasses/TransparentRenderPass2D';
-import OutlinePass from './RenderPasses/OutlinePass';
-import { isDrawableNode } from './Drawables/SceneNodes/utils';
 
 const requestPostAnimationFrame = (task: (timestamp: number) => void) => {
   requestAnimationFrame((timestamp: number) => {
@@ -69,30 +64,22 @@ class Renderer implements RendererInterface {
 
   scene = new ContainerNode();
 
-  scene2d = new SceneGraph2D();
-
   mainRenderPass = new RenderPass();
 
   transparentPass = new TransparentRenderPass();
 
-  renderPass2D = new RenderPass2D();
-
-  transparentRenderPass2D = new TransparentRenderPass2D();
-
   bloomPass: BloomPass | null = null;
-
-  outlinePass: OutlinePass | null = null;
-
-  outlineMesh: DrawableNodeInterface | null = null;
 
   lights: Light[] = [];
 
-  particleSystems: ParticleSystemInterface[] = [];
+  reticlePosition = vec2.create(0, 0);
 
-  timeBuffer = new Float32Array(1)
+  particleSystems: ParticleSystemInterface[] = [];
 
   constructor(frameBindGroupLayout: GPUBindGroupLayout, cartesianAxes: DrawableNode, test?: SceneNodeInterface) {
     this.createCameraBindGroups(frameBindGroupLayout);
+
+    // this.reticle = reticle;
 
     this.aspectRatio[0] = 1.0;
     this.scene.addNode(cartesianAxes);
@@ -132,8 +119,6 @@ class Renderer implements RendererInterface {
     });
 
     this.camera.computeViewTransform();
-
-    this.scene2d.setCanvasDimensions(canvas.width, canvas.height);
 
     this.initialized = true;
   }
@@ -241,7 +226,7 @@ class Renderer implements RendererInterface {
           this.camera.updatePosition(elapsedTime, timestamp);
         }
 
-        await this.drawScene(timestamp);
+        this.drawScene(timestamp);
 
         this.previousTimestamp = timestamp;
         this.framesRendered += 1;
@@ -274,7 +259,7 @@ class Renderer implements RendererInterface {
     };
   }
 
-  async drawScene(timestamp: number) {
+  drawScene(timestamp: number) {
     if (!this.context) {
       throw new Error('context is null');
     }
@@ -291,8 +276,6 @@ class Renderer implements RendererInterface {
     if (this.context.canvas.width !== this.renderedDimensions[0]
       || this.context.canvas.height !== this.renderedDimensions[1]
     ) {
-      this.scene2d.setCanvasDimensions(this.context.canvas.width, this.context.canvas.height);
-
       const depthTexture = gpu.device.createTexture({
         size: { width: this.context.canvas.width, height: this.context.canvas.height },
         format: 'depth24plus',
@@ -301,12 +284,8 @@ class Renderer implements RendererInterface {
 
       this.depthTextureView = depthTexture.createView();
 
-      const scratchTextureView = this.createScratchTexture(this.context).createView();
-
-      this.bloomPass = new BloomPass(this.context, scratchTextureView);
-      
-      this.outlinePass = new OutlinePass(scratchTextureView)
-
+      this.bloomPass = new BloomPass(this.context);
+            
       this.aspectRatio[0] = this.context.canvas.width / this.context.canvas.height;
 
       this.camera.perspectiveTransform = mat4.perspective(
@@ -363,75 +342,50 @@ class Renderer implements RendererInterface {
 
     gpu.device.queue.writeBuffer(this.frameBindGroup.buffer[4], 0, lightsStructure.arrayBuffer);
 
-    this.timeBuffer[0] = timestamp / 1000.0;
+    const timeBuffer = new Float32Array(1);
+    timeBuffer[0] = timestamp / 1000.0;
     
-    gpu.device.queue.writeBuffer(this.frameBindGroup.buffer[5], 0, this.timeBuffer);
+    gpu.device.queue.writeBuffer(this.frameBindGroup.buffer[5], 0, timeBuffer);
 
-    await this.scene2d.updateLayout()
+    const commandEncoder = gpu.device.createCommandEncoder();
 
-    this.submitRenderPasses()
-  }
-
-  createScratchTexture(context: GPUCanvasContext) {
-    return gpu.device.createTexture({
-      format: outputFormat,
-      size: { width: context.canvas.width, height: context.canvas.height },
-      usage: GPUTextureUsage.TEXTURE_BINDING |
-            GPUTextureUsage.COPY_DST |
-            GPUTextureUsage.RENDER_ATTACHMENT,
-    });
-  }
-
-  // Note: do not place any awaits in the method as it can cause microtasks to execute
-  // which can impact the rendering process.
-  submitRenderPasses() {
-    if (this.context && this.frameBindGroup) {
-      const commandEncoder = gpu.device.createCommandEncoder();
-
-      const sceneView = this.bloomPass?.screenTextureView
-      const bloomView = this.bloomPass?.bloomTextureView
-
-      this.mainRenderPass.render(sceneView!, bloomView!, this.depthTextureView!, commandEncoder, this.frameBindGroup.bindGroup);
-      this.transparentPass.render(sceneView!, bloomView!, this.depthTextureView!, commandEncoder, this.frameBindGroup.bindGroup);
-
-      const canvasView = this.context.getCurrentTexture().createView()
-
-      if (this.bloomPass) {
-        this.bloomPass.render(canvasView, commandEncoder);      
-      }
-
-      if (this.outlinePass && this.outlineMesh) {
-        this.outlinePass.render(canvasView, this.frameBindGroup.bindGroup, this.outlineMesh, commandEncoder)
-      }
-
-      this.renderPass2D.render(canvasView, this.depthTextureView!, commandEncoder, this.frameBindGroup.bindGroup, this.scene2d);
-      this.transparentRenderPass2D.render(canvasView, this.depthTextureView!, commandEncoder, this.frameBindGroup.bindGroup, this.scene2d);
-
-      gpu.device.queue.submit([commandEncoder.finish()]);
-    }
-  }
-
-  setOutlineMesh(sceneNode: ContainerNodeInterface | null): boolean {
-    if (sceneNode === null) {
-      this.outlineMesh = null
-    }
-    else {
-      for (const node of sceneNode.nodes) {
-        if (isDrawableNode(node)) {
-          this.outlineMesh = node
-          return true;
-        }
-        else if (isContainerNode(node)) {
-          const result = this.setOutlineMesh(node);
-  
-          if (result) {
-            return true;
-          }
-        }
-      }  
+    // const canvasView = this.context.getCurrentTexture().createView();
+    const sceneView = this.bloomPass?.screenTextureView
+    const bloomView = this.bloomPass?.bloomTextureView
+    
+    this.mainRenderPass.render(sceneView!, bloomView!, this.depthTextureView!, commandEncoder, this.frameBindGroup.bindGroup);
+    this.transparentPass.render(sceneView!, bloomView!, this.depthTextureView!, commandEncoder, this.frameBindGroup.bindGroup);
+    
+    if (this.bloomPass) {
+      this.bloomPass.render(this.context.getCurrentTexture().createView(), commandEncoder);      
     }
 
-    return false;
+    // if (this.selected.selection.length > 0) {
+    //   // Transform camera position to world space.
+    //   const origin = vec4.transformMat4(vec4.create(0, 0, 0, 1), this.camera.viewTransform);
+    //   const centroid = this.selected.getCentroid();
+
+    //   // We want to make the drag handles appear to be the same distance away
+    //   // from the camera no matter how far the centroid is from the camera.
+    //   const apparentDistance = 25;
+    //   let actualDistance = vec3.distance(origin, centroid);
+    //   const scale = actualDistance / apparentDistance;
+
+    //   const mat = mat4.translate(mat4.identity(), centroid);
+    //   mat4.scale(mat, vec3.create(scale, scale, scale), mat)
+
+    //   if (this.transformer.spaceOrientation === 'Local') {
+    //     mat4.multiply(mat, this.selected.selection[0].node.getRotation(), mat);
+    //   }
+
+    //   this.transformer.updateTransforms(mat)
+
+    //   this.dragHandlesPass.pipelines = [];
+
+    //   this.dragHandlesPass.render(view, this.depthTextureView!, commandEncoder);
+    // }
+
+    gpu.device.queue.submit([commandEncoder.finish()]);
   }
 
   updateDirection(direction: Vec4) {
@@ -466,10 +420,6 @@ class Renderer implements RendererInterface {
         ...this.particleSystems.slice(index + 1),
       ]
     }
-  }
-
-  canvasResize(width: number, height: number, scaleX: number, scaleY: number, viewportWidth: number, viewportHeight: number) {
-    this.scene2d.setCanvasDimensions(width, height, scaleX, scaleY, viewportWidth, viewportHeight)
   }
 }
 

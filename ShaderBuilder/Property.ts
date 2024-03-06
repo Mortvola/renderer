@@ -7,9 +7,12 @@ class Property implements PropertyInterface {
 
   value: Value;
 
-  constructor(name: string, dataType: DataType, value: ValueType) {
+  builtin: boolean;
+
+  constructor(name: string, dataType: DataType, value: ValueType, builtin?: boolean) {
     this.name = name;
     this.value = new Value(dataType, value);
+    this.builtin = builtin ?? false;
 
     makeObservable(this, {
       name: observable,

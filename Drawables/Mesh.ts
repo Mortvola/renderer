@@ -108,13 +108,13 @@ class Mesh extends Drawable {
     return null;
   }
 
-  render(passEncoder: GPURenderPassEncoder) {
+  render(passEncoder: GPURenderPassEncoder, numInstances: number) {
     passEncoder.setVertexBuffer(0, this.vertexBuffer);
     passEncoder.setVertexBuffer(1, this.normalBuffer);
     passEncoder.setVertexBuffer(2, this.texcoordBuffer);
     passEncoder.setIndexBuffer(this.indexBuffer, this.indexFormat);
 
-    passEncoder.drawIndexed(this.mesh.indexes.length, this.numInstances);
+    passEncoder.drawIndexed(this.mesh.indexes.length, numInstances);
   }
 
   computeCentroid(): Vec4 {

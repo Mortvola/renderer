@@ -36,16 +36,6 @@ import { DataType, GraphEdgeInterface, GraphNodeInterface, PropertyInterface, ge
 import Value from "./Value";
 import ValueNode from "./ValueNode";
 import VertexColor from "./Nodes/VertexColor";
-import { meshInstances } from "../shaders/meshInstances";
-import Step from "./Nodes/Step";
-import Clamp from "./Nodes/Clamp";
-import Max from "./Nodes/Max";
-import Min from "./Nodes/Min";
-import FWidth from "./Nodes/FWidth";
-import Divide from "./Nodes/Divide";
-import TextureSize from "./Nodes/TextureSize";
-import Inverse from "./Nodes/Inverse";
-import Distance from "./Nodes/Distance";
 
 export const buildStageGraph = (graphDescr: GraphStageDescriptor, properties: Property[]): StageGraph => {
   let nodes: GraphNodeInterface[] = [];
@@ -88,14 +78,6 @@ export const buildStageGraph = (graphDescr: GraphStageDescriptor, properties: Pr
         node = new Output(nodeDescr.id);
         break;
 
-      case 'Distance':
-        node = new Distance(nodeDescr.id);
-        break;
-  
-      case 'Divide':
-        node = new Divide(nodeDescr.id);
-        break;
-  
       case 'uv':
         node = new UV(nodeDescr.id)
         break;
@@ -112,22 +94,6 @@ export const buildStageGraph = (graphDescr: GraphStageDescriptor, properties: Pr
         node = new Fraction(nodeDescr.id);
         break;
 
-      case 'FWidth':
-        node = new FWidth(nodeDescr.id);
-        break;
-
-      case 'Inverse':
-        node = new Inverse(nodeDescr.id);
-        break;
-  
-      case 'Max':
-        node = new Max(nodeDescr.id);
-        break;
-
-      case 'Min':
-        node = new Min(nodeDescr.id);
-        break;
-    
       case 'Multiply':
         node = new Multiply(nodeDescr.id);
         break;
@@ -144,10 +110,6 @@ export const buildStageGraph = (graphDescr: GraphStageDescriptor, properties: Pr
         node = new Split(nodeDescr.id);
         break;
   
-      case 'Clamp':
-        node = new Clamp(nodeDescr.id);
-        break;
-
       case 'Combine':
         node = new Combine(nodeDescr.id);
         break;
@@ -168,18 +130,10 @@ export const buildStageGraph = (graphDescr: GraphStageDescriptor, properties: Pr
         node = new Lerp(nodeDescr.id);
         break;
 
-      case 'Step':
-        node = new Step(nodeDescr.id);
-        break;
-  
       case 'Subtract':
         node = new Subtract(nodeDescr.id);
         break;
-        
-      case 'TextureSize':
-        node = new TextureSize(nodeDescr.id);
-        break;
-
+      
       case 'VertexColor':
         node = new VertexColor(nodeDescr.id);
         break;
@@ -187,7 +141,7 @@ export const buildStageGraph = (graphDescr: GraphStageDescriptor, properties: Pr
       case 'value': {
         const vnode = nodeDescr as ValueDescriptor;
 
-        if (['vec2f', 'vec3f', 'vec4f'].includes(vnode.dataType)) {
+        if (vnode.dataType === 'vec2f') {
           node = new Vector(new Value(vnode.dataType, vnode.value), vnode.id)
         }
         else {
@@ -445,12 +399,6 @@ export const generateShaderCode = (
   return [
     `    
     ${common}
-
-    ${
-      drawableType === '2D' || drawableType === 'Mesh2D'
-        ? ''
-        : meshInstances
-    }
 
     ${vertUniforms}
 

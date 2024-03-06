@@ -1,6 +1,5 @@
 import BuiltIn from "../BuiltInNode";
 import OutputPort from "../Ports/OutputPort";
-import { DataType } from "../Types";
 
 class UV extends BuiltIn {
   constructor(id?: number) {
@@ -12,10 +11,6 @@ class UV extends BuiltIn {
 
   setVarName(varName: string | null): void {
     super.setVarName('vertexOut.texcoord')
-  }
-
-  getDataType(): DataType {
-    return 'vec2f'
   }
 }
 

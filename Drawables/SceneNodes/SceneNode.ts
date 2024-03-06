@@ -5,6 +5,8 @@ import { SceneNodeInterface } from '../../types';
 export const rotationOrder: quat.RotationOrder = 'xyz';
 
 class SceneNode implements SceneNodeInterface {
+  uuid = crypto.randomUUID() as string;
+
   name = '';
 
   transform = mat4.identity();

@@ -1,7 +1,8 @@
 import { bindGroups } from "../BindGroups";
+import DrawableInterface from "../Drawables/DrawableInterface";
 import { gpu } from "../Gpu";
 import { pipelineManager } from "../Pipelines/PipelineManager";
-import { DrawableType, MaterialInterface, PipelineInterface, StageBindings } from "../types";
+import { DrawableNodeInterface, DrawableType, MaterialInterface, PipelineInterface, StageBindings } from "../types";
 import { PropertyInterface, ValueType } from "../ShaderBuilder/Types";
 import Http from "../../Http/src";
 import { MaterialDescriptor } from "./MaterialDescriptor";
@@ -25,6 +26,8 @@ class Material implements MaterialInterface {
   vertBindings: MaterialBindings | null = null;
 
   fragBindings: MaterialBindings | null = null;
+
+  drawables: DrawableInterface[] = [];
 
   transparent: boolean;
 
@@ -82,8 +85,6 @@ class Material implements MaterialInterface {
     vertexProperties: PropertyInterface[],
     materialDescriptor?: MaterialDescriptor,
   ): Promise<Material> {
-    await gpu.ready()
-    
     let shaderDescriptor: ShaderDescriptor | undefined
 
     if (typeof materialDescriptor?.shaderDescriptor === 'number') {
@@ -180,7 +181,7 @@ class Material implements MaterialInterface {
       uniformsBuffer,
       gpu.device.createBindGroup({
         label: 'material',
-        layout: bindings.layout!,
+        layout: bindings.layout ?? bindGroups.getBindGroupLayout2(),
         entries,
       }),
     ]
@@ -202,7 +203,7 @@ class Material implements MaterialInterface {
           
           texture = gpu.device.createTexture({
             format: 'rgba8unorm',
-            size: { width: image.width, height: image.height },
+            size: [image.width, image.height],
             usage: GPUTextureUsage.TEXTURE_BINDING |
                   GPUTextureUsage.COPY_DST |
                   GPUTextureUsage.RENDER_ATTACHMENT,
@@ -239,7 +240,7 @@ class Material implements MaterialInterface {
     }
   }
 
-  setPropertyValues(stage: GPUShaderStageFlags, properties: PropertyInterface[]): void {
+  setPropertyValues(stage: GPUShaderStageFlags, properties: PropertyInterface[]) {
     let bindings: MaterialBindings | null = null
 
     if (stage === GPUShaderStage.VERTEX) {
@@ -288,6 +289,14 @@ class Material implements MaterialInterface {
 
       bindings.stageBindings.structuredView.set(values);
       gpu.device.queue.writeBuffer(bindings.uniformsBuffer, 0, bindings.stageBindings.structuredView.arrayBuffer);  
+    }
+  }
+
+  addDrawable(drawableNode: DrawableNodeInterface): void {
+    let entry = this.drawables.find((d) => d === drawableNode.drawable);
+
+    if (!entry) {
+      this.drawables.push(drawableNode.drawable);
     }
   }
 }

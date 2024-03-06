@@ -25,10 +25,6 @@ class ValueNode extends GraphNode implements ValueNodeInterface {
     })
   }
 
-  getDataType(): DataType {
-    return this.value.dataType
-  }
-
   getExpression(): [string, DataType] {
     return this.value.getValueString() ?? ['', this.getDataType()];
   }

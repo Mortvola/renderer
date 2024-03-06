@@ -43,8 +43,13 @@ class Camera {
   updateRotation = false
 
   constructor(offset?: number, position?: Vec4) {
-    this.offset = offset ?? this.offset;
-    this.position = position ?? this.position;
+    if (offset) {
+      this.offset = offset;
+    }
+
+    if (position) {
+      this.position = position;
+    }
   }
 
   updatePosition(elapsedTime: number, timestamp: number) {

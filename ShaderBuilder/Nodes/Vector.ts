@@ -28,7 +28,7 @@ class Vector extends ValueNode {
     }
 
     // TODO: fix this for other vector sizes.
-    return [`${this.getDataType()}(${expression})`, this.getDataType()];
+    return [`vec2f(${expression})`, this.getDataType()];
   }
 }
 

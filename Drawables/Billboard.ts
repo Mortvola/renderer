@@ -8,9 +8,9 @@ class Billboard extends Drawable {
     this.name = 'Billboard'
   }
 
-  render(passEncoder: GPURenderPassEncoder) {
+  render(passEncoder: GPURenderPassEncoder, numInstances: number) {
     // TODO: determine how many lines should be rendered based on radius?
-    passEncoder.draw(6, this.numInstances);  
+    passEncoder.draw(6, numInstances);  
   }
 
   hitTest(p: Vec4, viewTransform: Mat4): { point: Vec4, t: number, drawable: Drawable} | null {

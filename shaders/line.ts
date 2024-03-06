@@ -1,5 +1,4 @@
 import { common } from "./common";
-import { meshInstances } from "./meshInstances";
 
 export const lineShader = /*wgsl*/`
 struct Vertex {
@@ -13,8 +12,6 @@ struct VertexOut {
 }
 
 ${common}
-
-${meshInstances}
 
 @vertex
 fn vertex_line(vert: Vertex) -> VertexOut

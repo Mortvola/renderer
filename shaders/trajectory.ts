@@ -1,5 +1,4 @@
 import { common } from "./common";
-import { meshInstances } from "./meshInstances";
 
 export const trajectoryShader = /*wgsl*/`
 
@@ -9,8 +8,6 @@ struct VertexOut {
 }
 
 ${common}
-
-${meshInstances}
 
 struct Trajectory {
   numSegments: f32,

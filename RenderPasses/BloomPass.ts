@@ -18,8 +18,8 @@ class BloomPass {
 
   blurPass: BlurPass
 
-  constructor(context: GPUCanvasContext, scratchTextureView: GPUTextureView) {
-    this.blurPass = new BlurPass(scratchTextureView)
+  constructor(context: GPUCanvasContext) {
+    this.blurPass = new BlurPass(context)
 
     this.screenTextureView = this.createTexture(context).createView()
     this.bloomTextureView = this.createTexture(context).createView()
@@ -81,7 +81,7 @@ class BloomPass {
   createTexture(context: GPUCanvasContext) {
     return gpu.device.createTexture({
       format: outputFormat,
-      size: { width: context.canvas.width, height: context.canvas.height },
+      size: [context.canvas.width, context.canvas.height],
       usage: GPUTextureUsage.TEXTURE_BINDING |
             GPUTextureUsage.COPY_DST |
             GPUTextureUsage.RENDER_ATTACHMENT,
@@ -120,6 +120,22 @@ class BloomPass {
 
     return gpu.device.createRenderPipeline(pipelineDescriptor);
   }
+
+  // getDescriptor(view: GPUTextureView): GPURenderPassDescriptor {
+  //   const descriptor: GPURenderPassDescriptor = {
+  //     label: 'main render pass',
+  //     colorAttachments: [
+  //       {
+  //         view,
+  //         clearValue: { r: 0.0, g: 0.0, b: 0.0, a: 1.0 },
+  //         loadOp: "clear" as GPULoadOp,
+  //         storeOp: "store" as GPUStoreOp,
+  //       },
+  //     ],
+  //   };
+
+  //   return descriptor;
+  // }
 
   render(view: GPUTextureView, commandEncoder: GPUCommandEncoder) {
     this.blurPass.render(this.bloomTextureView, this.bloomBindGroup, commandEncoder)
