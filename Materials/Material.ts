@@ -1,8 +1,7 @@
 import { bindGroups } from "../BindGroups";
-import DrawableInterface from "../Drawables/DrawableInterface";
 import { gpu } from "../Gpu";
 import { pipelineManager } from "../Pipelines/PipelineManager";
-import { DrawableNodeInterface, DrawableType, MaterialInterface, PipelineInterface, StageBindings } from "../types";
+import { DrawableType, MaterialInterface, PipelineInterface, StageBindings } from "../types";
 import { PropertyInterface, ValueType } from "../ShaderBuilder/Types";
 import Http from "../../Http/src";
 import { MaterialDescriptor } from "./MaterialDescriptor";
@@ -243,7 +242,7 @@ class Material implements MaterialInterface {
     }
   }
 
-  setPropertyValues(stage: GPUShaderStageFlags, properties: PropertyInterface[]) {
+  setPropertyValues(stage: GPUShaderStageFlags, properties: PropertyInterface[]): void {
     let bindings: MaterialBindings | null = null
 
     if (stage === GPUShaderStage.VERTEX) {
@@ -292,14 +291,6 @@ class Material implements MaterialInterface {
 
       bindings.stageBindings.structuredView.set(values);
       gpu.device.queue.writeBuffer(bindings.uniformsBuffer, 0, bindings.stageBindings.structuredView.arrayBuffer);  
-    }
-  }
-
-  addDrawable(drawableNode: DrawableNodeInterface): void {
-    let entry = this.drawables.find((d) => d === drawableNode.drawable);
-
-    if (!entry) {
-      this.drawables.push(drawableNode.drawable);
     }
   }
 }

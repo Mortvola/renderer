@@ -1,4 +1,5 @@
 import { common } from "./common";
+import { meshInstances } from "./meshInstances";
 
 export const outlineShader = /*wgsl*/`
 struct Vertex {

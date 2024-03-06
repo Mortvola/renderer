@@ -3,6 +3,7 @@ import { StructuredView } from 'webgpu-utils';
 import DrawableInterface from './Drawables/DrawableInterface';
 import { PropertyInterface, ValueType } from './ShaderBuilder/Types';
 import { ShaderDescriptor } from './shaders/ShaderDescriptor';
+import SceneNode2d from './Drawables/SceneNodes/SceneNode2d';
 
 export const maxInstances = 1000;
 
@@ -15,7 +16,7 @@ export interface ContainerNodeInterface extends SceneNodeInterface {
 }
 
 export interface RenderPassInterface {
-  addDrawable(drawable: DrawableNodeInterface): void;
+  addDrawable(drawable: DrawableNodeInterface | SceneNode2d): void;
 }
 
 export interface RenderPass2DInterface {
@@ -40,8 +41,6 @@ export interface RendererInterface {
 }
 
 export interface SceneNodeInterface {
-  uuid: string;
-
   name: string;
 
   translate: Vec3;
@@ -72,8 +71,8 @@ export interface MaterialInterface {
 
   setBindGroups(passEncoder: GPURenderPassEncoder): void;
 
-  addDrawable(drawableNode: DrawableNodeInterface): void;
-
+  setPropertyValues(stage: GPUShaderStageFlags, properties: PropertyInterface[]): void;
+  
   updateProperty(stage: GPUShaderStageFlags, name: string, value: ValueType): void;
 }
 
@@ -95,15 +94,6 @@ export interface PipelineInterface {
   vertexStageBindings: StageBindings | null
 
   fragmentStageBindings: StageBindings | null
-
-  // drawables: DrawableInterface[];
-  materials: MaterialInterface[];
-
-  addDrawable(drawable: DrawableNodeInterface): void;
-
-  // removeDrawable(drawable: DrawableNodeInterface): void;
-
-  render(passEncoder: GPURenderPassEncoder): void;
 }
 
 export type PipelineAttributes = {
@@ -181,6 +171,28 @@ export type GameObjectRecord = {
   name: string,
   object: GameObject,
 }
+
+export type GameObject2D = {
+  x?: number,
+  y?: number,
+  width?: number,
+  height?: number,
+  material?: number,
+}
+
+export type GameObject2DRecord = {
+  id: number,
+  name: string,
+  object: GameObject2D,
+}
+
+export const isGameObject2DRecord = (r: unknown): r is GameObject2DRecord => (
+  (r as GameObject2DRecord).object !== undefined
+  && (r as GameObject2DRecord).object.x !== undefined
+  && (r as GameObject2DRecord).object.y !== undefined
+  && (r as GameObject2DRecord).object.width !== undefined
+  && (r as GameObject2DRecord).object.height !== undefined
+)
 
 export type ParticleRecord = {
   id: number,

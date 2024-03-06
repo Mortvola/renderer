@@ -8,22 +8,29 @@ type PipelineEntry = {
 }
 
 class RenderPass implements RenderPassInterface {
-  pipelines: PipelineInterface[] = [];
+  pipelines: PipelineEntry[] = [];
 
-  addDrawable(drawable: DrawableNodeInterface) {
-    const pipeline = drawable.material.pipeline;
+  addDrawable(drawableNode: DrawableNodeInterface) {
+    const pipeline = drawableNode.material.pipeline;
 
     if (pipeline) {
-      let pipelineEntry = this.pipelines.find((p) => p === pipeline) ?? null;
+      let pipelineEntry = this.pipelines.find((p) => p.pipeline === pipeline) ?? null;
 
       if (!pipelineEntry) {
-        this.pipelines.push(pipeline);
-  
-        pipelineEntry = pipeline; // this.pipelines[this.pipelines.length - 1];
+        pipelineEntry = { pipeline, materials: new Map() }
+
+        this.pipelines.push(pipelineEntry);
       }
   
       if (pipelineEntry) {
-        pipelineEntry.addDrawable(drawable)
+        let materialDrawables = pipelineEntry.materials.get(drawableNode.material);
+
+        if (materialDrawables) {
+          materialDrawables.push(drawableNode.drawable)
+        }
+        else {
+          pipelineEntry.materials.set(drawableNode.material, [drawableNode.drawable])
+        }
       }  
     }
   }
