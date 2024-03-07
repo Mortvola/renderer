@@ -11,10 +11,10 @@ class BlurPass {
 
   pingpongBindGroup: GPUBindGroup
   
-  pingpongTextureView: GPUTextureView
+  scratchTextureView: GPUTextureView
 
-  constructor(context: GPUCanvasContext) {
-    this.pingpongTextureView = this.createTexture(context).createView()
+  constructor(scratchTextureView: GPUTextureView) {
+    this.scratchTextureView = scratchTextureView
 
     const bindGroupLayout = gpu.device.createBindGroupLayout({
       label,
@@ -43,7 +43,7 @@ class BlurPass {
           resource: sampler,
         },
         {
-          binding: 1, resource: this.pingpongTextureView,
+          binding: 1, resource: this.scratchTextureView,
         }
       ],
     });
@@ -55,16 +55,6 @@ class BlurPass {
 
     this.horizontalPipeline = this.createPipeline(shaderModule, bindGroupLayout, true);
     this.verticalPipeline = this.createPipeline(shaderModule, bindGroupLayout, false);
-  }
-
-  createTexture(context: GPUCanvasContext) {
-    return gpu.device.createTexture({
-      format: outputFormat,
-      size: [context.canvas.width, context.canvas.height],
-      usage: GPUTextureUsage.TEXTURE_BINDING |
-            GPUTextureUsage.COPY_DST |
-            GPUTextureUsage.RENDER_ATTACHMENT,
-    });
   }
 
   createPipeline(shaderModule: GPUShaderModule, bindGroupLayout: GPUBindGroupLayout, horizontal: boolean) {
@@ -104,7 +94,7 @@ class BlurPass {
       label: 'blur horizontal pass',
       colorAttachments: [
         {
-          view: this.pingpongTextureView,
+          view: this.scratchTextureView,
           clearValue: { r: 0.0, g: 0.0, b: 0.0, a: 1.0 },
           loadOp: "clear" as GPULoadOp,
           storeOp: "store" as GPUStoreOp,

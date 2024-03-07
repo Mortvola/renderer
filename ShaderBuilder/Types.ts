@@ -135,6 +135,8 @@ export interface PropertyInterface {
   name: string;
 
   value: ValueInterface;
+
+  builtin: boolean;
 }
 
 export const getLength = (dataType: DataType) => {

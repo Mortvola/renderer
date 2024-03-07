@@ -1,7 +1,7 @@
 import SceneGraph2D from "../SceneGraph2d";
 import { RenderPass2DInterface } from "../types";
 
-class RenderPass2D implements RenderPass2DInterface {
+class TransparentRenderPass2D implements RenderPass2DInterface {
   getDescriptor(
     view: GPUTextureView,
     depthView: GPUTextureView | null,
@@ -14,7 +14,7 @@ class RenderPass2D implements RenderPass2DInterface {
     }]
 
     const descriptor: GPURenderPassDescriptor = {
-      label: '2D render pass',
+      label: '2D transparent render pass',
       colorAttachments,
     };
 
@@ -22,7 +22,7 @@ class RenderPass2D implements RenderPass2DInterface {
       descriptor.depthStencilAttachment = {
         view: depthView,
         depthClearValue: 1.0,
-        depthLoadOp: "clear" as GPULoadOp,
+        depthLoadOp: "load" as GPULoadOp,
         depthStoreOp: "store" as GPUStoreOp,
       };
     }
@@ -48,7 +48,7 @@ class RenderPass2D implements RenderPass2DInterface {
 
       passEncoder.setBindGroup(1, scene2d.bindGroup);
 
-      for (const pipelineEntry of scene2d.pipelines) {
+      for (const pipelineEntry of scene2d.transparentPipelines) {
         passEncoder.setPipeline(pipelineEntry.pipeline.pipeline);
     
         for (const [material, instances] of pipelineEntry.materials) {
@@ -71,4 +71,4 @@ class RenderPass2D implements RenderPass2DInterface {
   }
 }
 
-export default RenderPass2D;
+export default TransparentRenderPass2D;

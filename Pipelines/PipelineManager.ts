@@ -8,13 +8,14 @@ import { DrawableType, PipelineInterface, PipelineManagerInterface, StageBinding
 import LinePipeline from "./LinePipeline";
 import OutlinePipeline from "./OutlinePipeline";
 import Pipeline from "./Pipeline";
+// import ReticlePipeline from "./ReticlePipeline";
 import TrajectoryPipeline from "./TrajectoryPipeline";
 import { generateShaderModule } from "../ShaderBuilder/ShaderBuilder";
 import { bloom, outputFormat } from "../RenderSetings";
 import { shaderManager } from "../shaders/ShaderManager";
 
 export type PipelineType =
-  'Line'| 'outline' | 'Trajectory';
+  'Line'| 'outline' | 'reticle' | 'Trajectory';
 
 type Pipelines = {
   type: PipelineType,
@@ -110,7 +111,7 @@ class PipelineManager implements PipelineManagerInterface {
 
     let pipeline: PipelineInterface;
 
-    if (shaderDescriptor && !shaderDescriptor.graph) {
+    if (shaderDescriptor && !shaderDescriptor.graph && shaderDescriptor.type) {
       const entry = this.pipelines.find((pipeline) => pipeline.type === shaderDescriptor!.type);
 
       if (!entry) {
@@ -169,6 +170,32 @@ class PipelineManager implements PipelineManagerInterface {
           }
         ];
       }
+      else if (drawableType === 'Mesh2D') {
+        vertexBufferLayout = [
+          {
+            attributes: [
+              {
+                shaderLocation: 0, // position
+                offset: 0,
+                format: "float32x2",
+              },
+            ],
+            arrayStride: 8,
+            stepMode: "vertex",
+          },
+          {
+            attributes: [
+              {
+                shaderLocation: 1, // texcoord
+                offset: 0,
+                format: "float32x2",
+              }
+            ],
+            arrayStride: 8,
+            stepMode: "vertex",
+          }
+        ];
+      }
 
       const targets: GPUColorTargetState[] = [];
 
@@ -188,12 +215,25 @@ class PipelineManager implements PipelineManagerInterface {
         });  
       }
       else {
-        targets.push({
-          format: outputFormat,
-        })
+        targets.push(
+          {
+            format: outputFormat,
+          },
+        )
+
+        if (shaderDescriptor?.lit) {
+          targets.push(
+            {
+              format: outputFormat,
+            },
+            {
+              format: outputFormat,
+            },
+          )
+        }
       }
 
-      if (bloom) {
+      if (!shaderDescriptor?.lit && bloom && drawableType !== 'Mesh2D') {
         targets.push({
           format: outputFormat,
         })
@@ -247,7 +287,7 @@ class PipelineManager implements PipelineManagerInterface {
       });
 
       const pipelineDescriptor: GPURenderPipelineDescriptor = {
-        label: 'base pipeline',
+        label: `${drawableType}${shaderDescriptor?.transparent ? ' transparent' : ''}${bloom ? ' bloom' : ''} pipeline`,
         vertex: {
           module: shaderModule,
           entryPoint: "vs",
@@ -265,7 +305,7 @@ class PipelineManager implements PipelineManagerInterface {
         },
         depthStencil: {
           depthWriteEnabled: shaderDescriptor?.depthWriteEnabled ?? true,
-          depthCompare: "less",
+          depthCompare: (shaderDescriptor?.transparent ?? false) ? 'less-equal' : 'less',
           format: "depth24plus"
         },
         layout: pipelineLayout,

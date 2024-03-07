@@ -26,6 +26,8 @@ class Material implements MaterialInterface {
 
   fragBindings: MaterialBindings | null = null;
 
+  lit: boolean;
+
   transparent: boolean;
 
   private constructor(
@@ -42,6 +44,7 @@ class Material implements MaterialInterface {
     this.color[2] = shaderDescriptor?.color ? shaderDescriptor.color[2] : 0.5;
     this.color[3] = shaderDescriptor?.color ? shaderDescriptor.color[3] : 1;
     
+    this.lit = shaderDescriptor?.lit ?? false;
     this.transparent = shaderDescriptor?.transparent ?? false;
 
     if (pipeline.vertexStageBindings) {
@@ -82,6 +85,8 @@ class Material implements MaterialInterface {
     vertexProperties: PropertyInterface[],
     materialDescriptor?: MaterialDescriptor,
   ): Promise<Material> {
+    await gpu.ready()
+    
     let shaderDescriptor: ShaderDescriptor | undefined
 
     if (typeof materialDescriptor?.shaderDescriptor === 'number') {
@@ -178,7 +183,7 @@ class Material implements MaterialInterface {
       uniformsBuffer,
       gpu.device.createBindGroup({
         label: 'material',
-        layout: bindings.layout ?? bindGroups.getBindGroupLayout2(),
+        layout: bindings.layout!,
         entries,
       }),
     ]
@@ -200,7 +205,7 @@ class Material implements MaterialInterface {
           
           texture = gpu.device.createTexture({
             format: 'rgba8unorm',
-            size: [image.width, image.height],
+            size: { width: image.width, height: image.height },
             usage: GPUTextureUsage.TEXTURE_BINDING |
                   GPUTextureUsage.COPY_DST |
                   GPUTextureUsage.RENDER_ATTACHMENT,

@@ -8,6 +8,8 @@ import SceneNode2d from './Drawables/SceneNodes/SceneNode2d';
 export const maxInstances = 1000;
 
 export interface ContainerNodeInterface extends SceneNodeInterface {
+  nodes: SceneNodeInterface[];
+
   addNode(node: SceneNodeInterface): void;
 
   removeNode(node: SceneNodeInterface): void;
@@ -17,12 +19,23 @@ export interface RenderPassInterface {
   addDrawable(drawable: DrawableNodeInterface | SceneNode2d): void;
 }
 
+export interface RenderPass2DInterface {
+}
+
+export interface SceneGraphInterface {
+  addNode(node: SceneNodeInterface): void;
+
+  removeNode(node: SceneNodeInterface): void;
+}
+
 export interface RendererInterface {
-  scene: ContainerNodeInterface;
+  scene: SceneGraphInterface;
 
-  mainRenderPass: RenderPassInterface;
+  deferredRenderPass: RenderPassInterface | null;
 
-  transparentPass: RenderPassInterface;
+  transparentPass: RenderPassInterface | null;
+
+  unlitRenderPass: RenderPassInterface | null;
 
   addParticleSystem(particleSystem: ParticleSystemInterface): void;
 }
@@ -45,13 +58,15 @@ export interface SceneNodeInterface {
   setFromAngles(x: number, y: number, z: number): void;
 }
 
-export type DrawableType = 'Mesh' | 'Billboard' | 'Circle' | 'Line' | '2D'
+export type DrawableType = 'Mesh' | 'Billboard' | 'Circle' | 'Line' | '2D' | 'Mesh2D'
 
 export interface MaterialInterface {
   pipeline: PipelineInterface | null;
 
   color: Float32Array;
 
+  lit: boolean;
+  
   transparent: boolean;
 
   setBindGroups(passEncoder: GPURenderPassEncoder): void;
@@ -67,6 +82,8 @@ export interface DrawableNodeInterface extends SceneNodeInterface {
   material: MaterialInterface;
   
   color: Float32Array;
+
+  instanceIndex: number;
 
   hitTest(origin: Vec4, vector: Vec4): { point: Vec4, t: number, drawable: DrawableInterface} | null;
 }

@@ -3,7 +3,7 @@ import { ShaderDescriptor } from "../shaders/ShaderDescriptor";
 import { bloom } from "../RenderSetings";
 import { common } from "../shaders/common";
 import { getFragmentStage } from "../shaders/fragmentStage";
-import { phongFunction } from "../shaders/phongFunction";
+import { phongFunction } from "../shaders/blinnPhongFunction";
 import { twirlFunction } from '../shaders/twirlFunction';
 import { getVertexStage } from "../shaders/vertexStage";
 import { voronoiFunction } from "../shaders/voronoiFunction";
@@ -37,7 +37,6 @@ import Value from "./Value";
 import ValueNode from "./ValueNode";
 import VertexColor from "./Nodes/VertexColor";
 import { meshInstances } from "../shaders/meshInstances";
-import { twoDimensional } from "../shaders/twoDimensional";
 import Step from "./Nodes/Step";
 import Clamp from "./Nodes/Clamp";
 import Max from "./Nodes/Max";
@@ -384,7 +383,7 @@ export const generateShaderCode = (
   vertProperties: PropertyInterface[],
   lit: boolean,
 ): [string, Property[], Property[]] => {
-  let body = '';
+  let fragmentBody = '';
 
   let vertBindings = '';
   let fragBindings = '';
@@ -413,9 +412,9 @@ export const generateShaderCode = (
   }
 
   if (graph && graph.fragment) {
-    [body, fragProperties] = generateStageShaderCode(graph.fragment);
+    [fragmentBody, fragProperties] = generateStageShaderCode(graph.fragment);
 
-    console.log(body);
+    console.log(fragmentBody);
   }
 
   for (let i = 0; i < fragProperties.length; i += 1) {
@@ -448,8 +447,8 @@ export const generateShaderCode = (
     ${common}
 
     ${
-      drawableType === '2D'
-        ? twoDimensional
+      drawableType === '2D' || drawableType === 'Mesh2D'
+        ? ''
         : meshInstances
     }
 
@@ -469,7 +468,7 @@ export const generateShaderCode = (
 
     ${voronoiFunction}
 
-    ${getFragmentStage(body, bloom)}
+    ${getFragmentStage(fragmentBody, lit, bloom)}
     `,
     vertProperties,
     fragProperties,
@@ -479,31 +478,31 @@ export const generateShaderCode = (
 export const generateCode = (
   drawableType: DrawableType,
   vertexProperties: PropertyInterface[],
-  materialDescriptor?: ShaderDescriptor,
+  shaderDescriptor?: ShaderDescriptor,
 ): [string, Property[], Property[]] => {
   let props: Property[] = [];
 
-  if (materialDescriptor?.properties) {
-    props = props.concat(materialDescriptor.properties.map((p) => (
+  if (shaderDescriptor?.properties) {
+    props = props.concat(shaderDescriptor.properties.map((p) => (
       new Property(p.name, p.dataType, p.value)
     )))
   }
 
   let graph: ShaderGraph | null = null;
 
-  if (materialDescriptor?.graph) {
-    graph = buildGraph(materialDescriptor.graph!, props);
+  if (shaderDescriptor?.graph) {
+    graph = buildGraph(shaderDescriptor.graph!, props);
   }
 
-  return generateShaderCode(graph, drawableType, vertexProperties, materialDescriptor?.lit ?? false);
+  return generateShaderCode(graph, drawableType, vertexProperties, shaderDescriptor?.lit ?? false);
 }
 
 export const generateShaderModule = (
   drawableType: DrawableType,
   vertexProperties: PropertyInterface[],
-  materialDescriptor?: ShaderDescriptor,
+  shaderDescriptor?: ShaderDescriptor,
 ): [GPUShaderModule, Property[], Property[], string] => {
-  const [code, vertProperties, fragProperties] = generateCode(drawableType, vertexProperties, materialDescriptor);
+  const [code, vertProperties, fragProperties] = generateCode(drawableType, vertexProperties, shaderDescriptor);
   
   let shaderModule: GPUShaderModule
   try {

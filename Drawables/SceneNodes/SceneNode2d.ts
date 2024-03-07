@@ -1,27 +1,15 @@
-import { mat4, vec3, Vec4, Mat4, quat, Quat } from 'wgpu-matrix';
-import { getEulerAngles } from '../../Math';
-import { MaterialInterface } from '../../types';
-
-export const rotationOrder: quat.RotationOrder = 'xyz';
-
 class SceneNode2d {
-  name = '';
+  x = 0
 
-  x = -1;
+  y = 0
 
-  y = 1;
+  width = 0
 
-  width = 2;
+  height = 0;
 
-  height = 2;
+  screenX = 0;
 
-  material: MaterialInterface | null = null
-
-  nodes: SceneNode2d[] = []
-
-  addInstanceInfo() {
-    
-  }
+  screenY = 0;
 }
 
 export default SceneNode2d;
