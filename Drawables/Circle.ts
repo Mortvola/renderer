@@ -10,7 +10,7 @@ class Circle extends Drawable {
   circleStructure = makeStructuredView(defs.structs.Circle);
 
   constructor(radius: number, thickness: number, color: Vec4) {
-    super('Circle')
+    super('Circle', 1)
 
     this.name = 'Circle'
     

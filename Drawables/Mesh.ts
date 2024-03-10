@@ -17,8 +17,8 @@ class Mesh extends Drawable {
 
   indexFormat: GPUIndexFormat = "uint16";
 
-  constructor(mesh: SurfaceMesh, vertices: number[], normals: number[], texcoord: number[], indices: number[]) {
-    super('Mesh')
+  constructor(mesh: SurfaceMesh, vertices: number[], normals: number[], texcoord: number[], indices: number[], id: number) {
+    super('Mesh', id)
   
     this.name = 'Mesh';
     
@@ -92,10 +92,10 @@ class Mesh extends Drawable {
     }
   }
 
-  static async create(mesh: SurfaceMesh): Promise<Mesh> {
+  static async create(mesh: SurfaceMesh, id: number): Promise<Mesh> {
     const { vertices, normals, texcoords, indices } = await mesh.generateBuffers();
 
-    return new Mesh(mesh, vertices, normals, texcoords, indices);
+    return new Mesh(mesh, vertices, normals, texcoords, indices, id);
   }
 
   hitTest(origin: Vec4, vector: Vec4): { point: Vec4, t: number, drawable: DrawableInterface} | null {

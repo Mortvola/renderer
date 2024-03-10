@@ -48,7 +48,7 @@ fn vs(
 
   output.position = projectionMatrix * pos;
 
-  output.color = instanceColor[instanceIndex];
+  output.color = instanceInfo[instanceIndex].color;
   output.texcoord = texcoords[vertexIndex];
   return output;
 }

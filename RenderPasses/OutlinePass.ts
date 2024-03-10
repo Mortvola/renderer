@@ -180,7 +180,7 @@ class OutlinePass {
     const mesh = node.drawable as Mesh;
 
     gpu.device.queue.writeBuffer(mesh.modelMatrixBuffer, 0, mesh.modelMatrices, 0, mesh.numInstances * 16);  
-    gpu.device.queue.writeBuffer(mesh.instanceColorBuffer, 0, mesh.instanceColor, 0, mesh.numInstances * 4);  
+    gpu.device.queue.writeBuffer(mesh.instanceColorBuffer, 0, mesh.instanceInfo.arrayBuffer, 0, mesh.numInstances * 8 * 4);  
     passEncoder.setBindGroup(1, mesh.bindGroup);
 
     passEncoder.setVertexBuffer(0, mesh.vertexBuffer);

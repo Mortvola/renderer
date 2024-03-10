@@ -4,6 +4,10 @@ import { bindGroups } from '../BindGroups';
 import { gpu } from '../Gpu';
 import { DrawableType, maxInstances } from '../types';
 import { PropertyInterface } from '../ShaderBuilder/Types';
+import { meshInstances } from '../shaders/meshInstances';
+import { makeShaderDataDefinitions, makeStructuredView, makeTypedArrayViews } from 'webgpu-utils';
+
+const dataDefs = makeShaderDataDefinitions(meshInstances)
 
 class Drawable implements DrawableInterface {
   drawable = true;
@@ -16,11 +20,13 @@ class Drawable implements DrawableInterface {
 
   tag = '';
 
+  id = 0;
+
   modelMatrices: Float32Array = new Float32Array(16 * 4 * maxInstances);
 
   inverseModelMatrices: Float32Array = new Float32Array(16 * 4 * maxInstances);
 
-  instanceColor: Float32Array = new Float32Array(4 * maxInstances);
+  instanceInfo = makeStructuredView(dataDefs.uniforms.instanceInfo);
 
   numInstances = 0;
 
@@ -34,8 +40,9 @@ class Drawable implements DrawableInterface {
 
   vertexProperties: PropertyInterface[] = [];
 
-  constructor(type: DrawableType) {
+  constructor(type: DrawableType, id: number) {
     this.type = type;
+    this.id = id;
 
     const matrixDescriptor = {
       label: 'model Matrix',
@@ -48,7 +55,8 @@ class Drawable implements DrawableInterface {
 
     const descriptor = {
       label: 'instance color',
-      size: 4 * Float32Array.BYTES_PER_ELEMENT * maxInstances,
+      // size: 4 * Float32Array.BYTES_PER_ELEMENT * maxInstances,
+      size: this.instanceInfo.arrayBuffer.byteLength,
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
     };
 
@@ -87,11 +95,13 @@ class Drawable implements DrawableInterface {
         this.inverseModelMatrices[this.numInstances * 16 + index] = float;
       })
 
-      this.instanceColor[this.numInstances * 4 + 0] = color[0]
-      this.instanceColor[this.numInstances * 4 + 1] = color[1]
-      this.instanceColor[this.numInstances * 4 + 2] = color[2]
-      this.instanceColor[this.numInstances * 4 + 3] = color[3]
+      this.instanceInfo.views[this.numInstances].color[0] = color[0]
+      this.instanceInfo.views[this.numInstances].color[1] = color[1]
+      this.instanceInfo.views[this.numInstances].color[2] = color[2]
+      this.instanceInfo.views[this.numInstances].color[3] = color[3]
   
+      this.instanceInfo.views[this.numInstances].id[0] = this.id;
+
       this.numInstances += 1;  
     }
   }

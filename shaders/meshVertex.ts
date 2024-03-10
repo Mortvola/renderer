@@ -10,7 +10,8 @@ struct VertexOut {
   @builtin(position) position : vec4f,
   @location(0) color : vec4f,
   @location(1) texcoord: vec2f,
-  ${lit ? '@location(2) fragPos: vec4f,\n@location(3) normal: vec4f,' : ''}    
+  @location(2) @interpolate(flat) id: f32,
+  ${lit ? '@location(3) fragPos: vec4f,\n@location(4) normal: vec4f,' : ''}    
 }
     
 @vertex
@@ -22,8 +23,9 @@ fn vs(
   var output: VertexOut;
 
   output.position = projectionMatrix * viewMatrix * modelMatrix[instanceIndex] * vert.position;
-  output.color = instanceColor[instanceIndex];
+  output.color = instanceInfo[instanceIndex].color;
   output.texcoord = vert.texcoord;
+  output.id = instanceInfo[instanceIndex].id;
 
   ${lit
     ? `

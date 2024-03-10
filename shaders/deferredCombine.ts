@@ -78,13 +78,18 @@ fn fs(vertexOut: VertexOut) -> @location(0) vec4f
   var normal = normalize(textureSample(normalTexture, textureSampler, vertexOut.texcoord).xyz);
   var decal = textureSample(decalTexture, textureSampler, vertexOut.texcoord);
 
+  var id = position.w;
+  position.w = 1;
+
   var wp = inverseViewMatrix * position;
 
   albedo = mix(albedo, decal.rgb, decal.aaa);
 
   albedo = lighting(albedo, position.xyz, normal);
 
-  albedo = rangeCircles(wp, albedo);
+  if (id == 0.0) {
+    albedo = rangeCircles(wp, albedo);
+  }
 
   return vec4f(albedo, 1.0);
 }

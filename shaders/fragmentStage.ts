@@ -27,6 +27,7 @@ const store = (lit: boolean, bloom: boolean) => {
 
     out.color = fragOut;
     out.position = vertexOut.fragPos;
+    out.position.w = vertexOut.id;
     out.normal = vertexOut.normal;
 
     return out;

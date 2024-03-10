@@ -96,9 +96,9 @@ class Renderer implements RendererInterface {
 
   combinePass: CombinePass | null = null;
 
-  unlitRenderPass: ForwardRenderPass | null = new ForwardRenderPass();
+  unlitRenderPass: ForwardRenderPass | null = new ForwardRenderPass('Unlit Render Pass');
 
-  transparentPass: ForwardRenderPass | null = new ForwardRenderPass();
+  transparentPass: ForwardRenderPass | null = new ForwardRenderPass('Transparent Render Pass');
 
   renderPass2D = new RenderPass2D();
 
@@ -162,7 +162,7 @@ class Renderer implements RendererInterface {
 
     const cartesianAxes = await DrawableNode.create(new CartesianAxes(), { shaderDescriptor: lineMaterial })
     
-    const quad = await Mesh.create(plane(50, 50, [1, 1, 1, 1]))
+    const quad = await Mesh.create(plane(50, 50, [1, 1, 1, 1]), 0)
     const floor = await DrawableNode.create(quad, { shaderDescriptor: { lit: true }})
     floor.postTransforms.push(mat4.fromQuat(quat.fromEuler(degToRad(270), 0, 0, "xyz")))
 
