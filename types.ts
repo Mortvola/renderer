@@ -31,6 +31,8 @@ export interface SceneGraphInterface {
 export interface RendererInterface {
   scene: SceneGraphInterface;
 
+  decalPass: RenderPassInterface | null;
+
   deferredRenderPass: RenderPassInterface | null;
 
   transparentPass: RenderPassInterface | null;
@@ -58,7 +60,7 @@ export interface SceneNodeInterface {
   setFromAngles(x: number, y: number, z: number): void;
 }
 
-export type DrawableType = 'Mesh' | 'Billboard' | 'Circle' | 'Line' | '2D' | 'Mesh2D'
+export type DrawableType = 'Mesh' | 'Billboard' | 'Circle' | 'Line' | '2D' | 'Mesh2D'| 'Decal'
 
 export interface MaterialInterface {
   pipeline: PipelineInterface | null;
@@ -68,6 +70,8 @@ export interface MaterialInterface {
   lit: boolean;
   
   transparent: boolean;
+
+  decal: boolean;
 
   setBindGroups(passEncoder: GPURenderPassEncoder): void;
 
@@ -160,7 +164,17 @@ export type ParticleItem = {
   id: number,
 }
 
-export type GameObjectItem = { item: ModelItem | ParticleItem, type: 'model' | 'particle' }
+export type DecalItem = {
+  materialId?: number,
+  width?: number,
+  height?: number,
+}
+
+export type GameObjectItem = {
+  key?: number,
+  type: 'model' | 'particle' | 'decal',
+  item: ModelItem | ParticleItem | DecalItem,
+}
 
 export type GameObject = {
   items: GameObjectItem[],

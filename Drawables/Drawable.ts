@@ -1,4 +1,4 @@
-import { Mat4, vec4, Vec4 } from 'wgpu-matrix';
+import { mat4, Mat4, vec4, Vec4 } from 'wgpu-matrix';
 import DrawableInterface from "./DrawableInterface";
 import { bindGroups } from '../BindGroups';
 import { gpu } from '../Gpu';
@@ -18,11 +18,15 @@ class Drawable implements DrawableInterface {
 
   modelMatrices: Float32Array = new Float32Array(16 * 4 * maxInstances);
 
+  inverseModelMatrices: Float32Array = new Float32Array(16 * 4 * maxInstances);
+
   instanceColor: Float32Array = new Float32Array(4 * maxInstances);
 
   numInstances = 0;
 
   modelMatrixBuffer: GPUBuffer;
+
+  inverseModelMatrixBuffer: GPUBuffer;
 
   instanceColorBuffer: GPUBuffer;
 
@@ -33,13 +37,14 @@ class Drawable implements DrawableInterface {
   constructor(type: DrawableType) {
     this.type = type;
 
-    const descriptor1 = {
+    const matrixDescriptor = {
       label: 'model Matrix',
       size: 16 * Float32Array.BYTES_PER_ELEMENT * maxInstances,
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
     }
 
-    this.modelMatrixBuffer = gpu.device.createBuffer(descriptor1);
+    this.modelMatrixBuffer = gpu.device.createBuffer(matrixDescriptor);
+    this.inverseModelMatrixBuffer = gpu.device.createBuffer(matrixDescriptor);
 
     const descriptor = {
       label: 'instance color',
@@ -55,6 +60,7 @@ class Drawable implements DrawableInterface {
       entries: [
         { binding: 0, resource: { buffer: this.modelMatrixBuffer }},
         { binding: 1, resource: { buffer: this.instanceColorBuffer }},
+        { binding: 2, resource: { buffer: this.inverseModelMatrixBuffer }},
       ],
     });
   }
@@ -76,7 +82,11 @@ class Drawable implements DrawableInterface {
       transform.forEach((float, index) => {
         this.modelMatrices[this.numInstances * 16 + index] = float;
       })
-  
+
+      mat4.inverse(transform).forEach((float, index) => {
+        this.inverseModelMatrices[this.numInstances * 16 + index] = float;
+      })
+
       this.instanceColor[this.numInstances * 4 + 0] = color[0]
       this.instanceColor[this.numInstances * 4 + 1] = color[1]
       this.instanceColor[this.numInstances * 4 + 2] = color[2]

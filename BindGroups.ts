@@ -87,6 +87,11 @@ class BindGroups {
           visibility: GPUShaderStage.VERTEX,
           buffer: {},
         },
+        { // Inverse model matrix
+          binding: 2,
+          visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
+          buffer: {},
+        },
       ]
     });
 

@@ -30,6 +30,8 @@ import { plane } from './Drawables/Shapes/plane';
 import { circles } from './shaders/circles';
 import RangeCircle from './Drawables/RangeCircle';
 import SceneGraph from './Drawables/SceneNodes/SceneGraph';
+import DecalPass from './RenderPasses/DecalPass';
+import CombinePass from './RenderPasses/CombinePass';
 
 const requestPostAnimationFrame = (task: (timestamp: number) => void) => {
   requestAnimationFrame((timestamp: number) => {
@@ -72,6 +74,8 @@ class Renderer implements RendererInterface {
 
   albedoTextureView: GPUTextureView | null = null;
 
+  decalView: GPUTextureView | null = null;
+
   positionTextureView: GPUTextureView | null = null;
 
   scratchTextureView: GPUTextureView | null = null;
@@ -86,7 +90,11 @@ class Renderer implements RendererInterface {
 
   scene2d = new SceneGraph2D();
 
+  decalPass: DecalPass | null = null;
+
   deferredRenderPass: DeferredRenderPass | null = null;
+
+  combinePass: CombinePass | null = null;
 
   unlitRenderPass: ForwardRenderPass | null = new ForwardRenderPass();
 
@@ -354,8 +362,13 @@ class Renderer implements RendererInterface {
       this.albedoTextureView = createTexture(this.context).createView()
       this.positionTextureView = createTexture(this.context).createView();
       this.scratchTextureView = createTexture(this.context).createView();
+      this.decalView = createTexture(this.context).createView()
 
-      this.deferredRenderPass = new DeferredRenderPass(this.albedoTextureView, this.positionTextureView, this.scratchTextureView);
+      this.deferredRenderPass = new DeferredRenderPass();
+
+      this.decalPass = new DecalPass(this.positionTextureView)
+
+      this.combinePass = new CombinePass(this.albedoTextureView, this.positionTextureView, this.scratchTextureView, this.decalView);
 
       this.screenTextureView = createTexture(this.context).createView();
 
@@ -463,17 +476,39 @@ class Renderer implements RendererInterface {
       const canvasView = this.context.getCurrentTexture().createView()
 
       this.deferredRenderPass!.render(
-        this.screenTextureView!,
+        this.albedoTextureView!,
+        this.positionTextureView!,
+        this.scratchTextureView!,
         this.depthTextureView!,
         commandEncoder,
         this.frameBindGroup.bindGroup,
       );
 
+      this.decalPass!.render(this.decalView!, this.depthTextureView!, commandEncoder, this.frameBindGroup.bindGroup)
+
+      this.combinePass!.render(
+        this.screenTextureView!,
+        commandEncoder,
+        this.frameBindGroup.bindGroup,
+      )
+
       const bloomView = this.bloomPass?.bloomTextureView
 
-      this.unlitRenderPass!.render(this.screenTextureView!, bloomView!, this.depthTextureView!, commandEncoder, this.frameBindGroup.bindGroup)
+      this.unlitRenderPass!.render(
+        this.screenTextureView!,
+        bloomView!,
+        this.depthTextureView!,
+        commandEncoder,
+        this.frameBindGroup.bindGroup,
+      )
 
-      this.transparentPass!.render(this.screenTextureView!, bloomView!, this.depthTextureView!, commandEncoder, this.frameBindGroup.bindGroup)
+      this.transparentPass!.render(
+        this.screenTextureView!,
+        bloomView!,
+        this.depthTextureView!,
+        commandEncoder,
+        this.frameBindGroup.bindGroup,
+      )
 
       if (this.bloomPass) {
         this.bloomPass.render(canvasView, commandEncoder);      

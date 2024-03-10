@@ -43,7 +43,10 @@ class ContainerNode extends SceneNode implements ContainerNodeInterface {
       node.computeTransform(this.transform);
 
       if (isDrawableNode(node)) {
-        if (node.material.transparent && renderer.transparentPass) {
+        if (node.material.decal && renderer.decalPass) {
+          renderer.decalPass?.addDrawable(node);
+        }
+        else if (node.material.transparent && renderer.transparentPass) {
           renderer.transparentPass!.addDrawable(node);
         }
         else if (node.material.lit && renderer.deferredRenderPass) {

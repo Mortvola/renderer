@@ -13,6 +13,7 @@ ${phongFunction}
 @group(1) @binding(1) var albedoTexture: texture_2d<f32>;
 @group(1) @binding(2) var positionTexture: texture_2d<f32>;
 @group(1) @binding(3) var normalTexture: texture_2d<f32>;
+@group(1) @binding(4) var decalTexture: texture_2d<f32>;
 
 fn lighting(albedo: vec3f, position: vec3f, normal: vec3f) -> vec3f
 {
@@ -75,8 +76,11 @@ fn fs(vertexOut: VertexOut) -> @location(0) vec4f
   var albedo = textureSample(albedoTexture, textureSampler, vertexOut.texcoord).rgb;
   var position = textureSample(positionTexture, textureSampler, vertexOut.texcoord);
   var normal = normalize(textureSample(normalTexture, textureSampler, vertexOut.texcoord).xyz);
+  var decal = textureSample(decalTexture, textureSampler, vertexOut.texcoord);
 
   var wp = inverseViewMatrix * position;
+
+  albedo = mix(albedo, decal.rgb, decal.aaa);
 
   albedo = lighting(albedo, position.xyz, normal);
 

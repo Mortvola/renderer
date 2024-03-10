@@ -9,12 +9,28 @@ class ShaderManager {
     let shaderRecord = this.shaders.get(id)
 
     if (!shaderRecord) {
-      const response = await Http.get<ShaderRecord>(`/shader-descriptors/${id}`)
+      if (id === -1) {
+        shaderRecord = {
+          id: -1,
+          name: 'Decal',
+          descriptor: {
+            type: 'Decal',
+            properties: [
+              { name: 'albedo', dataType: 'texture2D', value: null }
+            ]
+          },  
+        }      
 
-      if (response.ok) {
-        shaderRecord = await response.body();
-  
         this.shaders.set(id, shaderRecord)
+      }
+      else {
+        const response = await Http.get<ShaderRecord>(`/shader-descriptors/${id}`)
+
+        if (response.ok) {
+          shaderRecord = await response.body();
+    
+          this.shaders.set(id, shaderRecord)
+        }  
       }
     }
 

@@ -102,6 +102,7 @@ class MaterialManager {
     let map = this.materials.get(key)
 
     if (map) {
+      // For each drawable type/vertex properties that uses this material.
       for (const [, material] of map) {
         material.setPropertyValues(GPUShaderStage.FRAGMENT, properties);
       }

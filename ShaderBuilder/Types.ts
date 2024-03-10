@@ -17,7 +17,8 @@ export type ValueType =
   | [number, number]
   | [number, number, number]
   | [number, number, number, number]
-  | SamplerDescriptor;
+  | SamplerDescriptor
+  | null;
 
 export interface PortInterface {
   node: GraphNodeInterface;

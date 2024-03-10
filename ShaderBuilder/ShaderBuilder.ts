@@ -47,7 +47,7 @@ import TextureSize from "./Nodes/TextureSize";
 import Inverse from "./Nodes/Inverse";
 import Distance from "./Nodes/Distance";
 
-export const buildStageGraph = (graphDescr: GraphStageDescriptor, properties: Property[]): StageGraph => {
+export const buildStageGraph = (graphDescr: GraphStageDescriptor, properties: PropertyInterface[]): StageGraph => {
   let nodes: GraphNodeInterface[] = [];
   let edges: GraphEdgeInterface[] = [];
 
@@ -256,14 +256,14 @@ export const buildStageGraph = (graphDescr: GraphStageDescriptor, properties: Pr
   return { nodes, edges };
 }
 
-export const generateStageShaderCode = (graph: StageGraph): [string, Property[]] => {
+export const generateStageShaderCode = (graph: StageGraph): [string, PropertyInterface[]] => {
   // Clear the node priorities
   for (const node of graph.nodes) {
     node.priority = null;
     node.setVarName(null);
   }
 
-  const properties: Property[] = [];
+  const properties: PropertyInterface[] = [];
 
   // Find the output node
   const outputNode = graph.nodes.find((n) => n.type === 'display');
@@ -343,7 +343,7 @@ export const generateStageShaderCode = (graph: StageGraph): [string, Property[]]
   return [body, properties];
 }
 
-export const buildGraph = (graphDescriptor: GraphDescriptor, properties: Property[]): ShaderGraph => {
+export const buildGraph = (graphDescriptor: GraphDescriptor, properties: PropertyInterface[]): ShaderGraph => {
   const graph = new ShaderGraph();
 
   if (graphDescriptor?.fragment) {
@@ -382,7 +382,7 @@ export const generateShaderCode = (
   drawableType: DrawableType,
   vertProperties: PropertyInterface[],
   lit: boolean,
-): [string, Property[], Property[]] => {
+): [string, PropertyInterface[], PropertyInterface[]] => {
   let fragmentBody = '';
 
   let vertBindings = '';
@@ -479,7 +479,7 @@ export const generateCode = (
   drawableType: DrawableType,
   vertexProperties: PropertyInterface[],
   shaderDescriptor?: ShaderDescriptor,
-): [string, Property[], Property[]] => {
+): [string, PropertyInterface[], PropertyInterface[]] => {
   let props: Property[] = [];
 
   if (shaderDescriptor?.properties) {
@@ -501,7 +501,7 @@ export const generateShaderModule = (
   drawableType: DrawableType,
   vertexProperties: PropertyInterface[],
   shaderDescriptor?: ShaderDescriptor,
-): [GPUShaderModule, Property[], Property[], string] => {
+): [GPUShaderModule, PropertyInterface[], PropertyInterface[], string] => {
   const [code, vertProperties, fragProperties] = generateCode(drawableType, vertexProperties, shaderDescriptor);
   
   let shaderModule: GPUShaderModule
