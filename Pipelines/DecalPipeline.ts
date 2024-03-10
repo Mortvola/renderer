@@ -57,6 +57,16 @@ class DecalPipeline extends Pipeline {
         targets: [
           {
             format: outputFormat,
+            blend: {
+              color: {
+                srcFactor: 'src-alpha' as GPUBlendFactor,
+                dstFactor: 'one-minus-src-alpha' as GPUBlendFactor,
+              },
+              alpha: {
+                srcFactor: 'src-alpha' as GPUBlendFactor,
+                dstFactor: 'one-minus-src-alpha' as GPUBlendFactor,
+              },
+            },
           },
         ],
       },

@@ -46,7 +46,7 @@ class OutlinePass {
     const sampler = gpu.device.createSampler();
 
     this.applyOutlineBindGroup = gpu.device.createBindGroup({
-      label: 'applly outline pass',
+      label: 'apply outline pass',
       layout: bindGroupLayout,
       entries: [
         {
@@ -69,22 +69,6 @@ class OutlinePass {
   }
 
   createOutlinePipeline(shaderModule: GPUShaderModule) {
-    const bindGroupLayout = gpu.device.createBindGroupLayout({
-      label,
-      entries: [
-        {
-          binding: 0,
-          visibility: GPUShaderStage.VERTEX,
-          buffer: {},
-        },
-        {
-          binding: 1,
-          visibility: GPUShaderStage.VERTEX,
-          buffer: {},
-        },
-      ]
-    });
-
     const pipelineDescriptor: GPURenderPipelineDescriptor = {
       label,
       vertex: {
@@ -122,7 +106,7 @@ class OutlinePass {
         label,
         bindGroupLayouts: [
           bindGroups.getBindGroupLayout0(),
-          bindGroupLayout,
+          bindGroups.getBindGroupLayout1(),
         ]
       }),
     };

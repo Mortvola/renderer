@@ -53,7 +53,8 @@ fn fs(vertexOut: VertexOut) -> @location(0) vec4f
     wp.x < 0.0 || wp.x >= 1.0
     || wp.y < 0.0 || wp.y >= 1.0
   ) {
-    color = vec4f(0, 0, 0, 0);
+    // color = vec4f(0, 0, 0, 0);
+    discard;
   }
 
   return color;
