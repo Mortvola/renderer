@@ -2,20 +2,19 @@ import { makeShaderDataDefinitions, makeStructuredView } from "webgpu-utils";
 import { bindGroups } from "../BindGroups";
 import { gpu } from "../Gpu";
 import { ShaderDescriptor } from "../shaders/ShaderDescriptor";
-import Property from "../ShaderBuilder/Property";
 import { PropertyInterface } from "../ShaderBuilder/Types";
 import { DrawableType, PipelineInterface, PipelineManagerInterface, StageBindings } from "../types";
 import LinePipeline from "./LinePipeline";
-import OutlinePipeline from "./OutlinePipeline";
 import Pipeline from "./Pipeline";
 // import ReticlePipeline from "./ReticlePipeline";
 import TrajectoryPipeline from "./TrajectoryPipeline";
 import { generateShaderModule } from "../ShaderBuilder/ShaderBuilder";
 import { bloom, outputFormat } from "../RenderSetings";
 import { shaderManager } from "../shaders/ShaderManager";
+import DecalPipeline from "./DecalPipeline";
 
 export type PipelineType =
-  'Line'| 'outline' | 'reticle' | 'Trajectory';
+  'Line'| 'reticle' | 'Trajectory' | 'Decal';
 
 type Pipelines = {
   type: PipelineType,
@@ -40,7 +39,7 @@ class PipelineManager implements PipelineManagerInterface {
 
     if (result) {
       this.pipelines.push({ type: 'Line', pipeline: new LinePipeline() });
-      this.pipelines.push({ type: 'outline', pipeline: new OutlinePipeline() });
+      this.pipelines.push({ type: 'Decal', pipeline: new DecalPipeline() });
       this.pipelines.push({ type: 'Trajectory', pipeline: new TrajectoryPipeline() });
     }
 
@@ -123,8 +122,8 @@ class PipelineManager implements PipelineManagerInterface {
       this.pipelineMap.set(key, { pipeline });
     }
     else {
-      let vertProperties: Property[] = [];
-      let fragProperties: Property[] = [];
+      let vertProperties: PropertyInterface[] = [];
+      let fragProperties: PropertyInterface[] = [];
   
       let vertexBufferLayout: GPUVertexBufferLayout[] | undefined = undefined;
 

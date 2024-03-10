@@ -1,6 +1,6 @@
 const fragmentOut = (lit: boolean, bloom: boolean) => {
   if (lit) {
-    return `
+    return /*wgsl*/`
     struct FragmentOut {
       @location(0) color: vec4f,
       @location(1) position: vec4f,
@@ -10,7 +10,7 @@ const fragmentOut = (lit: boolean, bloom: boolean) => {
   }
 
   return bloom ?
-    `
+    /*wgsl*/`
     struct FragmentOut {
       @location(0) color: vec4f,
       @location(1) bright: vec4f,
@@ -22,7 +22,7 @@ const fragmentOut = (lit: boolean, bloom: boolean) => {
 
 const store = (lit: boolean, bloom: boolean) => {
   if (lit) {
-    return `
+    return /*wgsl*/`
     var out: FragmentOut;
 
     out.color = fragOut;
@@ -35,7 +35,7 @@ const store = (lit: boolean, bloom: boolean) => {
 
   return bloom
     ? (
-      `
+      /*wgsl*/`
       var out: FragmentOut;
 
       out.color = fragOut;
@@ -57,7 +57,7 @@ const store = (lit: boolean, bloom: boolean) => {
 }
 
 export const  getFragmentStage = (body: string, lit: boolean, bloom: boolean): string => {
-  return `
+  return /*wgsl*/`
     ${fragmentOut(lit, bloom)}
 
     @fragment

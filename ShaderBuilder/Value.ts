@@ -10,6 +10,10 @@ class Value implements ValueInterface {
     this.value = value;
   }
 
+  copy(): Value {
+    return new Value(this.dataType, this.value)
+  }
+
   getValueString(): [string, DataType] {
     switch (typeof this.value) {
       case 'string':
