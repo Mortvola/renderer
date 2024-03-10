@@ -43,6 +43,9 @@ fn fs(vertexOut: VertexOut) -> @location(0) vec4f
   var texturePos = vertexOut.position.xy / vec2f(textureDimensions(positionTexture));
   var position = textureSample(positionTexture, positionSampler, texturePos);
 
+  var id = position.w;
+  position.w = 1.0;
+
   // Transform the position into the model space of the decal projector.
   // Add 0.5 to the x and y to get the uv texture position.
   var wp = (inverseModelMatrix[vertexOut.instanceIndex] * inverseViewMatrix * position).xz + vec2f(0.5, 0.5);
@@ -50,7 +53,8 @@ fn fs(vertexOut: VertexOut) -> @location(0) vec4f
 
   // If the texture position is outside the range 0.0 to 1.0 then discard the texture color.
   if (
-    wp.x < 0.0 || wp.x >= 1.0
+    id != 0.0
+    || wp.x < 0.0 || wp.x >= 1.0
     || wp.y < 0.0 || wp.y >= 1.0
   ) {
     // color = vec4f(0, 0, 0, 0);

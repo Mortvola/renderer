@@ -2,6 +2,13 @@ import { bloom } from "../RenderSetings";
 import RenderPass from "./RenderPass";
 
 class ForwardRenderPass extends RenderPass {
+  label: string
+
+  constructor(label: string) {
+    super()
+    this.label = label;
+  }
+
   getDescriptor(
     view: GPUTextureView,
     bright: GPUTextureView,
@@ -26,7 +33,7 @@ class ForwardRenderPass extends RenderPass {
     }
 
     const descriptor: GPURenderPassDescriptor = {
-      label: 'forward render pass',
+      label: this.label,
       colorAttachments,
     };
 

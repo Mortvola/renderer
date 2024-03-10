@@ -53,7 +53,7 @@ export const getVertexStage = (drawableType: DrawableType, lit: boolean): string
   
           output.position = projectionMatrix * pos;
   
-          output.color = instanceColor[instanceIndex];
+          output.color = instanceInfo[instanceIndex].color;
           output.texcoord = texcoords[vertexIndex];
           return output;
         }
@@ -108,7 +108,7 @@ export const getVertexStage = (drawableType: DrawableType, lit: boolean): string
 
           output.position = projectionMatrix * viewMatrix * modelMatrix[instanceIndex] * vec4f(x, y, 0, 1);
 
-          output.color = instanceColor[instanceIndex];
+          output.color = instanceInfo[instanceIndex].color;
 
           return output;
         }

@@ -1,6 +1,7 @@
 import { Vec4, Mat4 } from 'wgpu-matrix';
 import { DrawableType } from '../types';
 import { PropertyInterface } from '../ShaderBuilder/Types';
+import { StructuredView } from 'webgpu-utils';
 
 interface DrawableInterface {
   drawable: boolean;
@@ -21,7 +22,7 @@ interface DrawableInterface {
 
   inverseModelMatrixBuffer: GPUBuffer;
 
-  instanceColor: Float32Array;
+  instanceInfo: StructuredView;
 
   instanceColorBuffer: GPUBuffer;
 

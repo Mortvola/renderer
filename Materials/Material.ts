@@ -1,4 +1,3 @@
-import { bindGroups } from "../BindGroups";
 import { gpu } from "../Gpu";
 import { pipelineManager } from "../Pipelines/PipelineManager";
 import { DrawableType, MaterialInterface, PipelineInterface, StageBindings } from "../types";

@@ -7,7 +7,7 @@ class Line extends Drawable {
   vertexBuffer: GPUBuffer;
 
   constructor(p1: number[][]) {
-    super('Line');
+    super('Line', 1);
 
     this.name = 'Line'
   

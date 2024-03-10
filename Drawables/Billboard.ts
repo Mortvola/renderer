@@ -3,7 +3,7 @@ import Drawable from './Drawable';
 
 class Billboard extends Drawable {
   constructor() {
-    super('Billboard');
+    super('Billboard', 1);
 
     this.name = 'Billboard'
   }
