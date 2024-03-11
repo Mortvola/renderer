@@ -1,8 +1,7 @@
-import { RendererInterface, SceneGraphInterface, SceneNodeInterface } from "../../types";
+import { RendererInterface, SceneGraphInterface, SceneNodeInterface, SceneObjectInterface } from "../../types";
 import Light, { isLight } from "../Light";
 import RangeCircle from "../RangeCircle";
 import ContainerNode, { isContainerNode } from "./ContainerNode";
-import { SceneObjectInterface } from "../../../types";
 
 class SceneGraph implements SceneGraphInterface {
   scene = new ContainerNode()

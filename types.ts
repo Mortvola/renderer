@@ -4,7 +4,6 @@ import DrawableInterface from './Drawables/DrawableInterface';
 import { PropertyInterface, ValueType } from './ShaderBuilder/Types';
 import { ShaderDescriptor } from './shaders/ShaderDescriptor';
 import SceneNode2d from './Drawables/SceneNodes/SceneNode2d';
-import { SceneObjectInterface } from '../types';
 
 export const maxInstances = 1000;
 
@@ -21,6 +20,12 @@ export interface RenderPassInterface {
 }
 
 export interface RenderPass2DInterface {
+}
+
+export interface SceneObjectInterface {
+  sceneNode: ContainerNodeInterface
+
+  update(time: number, elapsedTime: number): Promise<void>
 }
 
 export interface SceneGraphInterface {
