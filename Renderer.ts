@@ -499,6 +499,7 @@ class Renderer implements RendererInterface {
         this.unlitRenderPass!.render(
           this.screenTextureView!,
           bloomView!,
+          false,
           this.depthTextureView!,
           commandEncoder,
           this.frameBindGroup.bindGroup,
@@ -507,6 +508,7 @@ class Renderer implements RendererInterface {
         this.transparentPass!.render(
           this.screenTextureView!,
           bloomView!,
+          true,
           this.depthTextureView!,
           commandEncoder,
           this.frameBindGroup.bindGroup,
