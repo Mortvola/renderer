@@ -1,5 +1,4 @@
-import { mat4 } from "wgpu-matrix";
-import { RendererInterface, SceneGraphInterface, SceneNodeInterface } from "../../types";
+import { RendererInterface, SceneGraphInterface, SceneNodeInterface, SceneObjectInterface } from "../../types";
 import Light, { isLight } from "../Light";
 import RangeCircle from "../RangeCircle";
 import ContainerNode, { isContainerNode } from "./ContainerNode";
@@ -32,6 +31,10 @@ class SceneGraph implements SceneGraphInterface {
     }
   }
 
+  addSceneObject(object: SceneObjectInterface) {
+    this.addNode(object.sceneNode)
+  }
+
   removeNode(node: SceneNodeInterface) {
     this.scene.removeNode(node);
 
@@ -53,6 +56,10 @@ class SceneGraph implements SceneGraphInterface {
     }
   }
 
+  removeSceneObject(object: SceneObjectInterface) {
+    this.removeNode(object.sceneNode)
+  }
+
   updateTransforms(renderer: RendererInterface | null) {
     this.scene.updateTransforms(undefined, renderer);
   }
@@ -63,6 +70,14 @@ class SceneGraph implements SceneGraphInterface {
     this.rangeCircles.forEach((c) => circles.push(c))
     
     return circles
+  }
+
+  getLights() : Light[] {
+    const lights: Light[] = [];
+
+    this.lights.forEach((c) => lights.push(c))
+    
+    return lights
   }
 }
 

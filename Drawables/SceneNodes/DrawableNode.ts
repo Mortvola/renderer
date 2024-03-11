@@ -52,7 +52,6 @@ class DrawableNode extends SceneNode implements DrawableNodeInterface {
     
     this.drawable.addInstanceInfo(this.transform, this.color);
   }
-
 }
 
 export default DrawableNode;
