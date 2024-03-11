@@ -53,7 +53,7 @@ class SceneGraph implements SceneGraphInterface {
     }
   }
 
-  updateTransforms(renderer: RendererInterface) {
+  updateTransforms(renderer: RendererInterface | null) {
     this.scene.updateTransforms(undefined, renderer);
   }
 

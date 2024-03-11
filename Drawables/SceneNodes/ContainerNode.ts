@@ -36,13 +36,13 @@ class ContainerNode extends SceneNode implements ContainerNodeInterface {
     }
   }
 
-  updateTransforms(mat = mat4.identity(), renderer: RendererInterface) {
+  updateTransforms(mat = mat4.identity(), renderer: RendererInterface | null) {
     this.computeTransform(mat);
     
     for (const node of this.nodes) {
       node.computeTransform(this.transform);
 
-      if (isDrawableNode(node)) {
+      if (isDrawableNode(node) && renderer) {
         if (node.material.decal && renderer.decalPass) {
           renderer.decalPass?.addDrawable(node);
         }
