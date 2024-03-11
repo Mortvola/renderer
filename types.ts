@@ -170,10 +170,19 @@ export type DecalItem = {
   height?: number,
 }
 
+export type LightItem = {
+  color: number[],
+  constant: number,
+  linear: number,
+  quadratic: number,
+}
+
+export type ComponentType = 'model' | 'particle' | 'decal' | 'light';
+
 export type GameObjectItem = {
   key?: number,
-  type: 'model' | 'particle' | 'decal',
-  item: ModelItem | ParticleItem | DecalItem,
+  type: ComponentType,
+  item: ModelItem | ParticleItem | DecalItem | LightItem,
 }
 
 export type GameObject = {
