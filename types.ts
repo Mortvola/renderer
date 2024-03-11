@@ -4,6 +4,7 @@ import DrawableInterface from './Drawables/DrawableInterface';
 import { PropertyInterface, ValueType } from './ShaderBuilder/Types';
 import { ShaderDescriptor } from './shaders/ShaderDescriptor';
 import SceneNode2d from './Drawables/SceneNodes/SceneNode2d';
+import { SceneObjectInterface } from '../types';
 
 export const maxInstances = 1000;
 
@@ -26,6 +27,10 @@ export interface SceneGraphInterface {
   addNode(node: SceneNodeInterface): void;
 
   removeNode(node: SceneNodeInterface): void;
+
+  addSceneObject(object: SceneObjectInterface): void;
+
+  removeSceneObject(object: SceneObjectInterface): void;
 }
 
 export interface RendererInterface {
