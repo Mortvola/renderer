@@ -80,7 +80,6 @@ class ParticleSystem implements ParticleSystemInterface {
       console.log('created particle drawable')
     }
 
-    console.log('particle sytem update')
     if (this.lastEmitTime === 0) {
       this.lastEmitTime = time;
 

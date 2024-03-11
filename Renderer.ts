@@ -52,8 +52,6 @@ type BindGroup = {
 }
 
 class Renderer implements RendererInterface {
-  initialized = false;
-
   frameBindGroup: BindGroup | null = null;
 
   render = true;
@@ -153,7 +151,7 @@ class Renderer implements RendererInterface {
 
     this.lights.push(light)
 
-    this.scene.updateTransforms(this);
+    this.scene.updateTransforms(null);
   }
 
   static async create() {
@@ -190,8 +188,6 @@ class Renderer implements RendererInterface {
     this.camera.computeViewTransform();
 
     this.scene2d.setCanvasDimensions(canvas.width, canvas.height);
-
-    this.initialized = true;
   }
 
   createCameraBindGroups(frameBindGroupLayout: GPUBindGroupLayout) {
@@ -503,6 +499,7 @@ class Renderer implements RendererInterface {
         this.unlitRenderPass!.render(
           this.screenTextureView!,
           bloomView!,
+          false,
           this.depthTextureView!,
           commandEncoder,
           this.frameBindGroup.bindGroup,
@@ -511,6 +508,7 @@ class Renderer implements RendererInterface {
         this.transparentPass!.render(
           this.screenTextureView!,
           bloomView!,
+          true,
           this.depthTextureView!,
           commandEncoder,
           this.frameBindGroup.bindGroup,
